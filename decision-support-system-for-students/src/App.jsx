@@ -317,48 +317,242 @@ const styles = `
 
 // ==================== MOCK DATA ====================
 const MOCK_SKILLS = {
-  "JavaScript": [
-    "Variables & Data Types", "Functions", "DOM Manipulation", "ES6 Concepts", "Async/Await", "APIs", "Error Handling"
-  ],
-  "Python": [
-    "Syntax & Basics", "Data Structures", "File Handling", "OOP Concepts", "Libraries (NumPy)", "Web Scraping"
-  ],
-  "React": [
-    "JSX Basics", "Components & Props", "State & Hooks", "Routing", "Context API", "Performance Optimization"
-  ],
-  "Machine Learning": [
-    "Math Foundations", "Supervised Learning", "Unsupervised Learning", "Model Evaluation", "Feature Engineering", "Neural Networks"
-  ],
-  "Data Science": [
-    "Python for Data", "Pandas & NumPy", "Data Visualization", "Statistics", "SQL Basics", "ML Intro"
-  ],
-  "Web Development": [
-    "HTML5", "CSS3", "JavaScript", "Responsive Design", "Version Control", "REST APIs"
-  ],
-  "AI": [
-    "Intro to AI", "Search Algorithms", "Knowledge Representation", "Machine Learning", "Deep Learning", "NLP Basics"
-  ],
-  "SQL": [
-    "SELECT Statements", "Joins", "Aggregations", "Subqueries", "Indexes", "Stored Procedures"
-  ]
+  // ---------- Programming Languages ----------
+  "JavaScript": ["Variables & Data Types", "Functions & Closures", "DOM Manipulation", "ES6+ Concepts", "Async/Await & Promises", "REST APIs & Fetch", "Error Handling", "Modules & Bundling"],
+  "Python": ["Syntax & Basics", "Data Structures", "File Handling", "OOP Concepts", "Libraries (NumPy, Pandas)", "Web Scraping", "Virtual Environments", "Decorators & Generators"],
+  "Java": ["OOP Principles", "Collections Framework", "Multithreading", "Exception Handling", "Java 8 Streams", "JDBC", "Spring Basics", "Maven & Gradle"],
+  "C++": ["Pointers & Memory", "STL (Vectors, Maps)", "OOP in C++", "Templates", "File I/O", "Competitive Programming Tricks", "Dynamic Programming"],
+  "C": ["Pointers & Arrays", "Memory Management (malloc/free)", "Structs & Unions", "File Operations", "Linked Lists in C", "Recursion"],
+  "TypeScript": ["Types & Interfaces", "Generics", "Enums & Tuples", "Type Guards", "Decorators", "TypeScript with React", "tsconfig Setup"],
+  "Go (Golang)": ["Syntax & Types", "Goroutines & Channels", "Interfaces", "Error Handling", "HTTP Servers", "Go Modules", "Testing in Go"],
+  "Rust": ["Ownership & Borrowing", "Lifetimes", "Structs & Enums", "Traits", "Concurrency", "Cargo & Crates", "Error Handling with Result"],
+  "Ruby": ["Syntax & Basics", "Blocks & Procs", "OOP in Ruby", "Gems & Bundler", "Ruby on Rails Intro", "ERB Templates", "Active Record"],
+  "PHP": ["Syntax & Variables", "Functions & Arrays", "OOP in PHP", "PDO & MySQL", "Laravel Basics", "Sessions & Cookies", "REST APIs in PHP"],
+  "Kotlin": ["Syntax & Null Safety", "Data Classes", "Coroutines", "Sealed Classes", "Android with Kotlin", "Kotlin Extensions", "Jetpack Compose Basics"],
+  "Swift": ["Optionals & Safety", "Structs vs Classes", "Protocols", "Error Handling", "UIKit Basics", "SwiftUI Introduction", "Core Data"],
+  "Dart": ["Syntax & Types", "OOP in Dart", "Async & Futures", "Streams", "Flutter with Dart", "Null Safety", "Packages & pub.dev"],
+  "Scala": ["Functional Programming", "Case Classes", "Pattern Matching", "Traits & Mixins", "Akka Actors", "Spark with Scala", "SBT Build Tool"],
+  // ---------- Web Development ----------
+  "Web Development": ["HTML5 Semantics", "CSS3 & Flexbox/Grid", "JavaScript Basics", "Responsive Design", "Version Control (Git)", "REST APIs", "Browser DevTools", "Accessibility (a11y)"],
+  "React": ["JSX Basics", "Components & Props", "State & Hooks", "React Router", "Context API", "Redux Toolkit", "Performance Optimization", "Testing with Jest"],
+  "Vue.js": ["Vue Instance & Directives", "Components & Props", "Vue Router", "Vuex State Management", "Composition API", "Pinia", "Unit Testing"],
+  "Angular": ["Components & Modules", "Directives & Pipes", "Services & DI", "RxJS Observables", "Angular Router", "Forms (Template & Reactive)", "NgRx"],
+  "Next.js": ["File-Based Routing", "Server-Side Rendering", "Static Generation", "API Routes", "Image Optimization", "Middleware", "Deployment on Vercel"],
+  "Node.js": ["Event Loop", "Modules (CommonJS/ESM)", "Express.js", "File System & Streams", "REST API Building", "Authentication (JWT)", "NPM Ecosystem"],
+  "HTML & CSS": ["HTML5 Elements", "Semantic HTML", "CSS Selectors", "Box Model", "Flexbox", "CSS Grid", "Animations & Transitions", "CSS Variables"],
+  // ---------- Data & AI ----------
+  "Machine Learning": ["Math Foundations (Linear Algebra, Calculus)", "Supervised Learning", "Unsupervised Learning", "Model Evaluation & Metrics", "Feature Engineering", "Neural Networks", "Ensemble Methods", "MLflow & Experiment Tracking"],
+  "Deep Learning": ["Neural Network Basics", "CNNs", "RNNs & LSTMs", "Transformers", "Transfer Learning", "GANs", "Keras & TensorFlow", "PyTorch Fundamentals"],
+  "Data Science": ["Python for Data", "Pandas & NumPy", "Data Visualization (Matplotlib, Seaborn)", "Inferential Statistics", "SQL for Data", "Machine Learning Intro", "Storytelling with Data"],
+  "NLP (Natural Language Processing)": ["Text Preprocessing", "Tokenization & Embeddings", "Sentiment Analysis", "Named Entity Recognition", "Transformers & BERT", "Language Model Fine-Tuning", "Chatbot Development"],
+  "Computer Vision": ["Image Preprocessing", "Edge Detection", "Object Detection (YOLO)", "Image Classification", "Semantic Segmentation", "OpenCV Basics", "GANs for Images"],
+  "AI": ["Intro to AI", "Search Algorithms (BFS, DFS, A*)", "Knowledge Representation", "Planning & Reasoning", "Reinforcement Learning", "AI Ethics", "Generative AI"],
+  "Data Analysis": ["Excel & Google Sheets", "Python (Pandas)", "SQL Queries", "Power BI / Tableau", "Statistical Analysis", "A/B Testing", "Data Cleaning & Wrangling"],
+  "Data Structures & Algorithms": ["Arrays & Strings", "Linked Lists", "Stacks & Queues", "Trees & Graphs", "Hashing", "Dynamic Programming", "Greedy Algorithms", "Sorting & Searching"],
+  // ---------- Cloud & DevOps ----------
+  "AWS (Amazon Web Services)": ["IAM & Security", "EC2 & VPC", "S3 & CloudFront", "Lambda & Serverless", "RDS & DynamoDB", "CloudFormation", "AWS CLI", "Cost Optimization"],
+  "Azure": ["Azure Fundamentals", "Virtual Machines", "Azure Functions", "Blob Storage", "Azure DevOps", "Cosmos DB", "Active Directory", "AKS (Kubernetes)"],
+  "Google Cloud Platform": ["GCP Core Services", "Compute Engine", "Cloud Run", "BigQuery", "Firebase", "GKE", "IAM Roles", "Pub/Sub Messaging"],
+  "Docker": ["Container Basics", "Dockerfile", "Docker Compose", "Volumes & Networks", "Container Registries", "Multi-Stage Builds", "Docker Swarm"],
+  "Kubernetes": ["Pods & Deployments", "Services & Ingress", "ConfigMaps & Secrets", "StatefulSets", "Helm Charts", "Autoscaling", "Monitoring with Prometheus"],
+  "DevOps": ["Version Control (Git)", "CI/CD Pipelines", "Docker & Containers", "Infrastructure as Code", "Monitoring & Logging", "Agile & Scrum", "Jenkins / GitHub Actions"],
+  "Linux": ["Shell Commands", "File System Navigation", "User & Permission Management", "Shell Scripting (Bash)", "Process Management", "Networking (SSH, curl)", "Cron Jobs"],
+  "CI/CD": ["Git Fundamentals", "GitHub Actions", "Jenkins Pipelines", "GitLab CI", "Automated Testing in CI", "Deployment Strategies", "Rollback & Monitoring"],
+  // ---------- Databases ----------
+  "SQL": ["SELECT Statements", "Joins (INNER, LEFT, RIGHT)", "Aggregations (GROUP BY)", "Subqueries & CTEs", "Indexes & Query Optimization", "Stored Procedures", "Transactions & ACID"],
+  "MongoDB": ["Documents & Collections", "CRUD Operations", "Aggregation Pipeline", "Indexes", "Schema Design", "Mongoose ORM", "Atlas & Cloud Hosting"],
+  "PostgreSQL": ["Advanced SQL", "JSON Support", "Full-Text Search", "Window Functions", "pg_admin", "Transactions", "Replication"],
+  "Firebase": ["Firestore CRUD", "Realtime Database", "Authentication", "Cloud Functions", "Hosting", "Security Rules", "Firebase Analytics"],
+  "Redis": ["Key-Value Store", "Data Types (Lists, Sets, Hashes)", "Pub/Sub", "Caching Strategies", "TTL & Expiry", "Redis Cluster", "Lua Scripting"],
+  // ---------- Mobile ----------
+  "Android Development": ["Android Studio Setup", "Activities & Intents", "Layouts & Views", "RecyclerView", "Navigation Component", "Retrofit & APIs", "Room Database", "Push Notifications"],
+  "iOS Development": ["Xcode & Swift Basics", "UIKit Views", "Auto Layout", "Navigation Controllers", "URLSession", "Core Data", "SwiftUI Introduction", "App Store Submission"],
+  "Flutter": ["Dart Basics", "Widgets (Stateless & Stateful)", "Navigation & Routing", "State Management (Provider, Riverpod)", "REST API Integration", "Local Storage", "Publishing to Stores"],
+  "React Native": ["JSX in RN", "Core Components (View, Text, FlatList)", "Navigation (React Navigation)", "State with Redux/Context", "Native Modules", "Expo framework", "Animations"],
+  // ---------- Cybersecurity ----------
+  "Cybersecurity": ["Networking Fundamentals", "CIA Triad", "OWASP Top 10", "Cryptography Basics", "Penetration Testing Intro", "Firewalls & IDS", "Incident Response"],
+  "Ethical Hacking": ["Reconnaissance", "Scanning & Enumeration", "Exploitation (Metasploit)", "Web App Testing (Burp Suite)", "Privilege Escalation", "Post Exploitation", "Report Writing"],
+  "Network Security": ["OSI Model", "TCP/IP Stack", "Wireshark Analysis", "VPNs & Firewalls", "IDS/IPS Systems", "SSL/TLS", "Zero Trust Architecture"],
+  // ---------- Other ----------
+  "Git & Version Control": ["Git Basics (init, add, commit)", "Branching & Merging", "Remote Repositories", "Pull Requests & Code Review", "Git Rebase & Cherry Pick", "Git Hooks", "GitFlow Workflow"],
+  "UI/UX Design": ["Design Thinking", "Wireframing", "Prototyping (Figma)", "User Research", "Usability Testing", "Design Systems", "Accessibility Principles"],
+  "Blockchain": ["Blockchain Fundamentals", "Cryptography in Blockchain", "Smart Contracts (Solidity)", "Ethereum & EVM", "DeFi Concepts", "NFTs", "Web3.js / Ethers.js"],
+  "System Design": ["Scalability Concepts", "Load Balancing", "Caching Strategies", "Database Sharding", "Microservices Architecture", "Message Queues", "CAP Theorem"],
+  "Competitive Programming": ["Time & Space Complexity", "Sorting Algorithms", "Graph Algorithms", "Dynamic Programming", "Greedy Techniques", "Segment Trees & BITs", "Contest Strategy"],
+  "Cloud Computing": ["IaaS / PaaS / SaaS", "Virtualisation", "Containers & Serverless", "Cloud Security", "Multi-Cloud Strategy", "Cost Management", "SLA & Availability"],
+};
+
+// Skill aliases for smart search
+const SKILL_ALIASES = {
+  "js": ["JavaScript", "Node.js", "Next.js", "React", "Vue.js", "Angular"],
+  "ts": ["TypeScript"],
+  "py": ["Python"],
+  "ml": ["Machine Learning", "Deep Learning", "NLP (Natural Language Processing)", "Computer Vision", "AI"],
+  "dl": ["Deep Learning"],
+  "nlp": ["NLP (Natural Language Processing)"],
+  "cv": ["Computer Vision"],
+  "ds": ["Data Science", "Data Analysis", "Data Structures & Algorithms"],
+  "dsa": ["Data Structures & Algorithms"],
+  "css": ["HTML & CSS", "Web Development"],
+  "html": ["HTML & CSS", "Web Development"],
+  "node": ["Node.js"],
+  "next": ["Next.js"],
+  "vue": ["Vue.js"],
+  "ng": ["Angular"],
+  "rn": ["React Native"],
+  "gcp": ["Google Cloud Platform"],
+  "k8s": ["Kubernetes"],
+  "devops": ["DevOps", "CI/CD", "Docker", "Kubernetes", "Linux"],
+  "security": ["Cybersecurity", "Ethical Hacking", "Network Security"],
+  "hack": ["Ethical Hacking", "Cybersecurity"],
+  "android": ["Android Development", "Kotlin", "Flutter", "React Native"],
+  "ios": ["iOS Development", "Swift", "Flutter"],
+  "mobile": ["Android Development", "iOS Development", "Flutter", "React Native"],
+  "database": ["SQL", "MongoDB", "PostgreSQL", "Firebase", "Redis"],
+  "db": ["SQL", "MongoDB", "PostgreSQL", "Firebase", "Redis"],
+  "cloud": ["AWS (Amazon Web Services)", "Azure", "Google Cloud Platform", "Cloud Computing", "Docker", "Kubernetes"],
+  "aws": ["AWS (Amazon Web Services)"],
+  "blockchain": ["Blockchain"],
+  "web3": ["Blockchain"],
+  "design": ["UI/UX Design"],
+  "ux": ["UI/UX Design"],
+  "backend": ["Node.js", "Python", "Java", "Go (Golang)", "SQL", "MongoDB", "PostgreSQL", "Docker", "Redis"],
+  "frontend": ["React", "Vue.js", "Angular", "Next.js", "HTML & CSS", "JavaScript", "TypeScript"],
+  "fullstack": ["React", "Node.js", "Next.js", "MongoDB", "SQL", "Web Development", "Docker"],
+  "competitive": ["Competitive Programming", "Data Structures & Algorithms", "C++"],
+  "system": ["System Design", "DevOps", "Cloud Computing", "Linux"],
+  "git": ["Git & Version Control", "DevOps"],
 };
 
 const MOCK_COMPETITIONS = [
-  { id: 1, title: "HackFest 2026", domain: "Web Development", desc: "48-hour hackathon focused on building social impact solutions.", status: null },
-  { id: 2, title: "AI Challenge Cup", domain: "Artificial Intelligence", desc: "Build AI models to solve real-world problems.", status: null },
-  { id: 3, title: "Data Olympiad", domain: "Data Science", desc: "Compete in data analysis and visualization challenges.", status: null },
-  { id: 4, title: "CodeWar Sprint", domain: "Competitive Programming", desc: "Solve algorithmic challenges in 3 hours.", status: null },
+  // ---- Hackathons ----
+  { id: 1, title: "Smart India Hackathon (SIH)", category: "hackathon", org: "Ministry of Education", domain: "All Domains", desc: "India's largest national-level hackathon. Teams solve government problem statements across 36 hours.", tags: ["hack", "sih", "government", "national"] },
+  { id: 2, title: "HackFest 2026", category: "hackathon", org: "HackFest", domain: "Web Development", desc: "48-hour hackathon focused on building social impact solutions using modern web stack.", tags: ["hack", "web", "social"] },
+  { id: 3, title: "HackCBS", category: "hackathon", org: "Shaheed Sukhdev College", domain: "Open Innovation", desc: "Delhi's biggest student-run hackathon with 36 hours of hacking.", tags: ["hack", "delhi", "student"] },
+  { id: 4, title: "MLH Global Hack Week", category: "hackathon", org: "Major League Hacking", domain: "Open Source & Tech", desc: "Week-long themed hacking events run by MLH covering diverse tech topics.", tags: ["hack", "mlh", "open source"] },
+  { id: 5, title: "AngelHack Global Hackathon", category: "hackathon", org: "AngelHack", domain: "FinTech & Startup", desc: "Global series with prizes for the most innovative startup ideas and prototypes.", tags: ["hack", "startup", "fintech", "global"] },
+  { id: 6, title: "StackHack", category: "hackathon", org: "HackerEarth", domain: "Full Stack Development", desc: "Online hackathon for full-stack engineers with real-world problem statements.", tags: ["hack", "fullstack", "hackerearth"] },
+  { id: 7, title: "Google Solution Challenge", category: "hackathon", org: "Google", domain: "Social Impact + AI", desc: "Build solutions for UN Sustainable Development Goals using Google technology.", tags: ["hack", "google", "sdg", "ai"] },
+  { id: 8, title: "Microsoft Imagine Cup", category: "hackathon", org: "Microsoft", domain: "Innovation", desc: "Global student technology competition. Build innovative tech projects across AI, gaming, mixed reality.", tags: ["hack", "microsoft", "global", "student"] },
+  { id: 9, title: "ETHIndia", category: "hackathon", org: "ETHIndia", domain: "Blockchain / Web3", desc: "India's largest Ethereum hackathon for building decentralised applications.", tags: ["hack", "blockchain", "web3", "ethereum"] },
+  { id: 10, title: "Devfolio Hackathons", category: "hackathon", org: "Devfolio", domain: "Open Innovation", desc: "Hundreds of college and online hackathons hosted on India's largest hackathon platform.", tags: ["hack", "devfolio", "india", "college"] },
+  { id: 11, title: "NASA Space Apps Challenge", category: "hackathon", org: "NASA", domain: "Space & Science", desc: "Global hackathon where participants solve space-related challenges using NASA open data.", tags: ["hack", "nasa", "space", "science", "global"] },
+  { id: 12, title: "HackaHealth", category: "hackathon", org: "HackaHealth", domain: "HealthTech", desc: "Healthcare-focused hackathon focused on using technology to solve health challenges.", tags: ["hack", "health", "healthcare"] },
+  { id: 13, title: "Fintech Hackathon by RBI", category: "hackathon", org: "Reserve Bank of India", domain: "FinTech", desc: "Regulator-run hackathon focused on next-gen financial technology solutions for India.", tags: ["hack", "fintech", "rbi", "finance"] },
+  { id: 14, title: "HackThis Fall", category: "hackathon", org: "HackThis Fall", domain: "Open Source", desc: "Inclusivity-first 36-hour online hackathon open to students from all backgrounds.", tags: ["hack", "open source", "online", "beginner"] },
+  // ---- Coding Contests ----
+  { id: 15, title: "Google Kick Start", category: "coding", org: "Google", domain: "Competitive Programming", desc: "Online algorithmic competition in multiple rounds; gateway to Google hiring.", tags: ["code", "coding", "google", "competitive", "algorithm"] },
+  { id: 16, title: "Google Code Jam", category: "coding", org: "Google", domain: "Competitive Programming", desc: "Google's flagship coding competition testing algorithms, mathematics and problem solving.", tags: ["code", "coding", "google", "competitive"] },
+  { id: 17, title: "ACM ICPC (International Collegiate Programming Contest)", category: "coding", org: "ACM/ICPC Foundation", domain: "Competitive Programming", desc: "World's most prestigious team programming contest for university students.", tags: ["code", "coding", "icpc", "acm", "competitive", "university"] },
+  { id: 18, title: "Codeforces Rounds", category: "coding", org: "Codeforces", domain: "Competitive Programming", desc: "Regular rated competitive programming rounds with Div 1, 2, 3 and 4 categories.", tags: ["code", "coding", "codeforces", "competitive", "algorithm"] },
+  { id: 19, title: "LeetCode Weekly Contest", category: "coding", org: "LeetCode", domain: "Problem Solving", desc: "Weekly algorithmic problem-solving contests with global leaderboard rankings.", tags: ["code", "coding", "leetcode", "algorithm", "interview"] },
+  { id: 20, title: "CodeChef Starters & Long Challenge", category: "coding", org: "CodeChef", domain: "Competitive Programming", desc: "Monthly and weekly competitive programming contests on CodeChef platform.", tags: ["code", "coding", "codechef", "competitive"] },
+  { id: 21, title: "AtCoder Grand/Regular Contests", category: "coding", org: "AtCoder", domain: "Competitive Programming", desc: "High-quality algorithmic contests popular among competitive programmers globally.", tags: ["code", "coding", "atcoder", "competitive", "algorithm"] },
+  { id: 22, title: "Facebook Hacker Cup", category: "coding", org: "Meta", domain: "Competitive Programming", desc: "Meta's annual open programming competition testing complex algorithmic problem solving.", tags: ["code", "coding", "meta", "facebook", "competitive"] },
+  { id: 23, title: "HackerEarth Circuits", category: "coding", org: "HackerEarth", domain: "Competitive Programming", desc: "Monthly competitive programming contest with full solutions and editorials.", tags: ["code", "coding", "hackerearth", "competitive"] },
+  // ---- Olympiads ----
+  { id: 24, title: "Indian Informatics Olympiad (INOI)", category: "olympiad", org: "IARCS", domain: "Informatics / CS", desc: "National informatics olympiad pathways to represent India at IOI. Key stages: ZCO, ZRCO, INOI.", tags: ["olympiad", "informatics", "iarcs", "national", "cs"] },
+  { id: 25, title: "International Olympiad in Informatics (IOI)", category: "olympiad", org: "IOI", domain: "Informatics / CS", desc: "Most prestigious international olympiad for secondary school students in computer science & algorithms.", tags: ["olympiad", "informatics", "ioi", "international", "cs"] },
+  { id: 26, title: "International Mathematical Olympiad (IMO)", category: "olympiad", org: "IMO", domain: "Mathematics", desc: "World's oldest and most prestigious maths olympiad for pre-university students.", tags: ["olympiad", "maths", "mathematics", "imo", "international"] },
+  { id: 27, title: "Indian National Mathematical Olympiad (INMO)", category: "olympiad", org: "HBCSE", domain: "Mathematics", desc: "Stage 3 of the Indian Olympiad pathway leading to IMO selection for Indian students.", tags: ["olympiad", "maths", "mathematics", "inmo", "national"] },
+  { id: 28, title: "Regional Mathematical Olympiad (RMO)", category: "olympiad", org: "HBCSE", domain: "Mathematics", desc: "State-level maths olympiad. Top scorers advance to INMO.", tags: ["olympiad", "maths", "mathematics", "rmo", "regional"] },
+  { id: 29, title: "International Physics Olympiad (IPhO)", category: "olympiad", org: "IPhO", domain: "Physics", desc: "International competition for secondary school students in physics.", tags: ["olympiad", "physics", "ipho", "international", "science"] },
+  { id: 30, title: "National Standard Examination (NSE)", category: "olympiad", org: "IAPT / HBCSE", domain: "Physics / Chemistry / Bio", desc: "Entry level Indian olympiad exams (NSEP, NSEC, NSEB, NSEA) pathways to international olympiads.", tags: ["olympiad", "nse", "nsep", "nsec", "nseb", "science", "national"] },
+  { id: 31, title: "International Olympiad on Astronomy & Astrophysics (IOAA)", category: "olympiad", org: "IOAA", domain: "Astronomy", desc: "International olympiad for high school students in astronomy and astrophysics.", tags: ["olympiad", "astronomy", "ioaa", "international", "science"] },
+  { id: 32, title: "International AI Olympiad (IOAI)", category: "olympiad", org: "IOAI", domain: "Artificial Intelligence", desc: "Emerging international olympiad testing knowledge of AI, ML and data science concepts.", tags: ["olympiad", "ai", "artificial intelligence", "ioai", "international", "ml"] },
+  // ---- Data Science / ML ----
+  { id: 33, title: "Kaggle Featured Competitions", category: "data", org: "Kaggle", domain: "Data Science / ML", desc: "Ongoing machine learning competitions on Kaggle with prizes up to $100,000.", tags: ["kaggle", "data", "ml", "machine learning", "ai"] },
+  { id: 34, title: "Analytics Vidhya Datathon", category: "data", org: "Analytics Vidhya", domain: "Data Science", desc: "Indian data science competitions across beginner to expert levels with leaderboards.", tags: ["data", "analytics", "datathon", "india", "ml"] },
+  { id: 35, title: "Zindi Africa ML Challenge", category: "data", org: "Zindi", domain: "Machine Learning", desc: "Data science competitions focused on African societal problems with real datasets.", tags: ["data", "ml", "machine learning", "zindi", "africa"] },
+  { id: 36, title: "DrivenData ML for Good", category: "data", org: "DrivenData", domain: "Social Impact + ML", desc: "Machine learning competitions targeting social good, humanitarian and environmental problems.", tags: ["data", "ml", "social", "drivendata", "good"] },
+  { id: 37, title: "NeurIPS ML4Science Challenge", category: "data", org: "NeurIPS", domain: "AI Research", desc: "Machine learning for science challenges associated with the NeurIPS conference.", tags: ["data", "ml", "ai", "neurips", "research", "science"] },
+  // ---- AI / Design / Business ----
+  { id: 38, title: "Adobe Design Challenge", category: "design", org: "Adobe", domain: "UI/UX Design", desc: "Global design competition where students create innovative solutions using Adobe creative tools.", tags: ["design", "adobe", "uiux", "creative", "global"] },
+  { id: 39, title: "Figma Config Design Challenge", category: "design", org: "Figma", domain: "Product Design", desc: "Annual design challenge by Figma celebrating innovative interface and product design.", tags: ["design", "figma", "ux", "product"] },
+  { id: 40, title: "Microsoft AI Skills Challenge", category: "ai", org: "Microsoft", domain: "Artificial Intelligence", desc: "Learn AI and get certified; earn rewards by completing Microsoft learning paths.", tags: ["ai", "microsoft", "azure", "certification", "ml"] },
+  { id: 41, title: "IEEE Xtreme Programming Competition", category: "coding", org: "IEEE", domain: "Competitive Programming", desc: "24-hour online programming competition open to IEEE student members worldwide.", tags: ["code", "coding", "ieee", "competitive", "24 hour"] },
+  { id: 42, title: "Goldman Sachs Global Investment Research Challenge", category: "business", org: "Goldman Sachs", domain: "Finance & Strategy", desc: "Teams build investment cases and present to GS professionals. Great for finance aspirants.", tags: ["business", "finance", "goldman", "sachs", "investment"] },
+  { id: 43, title: "CFA Institute Research Challenge", category: "business", org: "CFA Institute", domain: "Finance / Investment", desc: "Global equity research competition providing students with hands-on mentoring by CFA charterholders.", tags: ["business", "finance", "cfa", "investment", "research"] },
+  { id: 44, title: "Topcoder Open", category: "coding", org: "Topcoder", domain: "Competitive Programming", desc: "Annual open competition covering algorithm, development and design tracks.", tags: ["code", "coding", "topcoder", "competitive", "algorithm"] },
+  { id: 45, title: "Open Data Science Competition (ODSC)", category: "data", org: "ODSC", domain: "Data Science", desc: "Competitions tied to ODSC conferences across data science, ML and AI domains.", tags: ["data", "odsc", "ml", "ai", "conference"] },
 ];
 
 const MOCK_INTERNSHIPS = [
-  { id: 5, title: "Google Summer of Code", domain: "Open Source", desc: "3-month paid open source coding program.", status: null },
-  { id: 6, title: "Microsoft Azure Internship", domain: "Cloud Computing", desc: "Work on Azure services and cloud infrastructure.", status: null },
-  { id: 7, title: "StartupAI Fellowship", domain: "AI/ML", desc: "8-week intensive AI startup experience.", status: null },
-  { id: 8, title: "NASSCOM Internship Program", domain: "IT Industry", desc: "Industry-integrated learning program.", status: null },
+  // ---- Big Tech ----
+  { id: 101, org: "Google", title: "Google Summer of Code (GSoC)", domain: "Open Source", desc: "3-month paid programme to work on open source projects mentored by Google engineers.", duration: "3 months", stipend: "₹60,000+/mo", tags: ["google", "open source", "coding", "paid", "summer"] },
+  { id: 102, org: "Google", title: "Google STEP Internship", domain: "Software Engineering", desc: "Student Training in Engineering Program for 1st and 2nd year CS students at Google.", duration: "3 months", stipend: "Paid (competitive)", tags: ["google", "engineering", "student", "first year"] },
+  { id: 103, org: "Google", title: "Google Research Internship", domain: "AI / Research", desc: "Research internships across Google Brain, DeepMind and Google Research labs.", duration: "3–6 months", stipend: "Paid", tags: ["google", "research", "ai", "deepmind", "ml"] },
+  { id: 104, org: "Microsoft", title: "Microsoft Explore Internship", domain: "Software Engineering", desc: "Internship for freshmen/sophomore students exploring PM, design, and engineering.", duration: "12 weeks", stipend: "Paid (competitive)", tags: ["microsoft", "engineering", "explore", "pm", "student"] },
+  { id: 105, org: "Microsoft", title: "Microsoft Azure Cloud Internship", domain: "Cloud Computing", desc: "Work on Azure services, cloud infrastructure and enterprise software at Microsoft.", duration: "3 months", stipend: "Paid", tags: ["microsoft", "azure", "cloud", "infra"] },
+  { id: 106, org: "Microsoft", title: "Microsoft Research Asia Internship", domain: "AI / Research", desc: "Research internship at MSRA on topics including NLP, CV, Distributed Systems, and Security.", duration: "3–6 months", stipend: "Paid", tags: ["microsoft", "research", "ai", "nlp", "asia"] },
+  { id: 107, org: "Amazon", title: "Amazon SDE Internship", domain: "Software Development", desc: "Build real features at Amazon with a team. Work on AWS, Alexa, or Amazon retail.", duration: "3 months", stipend: "Paid (competitive)", tags: ["amazon", "sde", "aws", "software", "engineering"] },
+  { id: 108, org: "Amazon", title: "AWS Solutions Architect Intern", domain: "Cloud Computing", desc: "Design and implement cloud solutions for AWS customers as a Solutions Architect intern.", duration: "3 months", stipend: "Paid", tags: ["amazon", "aws", "cloud", "architect", "solutions"] },
+  { id: 109, org: "Meta", title: "Meta Software Engineer Internship", domain: "Software Engineering", desc: "Work on Facebook, Instagram, WhatsApp or Oculus products as a software engineering intern.", duration: "12 weeks", stipend: "Paid (competitive)", tags: ["meta", "facebook", "instagram", "engineering", "software"] },
+  { id: 110, org: "Apple", title: "Apple iOS Engineering Internship", domain: "iOS Development", desc: "Contribute to iOS, macOS, watchOS platforms and first-party apps at Apple.", duration: "3 months", stipend: "Paid", tags: ["apple", "ios", "swift", "engineering", "mac"] },
+  { id: 111, org: "Netflix", title: "Netflix Engineering Internship", domain: "Software Engineering", desc: "Work on streaming infrastructure, recommendation systems or UX at Netflix.", duration: "3 months", stipend: "Paid (top tier)", tags: ["netflix", "streaming", "engineering", "recommendation", "ml"] },
+  { id: 112, org: "Adobe", title: "Adobe Research Internship", domain: "AI / Creative Tech", desc: "Work on AI, computer vision and creative technology research at Adobe Research.", duration: "3 months", stipend: "Paid", tags: ["adobe", "research", "ai", "creative", "cv", "design"] },
+  { id: 113, org: "Salesforce", title: "Salesforce Intern", domain: "Cloud CRM", desc: "Build and test features for Salesforce CRM platform and ecosystem.", duration: "3 months", stipend: "Paid", tags: ["salesforce", "crm", "cloud", "enterprise", "business"] },
+  { id: 114, org: "LinkedIn", title: "LinkedIn Engineering Internship", domain: "Software Engineering", desc: "Work on LinkedIn's professional network platform, search, feed or data infra.", duration: "3 months", stipend: "Paid", tags: ["linkedin", "engineering", "data", "networking", "software"] },
+  // ---- Indian IT Giants ----
+  { id: 115, org: "TCS", title: "TCS Digital Internship", domain: "IT Services", desc: "Internship in TCS's digital transformation projects covering cloud, AI and automation.", duration: "2–3 months", stipend: "₹10,000–15,000/mo", tags: ["tcs", "india", "it", "digital", "cloud", "automation"] },
+  { id: 116, org: "TCS", title: "TCS Research & Innovation Internship", domain: "Research", desc: "Work with TCS Research on emerging tech like quantum computing, AI and materials science.", duration: "2–3 months", stipend: "₹15,000/mo", tags: ["tcs", "research", "ai", "quantum", "innovation", "india"] },
+  { id: 117, org: "Infosys", title: "Infosys Springboard Internship", domain: "Software Development", desc: "Hands-on internship programme developing enterprise software solutions for Infosys clients.", duration: "2 months", stipend: "₹10,000/mo", tags: ["infosys", "india", "software", "enterprise", "springboard"] },
+  { id: 118, org: "Wipro", title: "Wipro Turbo Internship", domain: "IT Services", desc: "Turbo track internship at Wipro covering full-stack development and agile methodologies.", duration: "2 months", stipend: "₹10,000/mo", tags: ["wipro", "india", "fullstack", "agile", "it"] },
+  { id: 119, org: "HCL", title: "HCL TechBee Internship", domain: "IT Services", desc: "Industry-integrated programme with Wipro offering early career tech exposure.", duration: "3 months", stipend: "Stipend provided", tags: ["hcl", "india", "tech", "engineering", "it"] },
+  { id: 120, org: "Cognizant", title: "Cognizant Skills Accelerator", domain: "IT & Consulting", desc: "Programme combining skilling, SAP and cloud consulting work for IT services delivery.", duration: "2 months", stipend: "₹8,000–12,000/mo", tags: ["cognizant", "india", "consulting", "sap", "cloud", "it"] },
+  { id: 121, org: "Tech Mahindra", title: "Tech Mahindra SMART Internship", domain: "Digital / IT", desc: "5G, AI, and digital transformation internship at Tech Mahindra's innovation labs.", duration: "2 months", stipend: "₹10,000/mo", tags: ["tech mahindra", "india", "5g", "ai", "digital", "telecom"] },
+  { id: 122, org: "Capgemini", title: "Capgemini Invent Internship", domain: "Consulting / Tech", desc: "Work on digital transformation, strategy and data analytics projects for global clients.", duration: "2 months", stipend: "₹12,000/mo", tags: ["capgemini", "consulting", "digital", "strategy", "india"] },
+  // ---- Indian Startups & Unicorns ----
+  { id: 123, org: "Razorpay", title: "Razorpay Engineering Intern", domain: "FinTech", desc: "Work on India's leading payment gateway infrastructure processing billions of transactions.", duration: "3 months", stipend: "₹30,000–50,000/mo", tags: ["razorpay", "fintech", "payments", "engineering", "india", "startup"] },
+  { id: 124, org: "Zerodha", title: "Zerodha Technology Internship", domain: "FinTech", desc: "Build trading platform features and infra for India's largest stock broker.", duration: "3 months", stipend: "₹25,000–40,000/mo", tags: ["zerodha", "fintech", "trading", "engineering", "india"] },
+  { id: 125, org: "CRED", title: "CRED Product / Engineering Intern", domain: "FinTech / Product", desc: "Work on CRED's financial reward platform used by India's premium credit card holders.", duration: "3 months", stipend: "₹30,000–50,000/mo", tags: ["cred", "fintech", "product", "engineering", "india", "startup"] },
+  { id: 126, org: "Meesho", title: "Meesho SDE Internship", domain: "E-Commerce", desc: "Build e-commerce features at Meesho serving tier 2 and 3 Indian cities.", duration: "3 months", stipend: "₹30,000+/mo", tags: ["meesho", "ecommerce", "engineering", "india", "startup"] },
+  { id: 127, org: "Swiggy", title: "Swiggy Engineering Internship", domain: "Food Tech", desc: "Work on order management, logistics, and restaurant tech at Swiggy's engineering team.", duration: "3 months", stipend: "₹30,000–45,000/mo", tags: ["swiggy", "foodtech", "engineering", "logistics", "india"] },
+  { id: 128, org: "Zomato", title: "Zomato SDE / Data Internship", domain: "Food Tech / Data", desc: "Build consumer-facing features or work on data science at Zomato's engineering division.", duration: "3 months", stipend: "₹25,000–40,000/mo", tags: ["zomato", "foodtech", "data", "engineering", "india", "startup"] },
+  { id: 129, org: "PhonePe", title: "PhonePe Engineering Intern", domain: "FinTech", desc: "Work on UPI payments, financial services infra and merchant solutions at PhonePe.", duration: "3 months", stipend: "₹30,000–50,000/mo", tags: ["phonepe", "fintech", "upi", "payments", "engineering", "india"] },
+  { id: 130, org: "Paytm", title: "Paytm Technology Internship", domain: "FinTech", desc: "Join Paytm's tech team working on digital payments, insurance, and lending platforms.", duration: "2–3 months", stipend: "₹20,000–30,000/mo", tags: ["paytm", "fintech", "payments", "technology", "india"] },
+  { id: 131, org: "Ola", title: "Ola Engineering Internship", domain: "Mobility Tech", desc: "Work on ride-hailing, EV, or maps technology at Ola's engineering team.", duration: "3 months", stipend: "₹25,000–40,000/mo", tags: ["ola", "mobility", "ev", "engineering", "maps", "india"] },
+  { id: 132, org: "Flipkart", title: "Flipkart Engineering Intern", domain: "E-Commerce", desc: "Join Flipkart engineering working on search, recommendations, supply chain or payments.", duration: "3 months", stipend: "₹30,000–50,000/mo", tags: ["flipkart", "ecommerce", "engineering", "india", "recommendations", "walmart"] },
+  { id: 133, org: "Byju's", title: "Byju's Product Engineering Intern", domain: "EdTech", desc: "Work on learning platforms, content delivery, and student analytics at Byju's.", duration: "2 months", stipend: "₹15,000–25,000/mo", tags: ["byjus", "edtech", "engineering", "education", "india"] },
+  { id: 134, org: "Dunzo", title: "Dunzo Backend Engineering Intern", domain: "Quick Commerce", desc: "Build logistics and hyperlocal delivery systems at Dunzo's quick-commerce platform.", duration: "3 months", stipend: "₹20,000–35,000/mo", tags: ["dunzo", "logistics", "quickcommerce", "backend", "india"] },
+  // ---- Research & Government ----
+  { id: 135, org: "ISRO", title: "ISRO Student Internship Programme", domain: "Space & Engineering", desc: "Internship at ISRO centres working on satellite, launch vehicle, and space applications.", duration: "2–6 months", stipend: "₹5,000–10,000/mo", tags: ["isro", "space", "research", "government", "engineering", "india"] },
+  { id: 136, org: "DRDO", title: "DRDO Research Internship", domain: "Defence Technology", desc: "Work with DRDO laboratories on defence electronics, AI and embedded systems.", duration: "2 months", stipend: "₹5,000–8,000/mo", tags: ["drdo", "defence", "research", "government", "engineering", "india"] },
+  { id: 137, org: "IIT Research", title: "IIT Research Internship (SURGE/SRIP)", domain: "Research", desc: "Summer research programmes (SURGE at IIT Kanpur, SRIP at IIT Bombay) for undergrads.", duration: "2 months", stipend: "₹5,000–15,000/mo", tags: ["iit", "research", "surge", "srip", "india", "academic"] },
+  { id: 138, org: "CSIR", title: "CSIR Research Internship", domain: "Science & Tech Research", desc: "Research opportunities across CSIR labs in chemistry, physics, biology and engineering.", duration: "2–3 months", stipend: "₹5,000–8,000/mo", tags: ["csir", "research", "science", "lab", "government", "india"] },
+  { id: 139, org: "NASSCOM", title: "NASSCOM Future Skills Internship", domain: "IT Industry", desc: "Industry-integrated learning programme under NASSCOM with leading IT partner companies.", duration: "3 months", stipend: "Stipend varies", tags: ["nasscom", "it", "india", "skills", "industry", "future"] },
+  // ---- Finance & Consulting ----
+  { id: 140, org: "Goldman Sachs", title: "Goldman Sachs Engineering Internship", domain: "FinTech / Finance", desc: "Work on trading systems, risk platforms and software at Goldman Sachs' tech division.", duration: "10 weeks", stipend: "Paid (top tier)", tags: ["goldman", "sachs", "finance", "fintech", "engineering", "investment"] },
+  { id: 141, org: "Morgan Stanley", title: "Morgan Stanley Technology Internship", domain: "Finance / Tech", desc: "Technology internship at Morgan Stanley working on financial systems and platforms.", duration: "10 weeks", stipend: "Paid", tags: ["morgan", "stanley", "finance", "technology", "investment"] },
+  { id: 142, org: "JP Morgan", title: "JP Morgan Code For Good Hackathon + Internship", domain: "Finance / Software", desc: "24-hour hackathon with top performers receiving internship offers at JP Morgan.", duration: "10 weeks", stipend: "Paid", tags: ["jpmorgan", "jp morgan", "finance", "software", "hackathon", "investment"] },
+  { id: 143, org: "Deutsche Bank", title: "Deutsche Bank Technology Internship", domain: "Finance / Tech", desc: "Tech internship at Deutsche Bank focusing on banking systems, data and APIs.", duration: "10 weeks", stipend: "Paid", tags: ["deutsche", "bank", "finance", "technology", "banking"] },
+  { id: 144, org: "Deloitte", title: "Deloitte Technology Consulting Internship", domain: "Consulting / Tech", desc: "Work on digital transformation and enterprise tech consulting projects at Deloitte.", duration: "2 months", stipend: "₹25,000–40,000/mo", tags: ["deloitte", "consulting", "technology", "digital", "enterprise"] },
+  { id: 145, org: "Accenture", title: "Accenture Technology Intern", domain: "IT Consulting", desc: "Consulting internship on cloud migration, AI and industry 4.0 with Accenture clients.", duration: "2 months", stipend: "₹15,000–25,000/mo", tags: ["accenture", "consulting", "cloud", "ai", "technology", "industry"] },
+  // ---- Other Global Tech ----
+  { id: 146, org: "IBM", title: "IBM Research Internship", domain: "AI / Quantum", desc: "Research internship at IBM Research working on quantum computing, AI and hybrid cloud.", duration: "3 months", stipend: "Paid", tags: ["ibm", "research", "quantum", "ai", "cloud", "computing"] },
+  { id: 147, org: "Intel", title: "Intel Hardware Engineering Internship", domain: "Computer Architecture", desc: "Work on chip design, VLSI, hardware verification, or compiler development at Intel.", duration: "3 months", stipend: "Paid", tags: ["intel", "hardware", "chip", "vlsi", "architecture", "engineering"] },
+  { id: 148, org: "Qualcomm", title: "Qualcomm Engineering Internship", domain: "Semiconductor / Mobile", desc: "Work on 5G modems, Snapdragon SoC, AI at the edge and embedded systems at Qualcomm.", duration: "3 months", stipend: "Paid", tags: ["qualcomm", "semiconductor", "5g", "mobile", "engineering", "embedded"] },
+  { id: 149, org: "Cisco", title: "Cisco Network Software Intern", domain: "Networking / Software", desc: "Develop software for routers, switches and security systems at Cisco.", duration: "3 months", stipend: "Paid", tags: ["cisco", "networking", "software", "security", "network", "engineering"] },
+  { id: 150, org: "Oracle", title: "Oracle Cloud Infrastructure Intern", domain: "Cloud / Software", desc: "Work on OCI services, databases, and Java platform engineering at Oracle.", duration: "3 months", stipend: "Paid", tags: ["oracle", "cloud", "database", "java", "oci", "software"] },
+  { id: 151, org: "SAP", title: "SAP Labs India Internship", domain: "Enterprise Software", desc: "Build enterprise applications, AI features and HANA database tools at SAP Labs Bangalore.", duration: "6 months", stipend: "₹20,000–30,000/mo", tags: ["sap", "enterprise", "database", "engineering", "india", "erp"] },
+  { id: 152, org: "Uber", title: "Uber Software Engineering Internship", domain: "Mobility / Tech", desc: "Work on maps, pricing, payments or driver experience at Uber's engineering teams.", duration: "3 months", stipend: "Paid (competitive)", tags: ["uber", "mobility", "software", "maps", "engineering", "payments"] },
+  { id: 153, org: "Stripe", title: "Stripe Engineering Internship", domain: "Payments / FinTech", desc: "Build global payments infrastructure at Stripe, one of the world's most valuable startups.", duration: "3 months", stipend: "Paid (top tier)", tags: ["stripe", "payments", "fintech", "engineering", "startup", "infrastructure"] },
 ];
 
 const COMP_STATUSES = ["Interested", "Registered", "Ongoing", "Completed", "Won"];
 const INTERN_STATUSES = ["Interested", "Applied", "Ongoing", "Completed"];
+
+// Competition category aliases for smart search
+const COMP_ALIASES = {
+  "hack": "hackathon", "hackathon": "hackathon", "hacks": "hackathon", "hackfest": "hackathon",
+  "olympiad": "olympiad", "olympiads": "olympiad", "imo": "olympiad", "ioi": "olympiad",
+  "maths": "olympiad", "math": "olympiad", "mathematics": "olympiad",
+  "code": "coding", "coding": "coding", "competitive": "coding", "algorithm": "coding",
+  "codeforces": "coding", "leetcode": "coding", "codechef": "coding",
+  "data": "data", "kaggle": "data", "datathon": "data", "ml competition": "data",
+  "ai competition": "ai", "design challenge": "design", "design": "design",
+  "business": "business", "finance competition": "business",
+};
 
 const MOCK_ACTIVITY = [
   { text: "Added Python as learning goal", time: "2 days ago" },
@@ -367,6 +561,8 @@ const MOCK_ACTIVITY = [
   { text: "Won HackFest 2025", time: "1 week ago" },
   { text: "Started learning React", time: "2 weeks ago" },
 ];
+
+
 
 // ==================== COMPONENTS ====================
 
@@ -799,9 +995,25 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
   const doSearch = () => {
     if (!query.trim()) return;
     addSearch(query);
-    const q = query.toLowerCase();
-    const matches = Object.keys(MOCK_SKILLS).filter(k => k.toLowerCase().includes(q) || q.includes(k.toLowerCase()));
-    setResults(matches.length > 0 ? matches : Object.keys(MOCK_SKILLS).slice(0, 4));
+    const q = query.toLowerCase().trim();
+    const allSkills = Object.keys(MOCK_SKILLS);
+
+    // 1. Check alias map first
+    const aliasHits = SKILL_ALIASES[q] || [];
+
+    // 2. Direct name match
+    const nameMatches = allSkills.filter(k =>
+      k.toLowerCase().includes(q) || q.includes(k.toLowerCase().split(" ")[0])
+    );
+
+    // 3. Subtopic match (skill whose subtopics mention the query)
+    const topicMatches = allSkills.filter(k =>
+      MOCK_SKILLS[k].some(t => t.toLowerCase().includes(q))
+    );
+
+    // 4. Merge, deduplicate, preserve relevance order
+    const ordered = [...new Set([...aliasHits, ...nameMatches, ...topicMatches])];
+    setResults(ordered.length > 0 ? ordered.slice(0, 12) : allSkills.slice(0, 12));
     setSearched(true);
   };
 
@@ -912,24 +1124,51 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
 function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSearch }) {
   const [type, setType] = useState("competition");
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState(type === "competition" ? MOCK_COMPETITIONS : MOCK_INTERNSHIPS);
-  const [searched, setSearched] = useState(true);
+  const [results, setResults] = useState(MOCK_COMPETITIONS);
 
   const pool = type === "competition" ? MOCK_COMPETITIONS : MOCK_INTERNSHIPS;
 
-  const doSearch = () => {
-    if (query.trim()) addSearch(query);
-    const q = query.toLowerCase();
-    const res = q ? pool.filter(p => p.title.toLowerCase().includes(q) || p.domain.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) : pool;
-    setResults(res.length > 0 ? res : pool);
-    setSearched(true);
+  const doSearch = (q = query, currentPool = pool) => {
+    const raw = q.toLowerCase().trim();
+    if (raw && q.trim()) addSearch(q.trim());
+
+    if (!raw) { setResults(currentPool); return; }
+
+    if (type === "competition") {
+      // Check if query matches a category alias
+      const catMatch = COMP_ALIASES[raw];
+      if (catMatch) {
+        const catResults = currentPool.filter(p => p.category === catMatch);
+        setResults(catResults.length > 0 ? catResults : currentPool);
+        return;
+      }
+      // Otherwise do full text search across title, org, domain, desc and tags
+      const res = currentPool.filter(p =>
+        p.title.toLowerCase().includes(raw) ||
+        p.org.toLowerCase().includes(raw) ||
+        p.domain.toLowerCase().includes(raw) ||
+        p.desc.toLowerCase().includes(raw) ||
+        (p.tags || []).some(t => t.includes(raw))
+      );
+      setResults(res.length > 0 ? res : currentPool);
+    } else {
+      // Internship: search by org name, tags, title, domain, desc
+      const res = currentPool.filter(p =>
+        p.org.toLowerCase().includes(raw) ||
+        p.title.toLowerCase().includes(raw) ||
+        p.domain.toLowerCase().includes(raw) ||
+        p.desc.toLowerCase().includes(raw) ||
+        (p.tags || []).some(t => t.includes(raw))
+      );
+      setResults(res.length > 0 ? res : currentPool);
+    }
   };
 
   const switchType = (t) => {
     setType(t);
     setQuery("");
-    setResults(t === "competition" ? MOCK_COMPETITIONS : MOCK_INTERNSHIPS);
-    setSearched(true);
+    const newPool = t === "competition" ? MOCK_COMPETITIONS : MOCK_INTERNSHIPS;
+    setResults(newPool);
   };
 
   const setStatus = (id, status) => {
@@ -944,8 +1183,13 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
   };
 
   const getStatus = (id) => opportunities.find(o => o.id === id)?.status || null;
-
   const statuses = type === "competition" ? COMP_STATUSES : INTERN_STATUSES;
+
+  const compPlaceholder = "Search by name, org or keyword (e.g. hack, olympiad, google, kaggle, codeforces…)";
+  const internPlaceholder = "Search by org or keyword (e.g. google, tcs, fintech, swiggy, research, cloud…)";
+
+  const categoryColors = { hackathon: "badge-blue", coding: "badge-yellow", olympiad: "badge-green", data: "badge-blue", ai: "badge-blue", design: "badge-gray", business: "badge-gray" };
+  const categoryLabels = { hackathon: "🔨 Hackathon", coding: "💻 Coding", olympiad: "🏆 Olympiad", data: "📊 Data Science", ai: "🤖 AI/ML", design: "🎨 Design", business: "💼 Business" };
 
   return (
     <div className="page">
@@ -960,15 +1204,28 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
             <button className={`type-btn${type === "competition" ? " active" : ""}`} onClick={() => switchType("competition")}>🏅 Competitions</button>
             <button className={`type-btn${type === "internship" ? " active" : ""}`} onClick={() => switchType("internship")}>💼 Internships</button>
           </div>
+          <span className="text-sm text-muted">{results.length} result{results.length !== 1 ? "s" : ""}</span>
         </div>
 
         <div className="card mb-6">
           <div className="card-body">
             <div className="search-bar">
-              <input className="form-input" placeholder={`Search ${type}s by domain or keyword...`} value={query}
-                onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === "Enter" && doSearch()} />
-              <button className="btn btn-primary" onClick={doSearch}>Search</button>
+              <input className="form-input" placeholder={type === "competition" ? compPlaceholder : internPlaceholder}
+                value={query} onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && doSearch()} />
+              <button className="btn btn-primary" onClick={() => doSearch()}>Search</button>
+              {query && <button className="btn btn-outline" onClick={() => { setQuery(""); setResults(pool); }}>Clear</button>}
             </div>
+            {type === "competition" && (
+              <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {["hack", "olympiad", "coding", "data", "design", "business"].map(cat => (
+                  <span key={cat} style={{ cursor: "pointer", padding: "3px 10px", background: "var(--bg-section)", borderRadius: 99, fontSize: "0.78rem", fontWeight: 600, color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    onClick={() => { setQuery(cat); doSearch(cat, MOCK_COMPETITIONS); }}>
+                    {cat}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -978,11 +1235,30 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
             return (
               <div key={opp.id} className="opp-card">
                 <div className="opp-card-header">
-                  <span className="badge badge-blue">{opp.domain}</span>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {type === "competition" && opp.category && (
+                      <span className={`badge ${categoryColors[opp.category] || "badge-gray"}`} style={{ fontSize: "0.72rem" }}>
+                        {categoryLabels[opp.category] || opp.category}
+                      </span>
+                    )}
+                    <span className="badge badge-blue" style={{ fontSize: "0.72rem" }}>{opp.domain}</span>
+                  </div>
                   {status && <StatusBadge status={status} />}
                 </div>
                 <div className="opp-title">{opp.title}</div>
+                {opp.org && type === "internship" && (
+                  <div style={{ fontSize: "0.78rem", color: "var(--primary)", fontWeight: 600, marginBottom: 4 }}>🏢 {opp.org}</div>
+                )}
+                {opp.org && type === "competition" && (
+                  <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: 4 }}>by {opp.org}</div>
+                )}
                 <div className="opp-desc">{opp.desc}</div>
+                {type === "internship" && (opp.duration || opp.stipend) && (
+                  <div style={{ display: "flex", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+                    {opp.duration && <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>⏱ {opp.duration}</span>}
+                    {opp.stipend && <span style={{ fontSize: "0.75rem", color: "var(--success)", fontWeight: 600 }}>💰 {opp.stipend}</span>}
+                  </div>
+                )}
                 <div className="form-group">
                   <select className="form-input" value={status || ""} onChange={e => setStatus(opp.id, e.target.value)} style={{ fontSize: "0.82rem" }}>
                     <option value="">Set Status…</option>
