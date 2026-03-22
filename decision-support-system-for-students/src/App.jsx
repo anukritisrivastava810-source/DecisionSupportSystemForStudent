@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-
-// ==================== STYLES ====================
+import { authAPI, skillsAPI, opportunitiesAPI, historyAPI } from './services/api';// ==================== STYLES ====================
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap');
 
@@ -380,6 +379,75 @@ const styles = `
 
   .opp-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
   .opp-meta-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--text-light); font-weight: 500; }
+
+  /* ---- REDESIGNED ALL FILTERS MODAL ---- */
+  .all-filters-modal.redesigned {
+    max-width: 850px; width: 95%; height: 80vh; 
+    padding: 0; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .filters-modal-layout { display: flex; flex: 1; overflow: hidden; }
+  .filters-sidebar {
+    width: 200px; background: #F8FAFC; border-right: 1px solid var(--border);
+    padding: 16px 0; overflow-y: auto; flex-shrink: 0;
+  }
+  .sidebar-item {
+    padding: 14px 24px; font-size: 0.9rem; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s; position: relative; display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-item:hover { background: #F1F5F9; color: var(--text); }
+  .sidebar-item.active { background: white; color: var(--primary); }
+  .sidebar-item.active::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--primary);
+  }
+  .sidebar-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  .filters-content { flex: 1; display: flex; flex-direction: column; padding: 32px; overflow-y: auto; background: white; }
+  .content-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #F1F5F9; }
+  .content-header h4 { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+  
+  .filter-options-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;
+  }
+  .filter-option-item {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+    background: #F8FAFC; border: 1.5px solid #F1F5F9; border-radius: 12px;
+    cursor: pointer; transition: all 0.2s; font-size: 0.88rem; font-weight: 500;
+  }
+  .filter-option-item:hover { border-color: var(--primary-light); background: #EFF6FF; }
+  .filter-option-item.active { border-color: var(--primary); background: #EFF6FF; color: var(--primary); font-weight: 600; }
+  .filter-option-item input { display: none; }
+
+  .filter-count-pill {
+    background: var(--primary); color: white; padding: 2px 8px; border-radius: 99px; font-size: 0.75rem; margin-left: 4px;
+  }
+  .btn-close {
+    background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); padding: 4px;
+  }
+  .btn-close:hover { color: var(--text); }
+
+  /* Category Filter Bar */
+  .category-bar {
+    display: flex; gap: 16px; overflow-x: auto; padding: 4px 4px 16px 4px;
+    margin-bottom: 24px; -ms-overflow-style: none; scrollbar-width: none;
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  }
+  .category-bar::-webkit-scrollbar { display: none; }
+  .category-card {
+    flex: 0 0 auto; width: 140px; height: 110px; background: white; border-radius: 20px;
+    border: 1.5px solid #F1F5F9; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+  .category-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.15); border-color: var(--primary-light); }
+  .category-card.active { border-color: var(--primary); background: #EFF6FF; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.15); }
+  .cat-icon-wrapper {
+    width: 44px; height: 44px; background: #F8FAFC; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+    font-size: 1.4rem; transition: all 0.2s;
+  }
+  .category-card.active .cat-icon-wrapper { background: white; color: var(--primary); }
+  .cat-card-label { font-size: 0.82rem; font-weight: 700; color: #475569; text-align: center; }
+  .category-card.active .cat-card-label { color: var(--primary); }
 `;
 
 // ==================== MOCK DATA ====================
@@ -494,55 +562,55 @@ const SKILL_ALIASES = {
 
 const MOCK_COMPETITIONS = [
   // ---- Hackathons ----
-  { id: 1, title: "Smart India Hackathon (SIH)", category: "hackathon", org: "Ministry of Education", domain: "All Domains", desc: "India's largest national-level hackathon. Teams solve government problem statements across 36 hours.", tags: ["hack", "sih", "government", "national"], location: "Onsite", workType: "In Office", role: "Full Stack", datePosted: "2024-03-10" },
-  { id: 2, title: "HackFest 2026", category: "hackathon", org: "HackFest", domain: "Web Development", desc: "48-hour hackathon focused on building social impact solutions using modern web stack.", tags: ["hack", "web", "social"], location: "Remote", workType: "Work from Home", role: "Web Dev", datePosted: "2024-03-05" },
-  { id: 3, title: "HackCBS", category: "hackathon", org: "Shaheed Sukhdev College", domain: "Open Innovation", desc: "Delhi's biggest student-run hackathon with 36 hours of hacking.", tags: ["hack", "delhi", "student"], location: "Delhi", workType: "In Office", role: "All Roles", datePosted: "2024-03-01" },
-  { id: 4, title: "MLH Global Hack Week", category: "hackathon", org: "Major League Hacking", domain: "Open Source & Tech", desc: "Week-long themed hacking events run by MLH covering diverse tech topics.", tags: ["hack", "mlh", "open source"], location: "Remote", workType: "Work from Home", role: "Open Source", datePosted: "2024-02-25" },
-  { id: 5, title: "AngelHack Global Hackathon", category: "hackathon", org: "AngelHack", domain: "FinTech & Startup", desc: "Global series with prizes for the most innovative startup ideas and prototypes.", tags: ["hack", "startup", "fintech", "global"], location: "Hybrid", workType: "Hybrid", role: "Startup", datePosted: "2024-02-20" },
-  { id: 6, title: "StackHack", category: "hackathon", org: "HackerEarth", domain: "Full Stack Development", desc: "Online hackathon for full-stack engineers with real-world problem statements.", tags: ["hack", "fullstack", "hackerearth"], location: "Remote", workType: "Work from Home", role: "Full Stack", datePosted: "2024-02-15" },
-  { id: 7, title: "Google Solution Challenge", category: "hackathon", org: "Google", domain: "Social Impact + AI", desc: "Build solutions for UN Sustainable Development Goals using Google technology.", tags: ["hack", "google", "sdg", "ai"], location: "Global", workType: "Work from Home", role: "Social Impact", datePosted: "2024-02-10" },
-  { id: 8, title: "Microsoft Imagine Cup", category: "hackathon", org: "Microsoft", domain: "Innovation", desc: "Global student technology competition. Build innovative tech projects across AI, gaming, mixed reality.", tags: ["hack", "microsoft", "global", "student"], location: "Global", workType: "Hybrid", role: "Innovation", datePosted: "2024-02-05" },
-  { id: 9, title: "ETHIndia", category: "hackathon", org: "ETHIndia", domain: "Blockchain / Web3", desc: "India's largest Ethereum hackathon for building decentralised applications.", tags: ["hack", "blockchain", "web3", "ethereum"], location: "Bangalore", workType: "In Office", role: "Blockchain", datePosted: "2024-02-01" },
-  { id: 10, title: "Devfolio Hackathons", category: "hackathon", org: "Devfolio", domain: "Open Innovation", desc: "Hundreds of college and online hackathons hosted on India's largest hackathon platform.", tags: ["hack", "devfolio", "india", "college"], location: "India", workType: "Work from Home", role: "General", datePosted: "2024-01-25" },
-  { id: 11, title: "NASA Space Apps Challenge", category: "hackathon", org: "NASA", domain: "Space & Science", desc: "Global hackathon where participants solve space-related challenges using NASA open data.", tags: ["hack", "nasa", "space", "science", "global"], location: "Global", workType: "Work from Home", role: "Science", datePosted: "2024-01-20" },
-  { id: 12, title: "HackaHealth", category: "hackathon", org: "HackaHealth", domain: "HealthTech", desc: "Healthcare-focused hackathon focused on using technology to solve health challenges.", tags: ["hack", "health", "healthcare"], location: "Remote", workType: "Work from Home", role: "HealthTech", datePosted: "2024-01-15" },
-  { id: 13, title: "Fintech Hackathon by RBI", category: "hackathon", org: "Reserve Bank of India", domain: "FinTech", desc: "Regulator-run hackathon focused on next-gen financial technology solutions for India.", tags: ["hack", "fintech", "rbi", "finance"], location: "Mumbai", workType: "In Office", role: "FinTech", datePosted: "2024-01-10" },
-  { id: 14, title: "HackThis Fall", category: "hackathon", org: "HackThis Fall", domain: "Open Source", desc: "Inclusivity-first 36-hour online hackathon open to students from all backgrounds.", tags: ["hack", "open source", "online", "beginner"], location: "Remote", workType: "Work from Home", role: "Open Source", datePosted: "2024-01-05" },
+  { id: 1, title: "Smart India Hackathon (SIH)", category: "hackathon", org: "Ministry of Education", domain: "All Domains", desc: "India's largest national-level hackathon. Teams solve government problem statements across 36 hours.", tags: ["hack", "sih", "government", "national"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
+  { id: 2, title: "HackFest 2026", category: "hackathon", org: "HackFest", domain: "Web Development", desc: "48-hour hackathon focused on building social impact solutions using modern web stack.", tags: ["hack", "web", "social"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2+" },
+  { id: 3, title: "HackCBS", category: "hackathon", org: "Shaheed Sukhdev College", domain: "Open Innovation", desc: "Delhi's biggest student-run hackathon with 36 hours of hacking.", tags: ["hack", "delhi", "student"], status: "Closed", eventType: "Offline", payment: "Paid", teamSize: "2+" },
+  { id: 4, title: "MLH Global Hack Week", category: "hackathon", org: "Major League Hacking", domain: "Open Source & Tech", desc: "Week-long themed hacking events run by MLH covering diverse tech topics.", tags: ["hack", "mlh", "open source"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 5, title: "AngelHack Global Hackathon", category: "hackathon", org: "AngelHack", domain: "FinTech & Startup", desc: "Global series with prizes for the most innovative startup ideas and prototypes.", tags: ["hack", "startup", "fintech", "global"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2" },
+  { id: 6, title: "StackHack", category: "hackathon", org: "HackerEarth", domain: "Full Stack Development", desc: "Online hackathon for full-stack engineers with real-world problem statements.", tags: ["hack", "fullstack", "hackerearth"], status: "Expired", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 7, title: "Google Solution Challenge", category: "hackathon", org: "Google", domain: "Social Impact + AI", desc: "Build solutions for UN Sustainable Development Goals using Google technology.", tags: ["hack", "google", "sdg", "ai"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2+" },
+  { id: 8, title: "Microsoft Imagine Cup", category: "hackathon", org: "Microsoft", domain: "Innovation", desc: "Global student technology competition. Build innovative tech projects across AI, gaming, mixed reality.", tags: ["hack", "microsoft", "global", "student"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
+  { id: 9, title: "ETHIndia", category: "hackathon", org: "ETHIndia", domain: "Blockchain / Web3", desc: "India's largest Ethereum hackathon for building decentralised applications.", tags: ["hack", "blockchain", "web3", "ethereum"], status: "Closed", eventType: "Offline", payment: "Paid", teamSize: "2+" },
+  { id: 10, title: "Devfolio Hackathons", category: "hackathon", org: "Devfolio", domain: "Open Innovation", desc: "Hundreds of college and online hackathons hosted on India's largest hackathon platform.", tags: ["hack", "devfolio", "india", "college"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2+" },
+  { id: 11, title: "NASA Space Apps Challenge", category: "hackathon", org: "NASA", domain: "Space & Science", desc: "Global hackathon where participants solve space-related challenges using NASA open data.", tags: ["hack", "nasa", "space", "science", "global"], status: "Recent", eventType: "Hybrid", payment: "Free", teamSize: "2+" },
+  { id: 12, title: "HackaHealth", category: "hackathon", org: "HackaHealth", domain: "HealthTech", desc: "Healthcare-focused hackathon focused on using technology to solve health challenges.", tags: ["hack", "health", "healthcare"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
+  { id: 13, title: "Fintech Hackathon by RBI", category: "hackathon", org: "Reserve Bank of India", domain: "FinTech", desc: "Regulator-run hackathon focused on next-gen financial technology solutions for India.", tags: ["hack", "fintech", "rbi", "finance"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
+  { id: 14, title: "HackThis Fall", category: "hackathon", org: "HackThis Fall", domain: "Open Source", desc: "Inclusivity-first 36-hour online hackathon open to students from all backgrounds.", tags: ["hack", "open source", "online", "beginner"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "1" },
   // ---- Coding Contests ----
-  { id: 15, title: "Google Kick Start", category: "coding", org: "Google", domain: "Competitive Programming", desc: "Online algorithmic competition in multiple rounds; gateway to Google hiring.", tags: ["code", "coding", "google", "competitive", "algorithm"], location: "Remote", workType: "Work from Home", role: "CP", datePosted: "2024-01-01" },
-  { id: 16, title: "Google Code Jam", category: "coding", org: "Google", domain: "Competitive Programming", desc: "Google's flagship coding competition testing algorithms, mathematics and problem solving.", tags: ["code", "coding", "google", "competitive"], location: "Remote", workType: "Work from Home", role: "CP", datePosted: "2023-12-25" },
-  { id: 17, title: "ACM ICPC (International Collegiate Programming Contest)", category: "coding", org: "ACM/ICPC Foundation", domain: "Competitive Programming", desc: "World's most prestigious team programming contest for university students.", tags: ["code", "coding", "icpc", "acm", "competitive", "university"], location: "Global", workType: "In Office", role: "CP", datePosted: "2023-12-20" },
-  { id: 18, title: "Codeforces Rounds", category: "coding", org: "Codeforces", domain: "Competitive Programming", desc: "Regular rated competitive programming rounds with Div 1, 2, 3 and 4 categories.", tags: ["code", "coding", "codeforces", "competitive", "algorithm"], location: "Remote", workType: "Work from Home", role: "CP", datePosted: "2023-12-15" },
-  { id: 19, title: "LeetCode Weekly Contest", category: "coding", org: "LeetCode", domain: "Problem Solving", desc: "Weekly algorithmic problem-solving contests with global leaderboard rankings.", tags: ["code", "coding", "leetcode", "algorithm", "interview"], location: "Remote", workType: "Work from Home", role: "CP", datePosted: "2023-12-10" },
-  { id: 20, title: "CodeChef Starters & Long Challenge", category: "coding", org: "CodeChef", domain: "Competitive Programming", desc: "Monthly and weekly competitive programming contests on CodeChef platform.", tags: ["code", "coding", "codechef", "competitive"], location: "Remote", workType: "Work from Home", role: "CP", datePosted: "2023-12-05" },
-  { id: 21, title: "AtCoder Grand/Regular Contests", category: "coding", org: "AtCoder", domain: "Competitive Programming", desc: "High-quality algorithmic contests popular among competitive programmers globally.", tags: ["code", "coding", "atcoder", "competitive", "algorithm"], location: "Remote", workType: "Work from Home", role: "CP", datePosted: "2023-12-01" },
-  { id: 22, title: "Facebook Hacker Cup", category: "coding", org: "Meta", domain: "Competitive Programming", desc: "Meta's annual open programming competition testing complex algorithmic problem solving.", tags: ["code", "coding", "meta", "facebook", "competitive"], location: "Remote", workType: "Work from Home", role: "CP", datePosted: "2023-11-25" },
-  { id: 23, title: "HackerEarth Circuits", category: "coding", org: "HackerEarth", domain: "Competitive Programming", desc: "Monthly competitive programming contest with full solutions and editorials.", tags: ["code", "coding", "hackerearth", "competitive"], location: "Remote", workType: "Work from Home", role: "CP", datePosted: "2023-11-20" },
+  { id: 15, title: "Google Kick Start", category: "coding", org: "Google", domain: "Competitive Programming", desc: "Online algorithmic competition in multiple rounds; gateway to Google hiring.", tags: ["code", "coding", "google", "competitive", "algorithm"], status: "Expired", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 16, title: "Google Code Jam", category: "coding", org: "Google", domain: "Competitive Programming", desc: "Google's flagship coding competition testing algorithms, mathematics and problem solving.", tags: ["code", "coding", "google", "competitive"], status: "Expired", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 17, title: "ACM ICPC (International Collegiate Programming Contest)", category: "coding", org: "ACM/ICPC Foundation", domain: "Competitive Programming", desc: "World's most prestigious team programming contest for university students.", tags: ["code", "coding", "icpc", "acm", "competitive", "university"], status: "Live", eventType: "Offline", payment: "Paid", teamSize: "2+" },
+  { id: 18, title: "Codeforces Rounds", category: "coding", org: "Codeforces", domain: "Competitive Programming", desc: "Regular rated competitive programming rounds with Div 1, 2, 3 and 4 categories.", tags: ["code", "coding", "codeforces", "competitive", "algorithm"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 19, title: "LeetCode Weekly Contest", category: "coding", org: "LeetCode", domain: "Problem Solving", desc: "Weekly algorithmic problem-solving contests with global leaderboard rankings.", tags: ["code", "coding", "leetcode", "algorithm", "interview"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 20, title: "CodeChef Starters & Long Challenge", category: "coding", org: "CodeChef", domain: "Competitive Programming", desc: "Monthly and weekly competitive programming contests on CodeChef platform.", tags: ["code", "coding", "codechef", "competitive"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 21, title: "AtCoder Grand/Regular Contests", category: "coding", org: "AtCoder", domain: "Competitive Programming", desc: "High-quality algorithmic contests popular among competitive programmers globally.", tags: ["code", "coding", "atcoder", "competitive", "algorithm"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 22, title: "Facebook Hacker Cup", category: "coding", org: "Meta", domain: "Competitive Programming", desc: "Meta's annual open programming competition testing complex algorithmic problem solving.", tags: ["code", "coding", "meta", "facebook", "competitive"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 23, title: "HackerEarth Circuits", category: "coding", org: "HackerEarth", domain: "Competitive Programming", desc: "Monthly competitive programming contest with full solutions and editorials.", tags: ["code", "coding", "hackerearth", "competitive"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
   // ---- Olympiads ----
-  { id: 24, title: "Indian Informatics Olympiad (INOI)", category: "olympiad", org: "IARCS", domain: "Informatics / CS", desc: "National informatics olympiad pathways to represent India at IOI. Key stages: ZCO, ZRCO, INOI.", tags: ["olympiad", "informatics", "iarcs", "national", "cs"], location: "India", workType: "In Office", role: "CP", datePosted: "2023-11-15" },
-  { id: 25, title: "International Olympiad in Informatics (IOI)", category: "olympiad", org: "IOI", domain: "Informatics / CS", desc: "Most prestigious international olympiad for secondary school students in computer science & algorithms.", tags: ["olympiad", "informatics", "ioi", "international", "cs"], location: "Global", workType: "In Office", role: "CP", datePosted: "2023-11-10" },
-  { id: 26, title: "International Mathematical Olympiad (IMO)", category: "olympiad", org: "IMO", domain: "Mathematics", desc: "World's oldest and most prestigious maths olympiad for pre-university students.", tags: ["olympiad", "maths", "mathematics", "imo", "international"], location: "Global", workType: "In Office", role: "Maths", datePosted: "2023-11-05" },
-  { id: 27, title: "Indian National Mathematical Olympiad (INMO)", category: "olympiad", org: "HBCSE", domain: "Mathematics", desc: "Stage 3 of the Indian Olympiad pathway leading to IMO selection for Indian students.", tags: ["olympiad", "maths", "mathematics", "inmo", "national"], location: "India", workType: "In Office", role: "Maths", datePosted: "2023-11-01" },
-  { id: 28, title: "Regional Mathematical Olympiad (RMO)", category: "olympiad", org: "HBCSE", domain: "Mathematics", desc: "State-level maths olympiad. Top scorers advance to INMO.", tags: ["olympiad", "maths", "mathematics", "rmo", "regional"], location: "Regional", workType: "In Office", role: "Maths", datePosted: "2023-10-25" },
-  { id: 29, title: "International Physics Olympiad (IPhO)", category: "olympiad", org: "IPhO", domain: "Physics", desc: "International competition for secondary school students in physics.", tags: ["olympiad", "physics", "ipho", "international", "science"], location: "Global", workType: "In Office", role: "Science", datePosted: "2023-10-20" },
-  { id: 30, title: "National Standard Examination (NSE)", category: "olympiad", org: "IAPT / HBCSE", domain: "Physics / Chemistry / Bio", desc: "Entry level Indian olympiad exams (NSEP, NSEC, NSEB, NSEA) pathways to international olympiads.", tags: ["olympiad", "nse", "nsep", "nsec", "nseb", "science", "national"], location: "India", workType: "In Office", role: "Science", datePosted: "2023-10-15" },
-  { id: 31, title: "International Olympiad on Astronomy & Astrophysics (IOAA)", category: "olympiad", org: "IOAA", domain: "Astronomy", desc: "International olympiad for high school students in astronomy and astrophysics.", tags: ["olympiad", "astronomy", "ioaa", "international", "science"], location: "Global", workType: "In Office", role: "Science", datePosted: "2023-10-10" },
-  { id: 32, title: "International AI Olympiad (IOAI)", category: "olympiad", org: "IOAI", domain: "Artificial Intelligence", desc: "Emerging international olympiad testing knowledge of AI, ML and data science concepts.", tags: ["olympiad", "ai", "artificial intelligence", "ioai", "international", "ml"], location: "Global", workType: "Hybrid", role: "AI Research", datePosted: "2023-10-05" },
+  { id: 24, title: "Indian Informatics Olympiad (INOI)", category: "olympiad", org: "IARCS", domain: "Informatics / CS", desc: "National informatics olympiad pathways to represent India at IOI. Key stages: ZCO, ZRCO, INOI.", tags: ["olympiad", "informatics", "iarcs", "national", "cs"], status: "Recent", eventType: "Offline", payment: "Paid", teamSize: "1" },
+  { id: 25, title: "International Olympiad in Informatics (IOI)", category: "olympiad", org: "IOI", domain: "Informatics / CS", desc: "Most prestigious international olympiad for secondary school students in computer science & algorithms.", tags: ["olympiad", "informatics", "ioi", "international", "cs"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
+  { id: 26, title: "International Mathematical Olympiad (IMO)", category: "olympiad", org: "IMO", domain: "Mathematics", desc: "World's oldest and most prestigious maths olympiad for pre-university students.", tags: ["olympiad", "maths", "mathematics", "imo", "international"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
+  { id: 27, title: "Indian National Mathematical Olympiad (INMO)", category: "olympiad", org: "HBCSE", domain: "Mathematics", desc: "Stage 3 of the Indian Olympiad pathway leading to IMO selection for Indian students.", tags: ["olympiad", "maths", "mathematics", "inmo", "national"], status: "Recent", eventType: "Offline", payment: "Free", teamSize: "1" },
+  { id: 28, title: "Regional Mathematical Olympiad (RMO)", category: "olympiad", org: "HBCSE", domain: "Mathematics", desc: "State-level maths olympiad. Top scorers advance to INMO.", tags: ["olympiad", "maths", "mathematics", "rmo", "regional"], status: "Expired", eventType: "Offline", payment: "Free", teamSize: "1" },
+  { id: 29, title: "International Physics Olympiad (IPhO)", category: "olympiad", org: "IPhO", domain: "Physics", desc: "International competition for secondary school students in physics.", tags: ["olympiad", "physics", "ipho", "international", "science"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
+  { id: 30, title: "National Standard Examination (NSE)", category: "olympiad", org: "IAPT / HBCSE", domain: "Physics / Chemistry / Bio", desc: "Entry level Indian olympiad exams (NSEP, NSEC, NSEB, NSEA) pathways to international olympiads.", tags: ["olympiad", "nse", "nsep", "nsec", "nseb", "science", "national"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
+  { id: 31, title: "International Olympiad on Astronomy & Astrophysics (IOAA)", category: "olympiad", org: "IOAA", domain: "Astronomy", desc: "International olympiad for high school students in astronomy and astrophysics.", tags: ["olympiad", "astronomy", "ioaa", "international", "science"], status: "Recent", eventType: "Offline", payment: "Free", teamSize: "1" },
+  { id: 32, title: "International AI Olympiad (IOAI)", category: "olympiad", org: "IOAI", domain: "Artificial Intelligence", desc: "Emerging international olympiad testing knowledge of AI, ML and data science concepts.", tags: ["olympiad", "ai", "artificial intelligence", "ioai", "international", "ml"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
   // ---- Data Science / ML ----
-  { id: 33, title: "Kaggle Featured Competitions", category: "data", org: "Kaggle", domain: "Data Science / ML", desc: "Ongoing machine learning competitions on Kaggle with prizes up to $100,000.", tags: ["kaggle", "data", "ml", "machine learning", "ai"], location: "Remote", workType: "Work from Home", role: "Data Science", datePosted: "2023-10-01" },
-  { id: 34, title: "Analytics Vidhya Datathon", category: "data", org: "Analytics Vidhya", domain: "Data Science", desc: "Indian data science competitions across beginner to expert levels with leaderboards.", tags: ["data", "analytics", "datathon", "india", "ml"], location: "India", workType: "Work from Home", role: "Data Science", datePosted: "2023-09-25" },
-  { id: 35, title: "Zindi Africa ML Challenge", category: "data", org: "Zindi", domain: "Machine Learning", desc: "Data science competitions focused on African societal problems with real datasets.", tags: ["data", "ml", "machine learning", "zindi", "africa"], location: "Global", workType: "Work from Home", role: "Data Science", datePosted: "2023-09-20" },
-  { id: 36, title: "DrivenData ML for Good", category: "data", org: "DrivenData", domain: "Social Impact + ML", desc: "Machine learning competitions targeting social good, humanitarian and environmental problems.", tags: ["data", "ml", "social", "drivendata", "good"], location: "Global", workType: "Work from Home", role: "Data Science", datePosted: "2023-09-15" },
-  { id: 37, title: "NeurIPS ML4Science Challenge", category: "data", org: "NeurIPS", domain: "AI Research", desc: "Machine learning for science challenges associated with the NeurIPS conference.", tags: ["data", "ml", "ai", "neurips", "research", "science"], location: "Global", workType: "Work from Home", role: "AI Research", datePosted: "2023-09-10" },
+  { id: 33, title: "Kaggle Featured Competitions", category: "data", org: "Kaggle", domain: "Data Science / ML", desc: "Ongoing machine learning competitions on Kaggle with prizes up to $100,000.", tags: ["kaggle", "data", "ml", "machine learning", "ai"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 34, title: "Analytics Vidhya Datathon", category: "data", org: "Analytics Vidhya", domain: "Data Science", desc: "Indian data science competitions across beginner to expert levels with leaderboards.", tags: ["data", "analytics", "datathon", "india", "ml"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 35, title: "Zindi Africa ML Challenge", category: "data", org: "Zindi", domain: "Machine Learning", desc: "Data science competitions focused on African societal problems with real datasets.", tags: ["data", "ml", "machine learning", "zindi", "africa"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 36, title: "DrivenData ML for Good", category: "data", org: "DrivenData", domain: "Social Impact + ML", desc: "Machine learning competitions targeting social good, humanitarian and environmental problems.", tags: ["data", "ml", "social", "drivendata", "good"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 37, title: "NeurIPS ML4Science Challenge", category: "data", org: "NeurIPS", domain: "AI Research", desc: "Machine learning for science challenges associated with the NeurIPS conference.", tags: ["data", "ml", "ai", "neurips", "research", "science"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2+" },
   // ---- AI / Design / Business ----
-  { id: 38, title: "Adobe Design Challenge", category: "design", org: "Adobe", domain: "UI/UX Design", desc: "Global design competition where students create innovative solutions using Adobe creative tools.", tags: ["design", "adobe", "uiux", "creative", "global"], location: "Global", workType: "Work from Home", role: "UI/UX Design", datePosted: "2023-09-05" },
-  { id: 39, title: "Figma Config Design Challenge", category: "design", org: "Figma", domain: "Product Design", desc: "Annual design challenge by Figma celebrating innovative interface and product design.", tags: ["design", "figma", "ux", "product"], location: "Global", workType: "Work from Home", role: "Product Design", datePosted: "2023-09-01" },
-  { id: 40, title: "Microsoft AI Skills Challenge", category: "ai", org: "Microsoft", domain: "Artificial Intelligence", desc: "Learn AI and get certified; earn rewards by completing Microsoft learning paths.", tags: ["ai", "microsoft", "azure", "certification", "ml"], location: "Remote", workType: "Work from Home", role: "AI Research", datePosted: "2023-08-25" },
-  { id: 41, title: "IEEE Xtreme Programming Competition", category: "coding", org: "IEEE", domain: "Competitive Programming", desc: "24-hour online programming competition open to IEEE student members worldwide.", tags: ["code", "coding", "ieee", "competitive", "24 hour"], location: "Global", workType: "Work from Home", role: "CP", datePosted: "2023-08-20" },
-  { id: 42, title: "Goldman Sachs Global Investment Research Challenge", category: "business", org: "Goldman Sachs", domain: "Finance & Strategy", desc: "Teams build investment cases and present to GS professionals. Great for finance aspirants.", tags: ["business", "finance", "goldman", "sachs", "investment"], location: "Global", workType: "Hybrid", role: "Finance", datePosted: "2023-08-15" },
-  { id: 43, title: "CFA Institute Research Challenge", category: "business", org: "CFA Institute", domain: "Finance / Investment", desc: "Global equity research competition providing students with hands-on mentoring by CFA charterholders.", tags: ["business", "finance", "cfa", "investment", "research"], location: "Global", workType: "Hybrid", role: "Finance", datePosted: "2023-08-10" },
-  { id: 44, title: "Topcoder Open", category: "coding", org: "Topcoder", domain: "Competitive Programming", desc: "Annual open competition covering algorithm, development and design tracks.", tags: ["code", "coding", "topcoder", "competitive", "algorithm"], location: "Global", workType: "Hybrid", role: "CP", datePosted: "2023-08-05" },
-  { id: 45, title: "Open Data Science Competition (ODSC)", category: "data", org: "ODSC", domain: "Data Science", desc: "Competitions tied to ODSC conferences across data science, ML and AI domains.", tags: ["data", "odsc", "ml", "ai", "conference"], location: "Global", workType: "Hybrid", role: "Data Science", datePosted: "2023-08-01" },
+  { id: 38, title: "Adobe Design Challenge", category: "design", org: "Adobe", domain: "UI/UX Design", desc: "Global design competition where students create innovative solutions using Adobe creative tools.", tags: ["design", "adobe", "uiux", "creative", "global"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 39, title: "Figma Config Design Challenge", category: "design", org: "Figma", domain: "Product Design", desc: "Annual design challenge by Figma celebrating innovative interface and product design.", tags: ["design", "figma", "ux", "product"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 40, title: "Microsoft AI Skills Challenge", category: "ai", org: "Microsoft", domain: "Artificial Intelligence", desc: "Learn AI and get certified; earn rewards by completing Microsoft learning paths.", tags: ["ai", "microsoft", "azure", "certification", "ml"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 41, title: "IEEE Xtreme Programming Competition", category: "coding", org: "IEEE", domain: "Competitive Programming", desc: "24-hour online programming competition open to IEEE student members worldwide.", tags: ["code", "coding", "ieee", "competitive", "24 hour"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "2+" },
+  { id: 42, title: "Goldman Sachs Global Investment Research Challenge", category: "business", org: "Goldman Sachs", domain: "Finance & Strategy", desc: "Teams build investment cases and present to GS professionals. Great for finance aspirants.", tags: ["business", "finance", "goldman", "sachs", "investment"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2" },
+  { id: 43, title: "CFA Institute Research Challenge", category: "business", org: "CFA Institute", domain: "Finance / Investment", desc: "Global equity research competition providing students with hands-on mentoring by CFA charterholders.", tags: ["business", "finance", "cfa", "investment", "research"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
+  { id: 44, title: "Topcoder Open", category: "coding", org: "Topcoder", domain: "Competitive Programming", desc: "Annual open competition covering algorithm, development and design tracks.", tags: ["code", "coding", "topcoder", "competitive", "algorithm"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
+  { id: 45, title: "Open Data Science Competition (ODSC)", category: "data", org: "ODSC", domain: "Data Science", desc: "Competitions tied to ODSC conferences across data science, ML and AI domains.", tags: ["data", "odsc", "ml", "ai", "conference"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2" },
 ];
 
 const MOCK_INTERNSHIPS = [
@@ -605,6 +673,47 @@ const MOCK_INTERNSHIPS = [
   { id: 151, org: "SAP", title: "SAP Labs India Internship", domain: "Enterprise Software", desc: "Build enterprise applications, AI features and HANA database tools at SAP Labs Bangalore.", duration: "6 months", stipend: "₹20,000–30,000/mo", tags: ["sap", "enterprise", "database", "engineering", "india", "erp"], location: "Bangalore", workType: "In Office", role: "Full Stack", datePosted: "2023-12-02" },
   { id: 152, org: "Uber", title: "Uber Software Engineering Internship", domain: "Mobility / Tech", desc: "Work on maps, pricing, payments or driver experience at Uber's engineering teams.", duration: "3 months", stipend: "Paid (competitive)", tags: ["uber", "mobility", "software", "maps", "engineering", "payments"], location: "Hyderabad", workType: "In Office", role: "SDE", datePosted: "2023-12-01" },
   { id: 153, org: "Stripe", title: "Stripe Engineering Internship", domain: "Payments / FinTech", desc: "Build global payments infrastructure at Stripe, one of the world's most valuable startups.", duration: "3 months", stipend: "Paid (top tier)", tags: ["stripe", "payments", "fintech", "engineering", "startup", "infrastructure"], location: "Remote", workType: "Work from Home", role: "Backend", datePosted: "2023-11-25" },
+  // ---- Cybersecurity Gaps ----
+  { id: 154, org: "IBM", title: "Cybersecurity Analyst Intern", domain: "Cybersecurity", desc: "Work on threat detection and vulnerability assessment.", duration: "6 months", stipend: "₹25,000/mo", tags: ["ibm", "security", "cyber"], location: "Delhi", workType: "In Office", role: "Cybersecurity", datePosted: "2024-03-15" },
+  { id: 155, org: "Cisco", title: "Network Security Intern", domain: "Cybersecurity", desc: "Focus on firewalls and secure network protocols.", duration: "3 months", stipend: "₹30,000/mo", tags: ["cisco", "security", "networking"], location: "Pune", workType: "Hybrid", role: "Cybersecurity", datePosted: "2024-03-12" },
+  { id: 156, org: "CrowdStrike", title: "Threat Hunting Intern", domain: "Cybersecurity", desc: "Join the elite team tracking global threat actors.", duration: "6 months", stipend: "₹40,000/mo", tags: ["security", "remote", "threat"], location: "Remote", workType: "Work from Home", role: "Cybersecurity", datePosted: "2024-03-10" },
+  { id: 157, org: "Palo Alto Networks", title: "SecOps Intern", domain: "Cybersecurity", desc: "Automating security operations and incident response.", duration: "3 months", stipend: "₹35,000/mo", tags: ["security", "automation", "secops"], location: "Bangalore", workType: "In Office", role: "Cybersecurity", datePosted: "2024-03-08" },
+  { id: 158, org: "McAfee", title: "Cloud Security Intern", domain: "Cybersecurity", desc: "Protecting cloud native applications and infrastructure.", duration: "6 months", stipend: "₹28,000/mo", tags: ["security", "cloud", "mcafee"], location: "Hyderabad", workType: "Hybrid", role: "Cybersecurity", datePosted: "2024-03-05" },
+  // ---- Field Work Gaps ----
+  { id: 159, org: "Airtel", title: "Field Network Engineer Intern", domain: "Telecommunications", desc: "Hands-on experience with 5G infrastructure deployment.", duration: "3 months", stipend: "₹15,000/mo", tags: ["airtel", "field", "5g", "telecom"], location: "Chennai", workType: "Field Work", role: "Cloud Engineering", datePosted: "2024-03-15" },
+  { id: 160, org: "Jio", title: "5G Infrastructure Intern", domain: "Telecommunications", desc: "Optimizing signal coverage and network performance on-site.", duration: "4 months", stipend: "₹18,000/mo", tags: ["jio", "field", "5g"], location: "Mumbai", workType: "Field Work", role: "SDE", datePosted: "2024-03-12" },
+  { id: 161, org: "HCL Tech", title: "On-site IT Support Intern", domain: "IT Services", desc: "Resolving technical issues for enterprise clients at their locations.", duration: "3 months", stipend: "₹12,000/mo", tags: ["hcl", "field", "support"], location: "Noida", workType: "Field Work", role: "Full Stack", datePosted: "2024-03-10" },
+  { id: 162, org: "Siemens", title: "Industrial Automation Intern", domain: "Engineering", desc: "Working on-site to implement smart factory solutions and IoT.", duration: "6 months", stipend: "₹20,000/mo", tags: ["siemens", "field", "iot", "automation"], location: "Gurgaon", workType: "Field Work", role: "Backend", datePosted: "2024-03-08" },
+  { id: 163, org: "L&T Smart World", title: "Smart City Solutions Intern", domain: "Civic Tech", desc: "Field surveys and implementation of smart traffic and surveillance systems.", duration: "4 months", stipend: "₹15,000/mo", tags: ["lnt", "field", "smartcity"], location: "Delhi", workType: "Field Work", role: "Data Science", datePosted: "2024-03-05" },
+  // ---- UI/UX Design Gaps ----
+  { id: 164, org: "Myntra", title: "UI/UX Design Intern", domain: "E-Commerce", desc: "Designing intuitive interfaces for the fashion platform.", duration: "3 months", stipend: "₹30,000/mo", tags: ["myntra", "design", "uiux"], location: "Bangalore", workType: "In Office", role: "UI/UX Design", datePosted: "2024-03-15" },
+  { id: 165, org: "Pharmeasy", title: "Product Design Intern", domain: "HealthTech", desc: "Improving patient experience through better app design.", duration: "3 months", stipend: "₹25,000/mo", tags: ["design", "health"], location: "Mumbai", workType: "Hybrid", role: "UI/UX Design", datePosted: "2024-03-12" },
+  { id: 166, org: "Canva", title: "Visual Design Intern", domain: "Creative Tech", desc: "Create stunning templates and visual assets for millions of users.", duration: "6 months", stipend: "₹45,000/mo", tags: ["canva", "design", "remote"], location: "Remote", workType: "Work from Home", role: "UI/UX Design", datePosted: "2024-03-10" },
+  { id: 167, org: "Figma", title: "Interface Systems Intern", domain: "Design Tools", desc: "Helping build the future of collaborative design tools.", duration: "3 months", stipend: "₹60,000/mo", tags: ["figma", "design", "tooling"], location: "Remote", workType: "Work from Home", role: "UI/UX Design", datePosted: "2024-03-08" },
+  { id: 168, org: "Unacademy", title: "UX Researcher Intern", domain: "EdTech", desc: "Conducting user interviews and mapping student learning journeys.", duration: "3 months", stipend: "₹22,000/mo", tags: ["unacademy", "ux", "research"], location: "Bangalore", workType: "In Office", role: "UI/UX Design", datePosted: "2024-03-05" },
+  // ---- Mobile App Dev Gaps ----
+  { id: 169, org: "Zomato", title: "Mobile App Developer Intern", domain: "Food Tech", desc: "Optimizing the consumer app for better performance and speed.", duration: "3 months", stipend: "₹35,000/mo", tags: ["zomato", "mobile", "ios", "android"], location: "Gurgaon", workType: "In Office", role: "Mobile App Dev", datePosted: "2024-03-15" },
+  { id: 170, org: "Uber", title: "Android Engineering Intern", domain: "Mobility", desc: "Enhancing the driver app with new features and real-time tracking.", duration: "3 months", stipend: "₹50,000/mo", tags: ["uber", "android", "mobile"], location: "Hyderabad", workType: "In Office", role: "Mobile App Dev", datePosted: "2024-03-12" },
+  { id: 171, org: "Dream11", title: "iOS Developer Intern", domain: "Gaming", desc: "Building high-performance features for India's largest fantasy sports app.", duration: "4 months", stipend: "₹40,000/mo", tags: ["dream11", "ios", "mobile"], location: "Mumbai", workType: "Hybrid", role: "Mobile App Dev", datePosted: "2024-03-10" },
+  { id: 172, org: "PhonePe", title: "React Native Developer Intern", domain: "FinTech", desc: "Scaling the merchant app to support millions of small businesses.", duration: "3 months", stipend: "₹30,000/mo", tags: ["phonepe", "mobile", "reactnative"], location: "Bangalore", workType: "Hybrid", role: "Mobile App Dev", datePosted: "2024-03-08" },
+  { id: 173, org: "Nykaa", title: "Mobile UI Intern", domain: "E-Commerce", desc: "Refining the shopping experience on mobile devices.", duration: "3 months", stipend: "₹25,000/mo", tags: ["nykaa", "mobile", "design"], location: "Delhi", workType: "Hybrid", role: "Mobile App Dev", datePosted: "2024-03-05" },
+  // ---- AI & Data Science Gaps ----
+  { id: 174, org: "NVIDIA", title: "Deep Learning Intern", domain: "AI", desc: "Optimizing neural networks for edge computing devices.", duration: "6 months", stipend: "₹60,000/mo", tags: ["nvidia", "ai", "dl"], location: "Bangalore", workType: "In Office", role: "Machine Learning", datePosted: "2024-03-15" },
+  { id: 175, org: "Samsung Research", title: "Computer Vision Intern", domain: "AI", desc: "Working on state-of-the-art image recognition for mobile devices.", duration: "6 months", stipend: "₹40,000/mo", tags: ["samsung", "ai", "cv"], location: "Noida", workType: "In Office", role: "AI Research", datePosted: "2024-03-12" },
+  { id: 176, org: "OpenAI", title: "LLM Research Intern", domain: "AI", desc: "Exploring scaling laws and fine-tuning techniques for large language models.", duration: "6 months", stipend: "₹1,00,000/mo", tags: ["openai", "ai", "llm", "remote"], location: "Remote", workType: "Work from Home", role: "AI Research", datePosted: "2024-03-10" },
+  { id: 177, org: "Ola Electric", title: "Data Scientist Intern (Battery Tech)", domain: "CleanTech", desc: "Predictive maintenance and health monitoring for EV batteries.", duration: "6 months", stipend: "₹35,000/mo", tags: ["ola", "data", "ev"], location: "Bangalore", workType: "Hybrid", role: "Data Science", datePosted: "2024-03-08" },
+  { id: 178, org: "Upstox", title: "Quant Research Intern", domain: "FinTech", desc: "Building mathematical models for algorithmic trading.", duration: "6 months", stipend: "₹45,000/mo", tags: ["upstox", "data", "finance"], location: "Mumbai", workType: "In Office", role: "Data Science", datePosted: "2024-03-05" },
+  // ---- Location Gaps (Delhi, Noida, Gurgaon, Chennai) ----
+  { id: 179, org: "Paytm", title: "Full Stack Developer Intern", domain: "FinTech", desc: "Join the wallet and payments core engineering team.", duration: "3 months", stipend: "₹25,000/mo", tags: ["paytm", "fullstack"], location: "Noida", workType: "In Office", role: "Full Stack", datePosted: "2024-03-15" },
+  { id: 180, org: "PolicyBazaar", title: "Backend Engineer Intern", domain: "InsurTech", desc: "Scaling the microservices architecture for handling peak loads.", duration: "3 months", stipend: "₹20,000/mo", tags: ["pb", "backend"], location: "Gurgaon", workType: "In Office", role: "Backend", datePosted: "2024-03-12" },
+  { id: 181, org: "Zomato", title: "Frontend Engineering Intern", domain: "Food Tech", desc: "Building performant web interfaces for restaurant partners.", duration: "3 months", stipend: "₹30,000/mo", tags: ["zomato", "frontend"], location: "Gurgaon", workType: "In Office", role: "Frontend", datePosted: "2024-03-10" },
+  { id: 182, org: "Freshworks", title: "SDE Intern (Customer Rel)", domain: "SaaS", desc: "Participating in full lifecycle development of CRM modules.", duration: "3 months", stipend: "₹25,000/mo", tags: ["freshworks", "saas", "sde"], location: "Chennai", workType: "In Office", role: "SDE", datePosted: "2024-03-08" },
+  { id: 183, org: "Zoho", title: "Product Management Intern", domain: "SaaS", desc: "Helping define features for the global Zoho workplace suite.", duration: "3 months", stipend: "₹18,000/mo", tags: ["zoho", "pm", "saas"], location: "Chennai", workType: "In Office", role: "Product Management", datePosted: "2024-03-05" },
+  // ---- Additional Gaps for Categories ----
+  { id: 184, org: "SocialSamosa", title: "Social Media Marketing Intern", domain: "Marketing", desc: "Manage social media handles and create engaging content for digital campaigns.", duration: "2 months", stipend: "₹10,000/mo", tags: ["marketing", "social", "digital"], location: "Remote", workType: "Work from Home", role: "Digital Marketing", datePosted: "2024-03-18" },
+  { id: 185, org: "GrowthHackers", title: "Performance Marketing Intern", domain: "AdTech", desc: "Analyze campaign data and optimize ad spends for better ROI.", duration: "3 months", stipend: "₹15,000/mo", tags: ["marketing", "ads", "digital"], location: "Bangalore", workType: "Hybrid", role: "Digital Marketing", datePosted: "2024-03-16" },
+  { id: 186, org: "TeamLease", title: "HR Operations Intern", domain: "Human Resources", desc: "Assist in recruitment, onboarding, and documentation processes.", duration: "3 months", stipend: "₹12,000/mo", tags: ["hr", "operations", "recruitment"], location: "Delhi", workType: "In Office", role: "HR", datePosted: "2024-03-14" },
+  { id: 187, org: "Indeed", title: "Talent Acquisition Intern", domain: "HR Tech", desc: "Support the global hiring team in sourcing and initial screening of candidates.", duration: "2 months", stipend: "₹20,000/mo", tags: ["hr", "recruitment", "talent"], location: "Hyderabad", workType: "Work from Home", role: "HR", datePosted: "2024-03-12" },
 ];
 
 const COMP_STATUSES = ["Interested", "Registered", "Ongoing", "Completed", "Won"];
@@ -717,16 +826,38 @@ function StatusBadge({ status }) {
 }
 
 // ==================== WELCOME PAGE ====================
-function WelcomePage({ storedUser, onLogin, onGoSignup }) {
+function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
   const [tab, setTab] = useState("login");
   const [form, setForm] = useState({ email: "", password: "" });
   const [modal, setModal] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
-  const handleLogin = () => {
-    if (!storedUser) { setModal("nouser"); return; }
-    const ok = form.email === storedUser.email && form.password === storedUser.password;
-    if (ok) onLogin();
-    else setModal("error");
+  const handleLogin = async () => {
+    setLoginError("");
+    if (!form.email || !form.password) { setLoginError("Please enter email and password."); return; }
+
+    if (backendOnline) {
+      setIsLoading(true);
+      try {
+        const { authAPI } = await import('./services/api');
+        const res = await authAPI.login({ email: form.email, password: form.password });
+        if (res.data.success) {
+          onLogin(res.data.user);
+        }
+      } catch (err) {
+        const msg = err.response?.data?.message || "Invalid email or password.";
+        setLoginError(msg);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Fallback: match against locally stored user
+      if (!storedUser) { setModal("nouser"); return; }
+      const ok = form.email === storedUser.email && form.password === storedUser.password;
+      if (ok) onLogin(storedUser);
+      else setModal("error");
+    }
   };
 
   return (
@@ -747,15 +878,21 @@ function WelcomePage({ storedUser, onLogin, onGoSignup }) {
               <div className="form-group">
                 <label className="form-label">Email Address</label>
                 <input className="form-input" type="email" placeholder="you@example.com" value={form.email}
-                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))} onKeyDown={e => e.key === "Enter" && handleLogin()} />
               </div>
               <div className="form-group">
                 <label className="form-label">Password</label>
                 <input className="form-input" type="password" placeholder="••••••••" value={form.password}
-                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
+                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))} onKeyDown={e => e.key === "Enter" && handleLogin()} />
               </div>
-              <button className="btn btn-primary btn-lg btn-full" style={{ marginTop: 8 }} onClick={handleLogin}>
-                Login →
+              {loginError && <p style={{ color: "var(--error)", fontSize: "0.85rem", margin: 0 }}>❌ {loginError}</p>}
+              {!backendOnline && (
+                <p style={{ fontSize: "0.8rem", color: "#92400E", background: "#FEF3C7", padding: "8px 12px", borderRadius: 8, margin: 0 }}>
+                  ⚠️ Backend offline — start the server for full persistence.
+                </p>
+              )}
+              <button className="btn btn-primary btn-lg btn-full" style={{ marginTop: 8 }} onClick={handleLogin} disabled={isLoading}>
+                {isLoading ? "Logging in..." : "Login →"}
               </button>
               {!storedUser && (
                 <p className="text-sm text-muted text-center">
@@ -1055,7 +1192,7 @@ function DashboardPage({ user, learningSkills, opportunities }) {
 }
 
 // ==================== DECISION PAGE ====================
-function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearch }) {
+function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearch, backendOnline }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searched, setSearched] = useState(false);
@@ -1110,23 +1247,63 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
     performSearch(val);
   };
 
-  const addSkill = (skillName) => {
+  const addSkill = async (skillName) => {
     if (learningSkills.find(s => s.name === skillName)) return;
     const topics = MOCK_SKILLS[skillName].map(t => ({ name: t, completed: false }));
-    setLearningSkills(prev => [...prev, { name: skillName, topics, progress: 0 }]);
+    const newSkill = { name: skillName, topics, progress: 0 };
+    
+    // Optimistic UI update
+    setLearningSkills(prev => [...prev, newSkill]);
     addActivity(`Added ${skillName} as learning goal`);
+
+    if (backendOnline) {
+      try {
+        const res = await skillsAPI.add({ skillName, topics });
+        if (res.data?.skill) {
+          setLearningSkills(prev => prev.map(s => s.name === skillName ? { ...s, _id: res.data.skill._id } : s));
+        }
+      } catch (err) {
+        console.error("Failed to add skill:", err);
+      }
+    }
   };
 
-  const toggleTopic = (skillName, topicName) => {
+  const toggleTopic = async (skillName, topicName) => {
+    let updatedSkill = null;
+
     setLearningSkills(prev => prev.map(s => {
       if (s.name !== skillName) return s;
-      const topics = s.topics.map(t => t.name === topicName ? { ...t, completed: !t.completed } : t);
-      const done = topics.filter(t => t.completed).length;
-      const progress = Math.round((done / topics.length) * 100);
+      const topics = s.topics.map(t => {
+        // Handle backend naming mapping (done vs completed)
+        const isDone = t.done !== undefined ? t.done : t.completed;
+        return t.name === topicName ? { ...t, done: !isDone, completed: !isDone } : t;
+      });
+      const doneCount = topics.filter(t => t.done || t.completed).length;
+      const progress = Math.round((doneCount / topics.length) * 100);
+      
+      updatedSkill = { ...s, topics, progress };
+      
       if (progress === 100 && s.progress < 100) addActivity(`Completed all topics in ${skillName}! 🎉`);
-      else if (topics.find(t => t.name === topicName)?.completed === false) addActivity(`Completed "${topicName}" in ${skillName}`);
-      return { ...s, topics, progress };
+      else if (topics.find(t => t.name === topicName)?.done) addActivity(`Completed "${topicName}" in ${skillName}`);
+      
+      return updatedSkill;
     }));
+
+    if (backendOnline && updatedSkill) {
+      try {
+        const existing = learningSkills.find(s => s.name === skillName);
+        if (existing && existing._id) {
+          // Flatten topics to match backend schema format { name, completed }
+          const apiTopics = updatedSkill.topics.map(t => ({
+            name: t.name,
+            completed: t.done !== undefined ? t.done : t.completed
+          }));
+          await skillsAPI.update(existing._id, { topics: apiTopics, progress: updatedSkill.progress });
+        }
+      } catch (err) {
+        console.error("Failed to update skill:", err);
+      }
+    }
   };
 
   return (
@@ -1216,9 +1393,50 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
 // ==================== OPPORTUNITIES PAGE ====================
 
 const WORK_TYPES = ["In Office", "Work from Home", "Hybrid", "Field Work"];
-const LOCATIONS = ["Bangalore", "Hyderabad", "Pune", "Mumbai", "Delhi", "Noida", "Gurgaon", "Chennai", "Remote", "Global"];
-const ROLES = ["SDE", "Full Stack", "Frontend", "Backend", "AI Research", "Data Science", "UI/UX Design", "Product Management", "Mobile Dev", "Cloud Engineering", "Blockchain"];
+const LOCATIONS = ["Bangalore", "Chennai", "Delhi", "Gurgaon", "Hyderabad", "Mumbai", "Noida", "Pune", "Remote", "Global"];
+const ROLES = ["AI Research", "Backend", "Blockchain", "Business Development", "Cloud Engineering", "Cybersecurity", "Data Analysis", "Data Science", "DevOps", "Digital Marketing", "Finance", "Frontend", "Full Stack", "Graphic Design", "HR", "Machine Learning", "Mobile App Dev", "Product Management", "SDE", "Software Development", "UI", "UI/UX Design", "Web Development"];
 const SORT_OPTIONS = ["Latest", "Relevant", "Alphabetical"];
+
+const CATEGORY_ITEMS = [
+  { name: "Software Development", icon: "🖥️" },
+  { name: "Web Development", icon: "🌐" },
+  { name: "Data Science", icon: "⚛️" },
+  { name: "Cybersecurity", icon: "🛡️" },
+  { name: "UI/UX Design", icon: "🎨" },
+  { name: "Mobile Development", icon: "📱" },
+  { name: "Cloud Engineering", icon: "☁️" },
+  { name: "Research", icon: "🔬" },
+  { name: "Product Management", icon: "📋" },
+  { name: "Finance", icon: "💳" },
+  { name: "Digital Marketing", icon: "📢" },
+  { name: "HR", icon: "👥" }
+];
+
+const COMP_STATUS_OPTIONS = ["Live", "Expired", "Closed", "Recent"];
+const EVENT_TYPE_OPTIONS = ["Online", "Offline"];
+const PAYMENT_OPTIONS = ["Paid", "Free"];
+const TEAM_SIZE_OPTIONS = ["1", "2", "2+"];
+const COMP_LOCATIONS = ["Pune", "Gurgaon", "Delhi", "Bangalore", "Mumbai", "Hyderabad", "Chennai", "Noida", "Kolkata", "Remote / Online"];
+const COMP_CATEGORIES = [
+  "Architecture", "Artificial Intelligence & Machine Learning", "Chemical Engineering",
+  "Civil Engineering", "Cloud & Infrastructure", "Consulting & Strategy", "Content & Editorial",
+  "Creative & Performing Arts", "Cybersecurity", "Data & Analytics", "Design",
+  "Education & Training", "Electrical Engineering", "Electronics Engineering",
+  "Environmental & Sustainability", "Finance & Banking", "Full Stack Development",
+  "Hardware & Embedded", "HealthTech", "Information Technology", "Law & Policy",
+  "Management & Leadership", "Marketing & Growth", "Mathematics", "Mechanical Engineering",
+  "Mobile Development", "Open Source", "Physics & Science", "Product Management",
+  "Robotics & Automation", "Social Impact", "Space & Astronomy", "UI/UX Design",
+  "Web Development"
+];
+const USER_TYPES = ["College Students", "Fresher", "Professionals", "School Students"];
+const COMP_SKILLS = [
+  "Java", "JavaScript", "Python", "C++", "React", "Node.js", "SQL", "Machine Learning",
+  "Data Science", "UI/UX Design", "Blockchain", "Cloud Computing", "DevOps",
+  "Competitive Programming", "Android", "iOS", "AR/VR", "Cybersecurity",
+  "NLP", "Computer Vision", "Financial Modeling", "Research & Analysis"
+];
+
 
 function FilterDropdown({ label, options, selected, onSelect, searchable = false, icon = "⚡" }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -1250,62 +1468,280 @@ function FilterDropdown({ label, options, selected, onSelect, searchable = false
   );
 }
 
-function AllFiltersModal({ onClose, filters, setFilters, apply }) {
-  const [temp, setTemp] = useState(filters);
+function AllFiltersModal({ onClose, filters, setFilters, apply, currentSort, setSort, type }) {
+  const [activeTab, setActiveTab] = useState(type === "internship" ? "Work Type" : "Status");
+  const [tempFilters, setTempFilters] = useState(filters);
+  const [tempSort, setTempSort] = useState(currentSort);
+
+  const internshipTabs = ["Work Type", "Location", "Roles", "Sort By"];
+  const competitionTabs = ["Quick Filters", "Status", "Event Type", "Payment", "Team Size", "Locations", "Categories", "User Type", "Skills", "Sort By"];
+  const tabs = type === "internship" ? internshipTabs : competitionTabs;
+
+  const [catSearch, setCatSearch] = useState("");
+  const [skillSearch, setSkillSearch] = useState("");
+  const [locSearch, setLocSearch] = useState("");
+
   const toggleRole = (r) => {
-    setTemp(prev => {
+    setTempFilters(prev => {
       const roles = prev.roles.includes(r) ? prev.roles.filter(x => x !== r) : [...prev.roles, r];
       return { ...prev, roles };
     });
   };
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case "Quick Filters":
+        return (
+          <div className="filter-options-grid">
+            <label className={`filter-option-item${tempFilters.openToAll ? " active" : ""}`}>
+              <input type="checkbox" checked={tempFilters.openToAll} onChange={() => setTempFilters(f => ({ ...f, openToAll: !f.openToAll }))} />
+              <span>🚪 Open to all</span>
+            </label>
+          </div>
+        );
+      case "Status":
+        return (
+          <div className="filter-options-grid">
+            {COMP_STATUS_OPTIONS.map(s => (
+              <label key={s} className={`filter-option-item${tempFilters.status === s ? " active" : ""}`}>
+                <input type="radio" name="status" checked={tempFilters.status === s} onChange={() => setTempFilters(f => ({ ...f, status: s }))} />
+                <span>{s}</span>
+              </label>
+            ))}
+            <label className={`filter-option-item${!tempFilters.status ? " active" : ""}`}>
+              <input type="radio" name="status" checked={!tempFilters.status} onChange={() => setTempFilters(f => ({ ...f, status: null }))} />
+              <span>All Statuses</span>
+            </label>
+          </div>
+        );
+      case "Event Type":
+        return (
+          <div className="filter-options-grid">
+            {EVENT_TYPE_OPTIONS.map(e => (
+              <label key={e} className={`filter-option-item${tempFilters.eventType === e ? " active" : ""}`}>
+                <input type="radio" name="eventType" checked={tempFilters.eventType === e} onChange={() => setTempFilters(f => ({ ...f, eventType: e }))} />
+                <span>{e}</span>
+              </label>
+            ))}
+            <label className={`filter-option-item${!tempFilters.eventType ? " active" : ""}`}>
+              <input type="radio" name="eventType" checked={!tempFilters.eventType} onChange={() => setTempFilters(f => ({ ...f, eventType: null }))} />
+              <span>Any Event Type</span>
+            </label>
+          </div>
+        );
+      case "Payment":
+        return (
+          <div className="filter-options-grid">
+            {PAYMENT_OPTIONS.map(p => (
+              <label key={p} className={`filter-option-item${tempFilters.payment === p ? " active" : ""}`}>
+                <input type="radio" name="payment" checked={tempFilters.payment === p} onChange={() => setTempFilters(f => ({ ...f, payment: p }))} />
+                <span>{p}</span>
+              </label>
+            ))}
+            <label className={`filter-option-item${!tempFilters.payment ? " active" : ""}`}>
+              <input type="radio" name="payment" checked={!tempFilters.payment} onChange={() => setTempFilters(f => ({ ...f, payment: null }))} />
+              <span>All</span>
+            </label>
+          </div>
+        );
+      case "Team Size":
+        return (
+          <div className="filter-options-grid">
+            {TEAM_SIZE_OPTIONS.map(t => (
+              <label key={t} className={`filter-option-item${tempFilters.teamSize === t ? " active" : ""}`}>
+                <input type="radio" name="teamSize" checked={tempFilters.teamSize === t} onChange={() => setTempFilters(f => ({ ...f, teamSize: t }))} />
+                <span>{t}</span>
+              </label>
+            ))}
+            <label className={`filter-option-item${!tempFilters.teamSize ? " active" : ""}`}>
+              <input type="radio" name="teamSize" checked={!tempFilters.teamSize} onChange={() => setTempFilters(f => ({ ...f, teamSize: null }))} />
+              <span>Any Size</span>
+            </label>
+          </div>
+        );
+      case "Work Type":
+        return (
+          <div className="filter-options-grid">
+            {WORK_TYPES.map(t => (
+              <label key={t} className={`filter-option-item${tempFilters.type === t ? " active" : ""}`}>
+                <input type="radio" name="workType" checked={tempFilters.type === t} onChange={() => setTempFilters(f => ({ ...f, type: t }))} />
+                <span>{t}</span>
+              </label>
+            ))}
+            <label className={`filter-option-item${!tempFilters.type ? " active" : ""}`}>
+              <input type="radio" name="workType" checked={!tempFilters.type} onChange={() => setTempFilters(f => ({ ...f, type: null }))} />
+              <span>Any Type</span>
+            </label>
+          </div>
+        );
+      case "Location":
+        return (
+          <div className="filter-options-grid">
+            {LOCATIONS.map(l => (
+              <label key={l} className={`filter-option-item${tempFilters.location === l ? " active" : ""}`}>
+                <input type="radio" name="location" checked={tempFilters.location === l} onChange={() => setTempFilters(f => ({ ...f, location: l }))} />
+                <span>{l}</span>
+              </label>
+            ))}
+            <label className={`filter-option-item${!tempFilters.location ? " active" : ""}`}>
+              <input type="radio" name="location" checked={!tempFilters.location} onChange={() => setTempFilters(f => ({ ...f, location: null }))} />
+              <span>Anywhere</span>
+            </label>
+          </div>
+        );
+      case "Roles":
+        return (
+          <div className="filter-options-grid">
+            {ROLES.map(r => (
+              <label key={r} className={`filter-option-item${tempFilters.roles.includes(r) ? " active" : ""}`}>
+                <input type="checkbox" checked={tempFilters.roles.includes(r)} onChange={() => toggleRole(r)} />
+                <span>{r}</span>
+              </label>
+            ))}
+          </div>
+        );
+      case "Locations":
+        return (
+          <div className="filter-options-grid">
+            <div style={{ marginBottom: 12 }}>
+              <input className="form-input" placeholder="🔍 Search location..." value={locSearch} onChange={e => setLocSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
+            </div>
+            {COMP_LOCATIONS.filter(l => l.toLowerCase().includes(locSearch.toLowerCase())).map(l => (
+              <label key={l} className={`filter-option-item${tempFilters.compLocation === l ? " active" : ""}`}>
+                <input type="radio" name="compLocation" checked={tempFilters.compLocation === l} onChange={() => setTempFilters(f => ({ ...f, compLocation: l }))} />
+                <span>📍 {l}</span>
+              </label>
+            ))}
+            <label className={`filter-option-item${!tempFilters.compLocation ? " active" : ""}`}>
+              <input type="radio" name="compLocation" checked={!tempFilters.compLocation} onChange={() => setTempFilters(f => ({ ...f, compLocation: null }))} />
+              <span>Anywhere</span>
+            </label>
+          </div>
+        );
+      case "Categories":
+        return (
+          <div>
+            <div style={{ marginBottom: 12 }}>
+              <input className="form-input" placeholder="🔍 Search Categories..." value={catSearch} onChange={e => setCatSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {COMP_CATEGORIES.filter(c => c.toLowerCase().includes(catSearch.toLowerCase())).map(c => (
+                <button
+                  key={c}
+                  onClick={() => setTempFilters(f => ({ ...f, compCategories: f.compCategories?.includes(c) ? f.compCategories.filter(x => x !== c) : [...(f.compCategories || []), c] }))}
+                  style={{
+                    padding: "6px 14px", borderRadius: 20,
+                    border: `1.5px dashed ${tempFilters.compCategories?.includes(c) ? "var(--primary)" : "#CBD5E1"}`,
+                    background: tempFilters.compCategories?.includes(c) ? "var(--primary-light, #EEF2FF)" : "white",
+                    color: tempFilters.compCategories?.includes(c) ? "var(--primary)" : "#475569",
+                    fontWeight: 500, fontSize: "0.85rem", cursor: "pointer", transition: "all 0.15s"
+                  }}
+                >{c}</button>
+              ))}
+            </div>
+          </div>
+        );
+      case "User Type":
+        return (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, paddingTop: 8 }}>
+            {USER_TYPES.map(u => (
+              <button
+                key={u}
+                onClick={() => setTempFilters(f => ({ ...f, userType: f.userType === u ? null : u }))}
+                style={{
+                  padding: "8px 18px", borderRadius: 20,
+                  border: `1.5px dashed ${tempFilters.userType === u ? "var(--primary)" : "#CBD5E1"}`,
+                  background: tempFilters.userType === u ? "var(--primary-light, #EEF2FF)" : "white",
+                  color: tempFilters.userType === u ? "var(--primary)" : "#475569",
+                  fontWeight: 500, fontSize: "0.9rem", cursor: "pointer", transition: "all 0.15s"
+                }}
+              >{u}</button>
+            ))}
+          </div>
+        );
+      case "Skills":
+        return (
+          <div>
+            <div style={{ marginBottom: 12 }}>
+              <input className="form-input" placeholder="🔍 Search Skills..." value={skillSearch} onChange={e => setSkillSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {COMP_SKILLS.filter(s => s.toLowerCase().includes(skillSearch.toLowerCase())).map(s => (
+                <button
+                  key={s}
+                  onClick={() => setTempFilters(f => ({ ...f, compSkills: f.compSkills?.includes(s) ? f.compSkills.filter(x => x !== s) : [...(f.compSkills || []), s] }))}
+                  style={{
+                    padding: "6px 14px", borderRadius: 20,
+                    border: `1.5px dashed ${tempFilters.compSkills?.includes(s) ? "var(--primary)" : "#CBD5E1"}`,
+                    background: tempFilters.compSkills?.includes(s) ? "var(--primary-light, #EEF2FF)" : "white",
+                    color: tempFilters.compSkills?.includes(s) ? "var(--primary)" : "#475569",
+                    fontWeight: 500, fontSize: "0.85rem", cursor: "pointer", transition: "all 0.15s"
+                  }}
+                >{s}</button>
+              ))}
+            </div>
+          </div>
+        );
+      case "Sort By":
+        return (
+          <div className="filter-options-grid">
+            {SORT_OPTIONS.map(s => (
+              <label key={s} className={`filter-option-item${tempSort === s ? " active" : ""}`}>
+                <input type="radio" name="sort" checked={tempSort === s} onChange={() => setTempSort(s)} />
+                <span>{s}</span>
+              </label>
+            ))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal all-filters-modal" onClick={e => e.stopPropagation()}>
+      <div className="modal all-filters-modal redesigned" onClick={e => e.stopPropagation()}>
         <div className="filters-modal-header">
-          <h3 style={{ margin: 0 }}>All Filters</h3>
-          <button className="btn btn-outline btn-sm" onClick={onClose}>✕</button>
+          <h3 style={{ margin: 0 }}>Filters & Sort</h3>
+          <button className="btn-close" onClick={onClose}>✕</button>
         </div>
-        <div className="filters-modal-body">
-          <div>
-            <div className="filter-section-title">Work Type</div>
-            <div className="filter-options-list">
-              {WORK_TYPES.map(t => (
-                <label key={t} className="filter-option">
-                  <input type="checkbox" checked={temp.type === t} onChange={() => setTemp(f => ({ ...f, type: f.type === t ? null : t }))} />
-                  <span>{t}</span>
-                </label>
-              ))}
-            </div>
+        <div className="filters-modal-layout">
+          <div className="filters-sidebar">
+            {tabs.map(tab => (
+              <div 
+                key={tab} 
+                className={`sidebar-item${activeTab === tab ? " active" : ""}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+                {(tab === "Work Type" && tempFilters.type) || 
+                 (tab === "Location" && tempFilters.location) || 
+                 (tab === "Roles" && tempFilters.roles.length > 0) ||
+                 (tab === "Status" && tempFilters.status) ||
+                 (tab === "Event Type" && tempFilters.eventType) ||
+                 (tab === "Payment" && tempFilters.payment) ||
+                 (tab === "Team Size" && tempFilters.teamSize) ||
+                 (tab === "Locations" && tempFilters.compLocation) ||
+                 (tab === "Categories" && tempFilters.compCategories?.length > 0) ||
+                 (tab === "User Type" && tempFilters.userType) ||
+                 (tab === "Skills" && tempFilters.compSkills?.length > 0)
+                 ? <span className="dot" /> : null}
+              </div>
+            ))}
           </div>
-          <div>
-            <div className="filter-section-title">Location</div>
-            <div className="filter-options-list">
-              {LOCATIONS.slice(0, 6).map(l => (
-                <label key={l} className="filter-option">
-                  <input type="checkbox" checked={temp.location === l} onChange={() => setTemp(f => ({ ...f, location: f.location === l ? null : l }))} />
-                  <span>{l}</span>
-                </label>
-              ))}
+          <div className="filters-content">
+            <div className="content-header">
+              <h4>{activeTab}</h4>
+              <p className="text-muted small">Select your preferred {activeTab.toLowerCase()}</p>
             </div>
-          </div>
-          <div>
-            <div className="filter-section-title">Roles</div>
-            <div className="filter-options-list" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
-              {ROLES.slice(0, 8).map(r => (
-                <label key={r} className="filter-option">
-                  <input type="checkbox" checked={temp.roles.includes(r)} onChange={() => toggleRole(r)} />
-                  <span>{r}</span>
-                </label>
-              ))}
-            </div>
+            {renderContent()}
           </div>
         </div>
         <div className="filters-modal-footer">
-          <button className="btn btn-outline" onClick={() => { setTemp({ type: null, location: null, roles: [] }); }}>Clear All</button>
+          <button className="btn btn-outline" onClick={() => { setTempFilters({ type: null, location: null, roles: [], status: null, eventType: null, payment: null, teamSize: null, openToAll: false, compLocation: null, compCategories: [], userType: null, compSkills: [] }); setTempSort("Latest"); }}>Clear All</button>
           <div style={{ display: "flex", gap: 12 }}>
             <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-            <button className="btn btn-primary" onClick={() => { apply(temp); onClose(); }}>Apply Filters</button>
+            <button className="btn btn-primary" onClick={() => { setSort(tempSort); apply(tempFilters); onClose(); }}>Apply Results</button>
           </div>
         </div>
       </div>
@@ -1313,19 +1749,46 @@ function AllFiltersModal({ onClose, filters, setFilters, apply }) {
   );
 }
 
-function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSearch }) {
+const CategoryBar = ({ selected, onSelect }) => {
+  return (
+    <div className="category-bar">
+      {CATEGORY_ITEMS.map((cat) => (
+        <div 
+          key={cat.name} 
+          className={`category-card${selected === cat.name ? " active" : ""}`}
+          onClick={() => onSelect(cat.name === selected ? null : cat.name)}
+        >
+          <div className="cat-icon-wrapper">{cat.icon}</div>
+          <div className="cat-card-label">{cat.name}</div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSearch, backendOnline }) {
   const [type, setType] = useState("competition");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [searched, setSearched] = useState(false);
   
-  // Advanced Filter State
-  const [filters, setFilters] = useState({
-    type: null,
-    location: null,
-    roles: []
+  const [filters, setFilters] = useState({ 
+    type: null, 
+    location: null, 
+    roles: [],
+    status: null,
+    eventType: null,
+    payment: null,
+    teamSize: null,
+    openToAll: false,
+    compLocation: null,
+    compCategories: [],
+    userType: null,
+    compSkills: []
   });
+  const [showFiltersModal, setShowFiltersModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortBy, setSortBy] = useState("Latest");
   const [showAllFilters, setShowAllFilters] = useState(false);
 
@@ -1363,33 +1826,84 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
       });
     }
 
-    // 2. Work Type Filter
-    if (filters.type) {
-      res = res.filter(p => p.workType === filters.type);
+    // 1b. Category Selection (Quick Filter)
+    if (type === "internship" && selectedCategory) {
+      const cat = selectedCategory.toLowerCase();
+      res = res.filter(p => {
+        const title = (p.title || "").toLowerCase();
+        const role = (p.role || "").toLowerCase();
+        const tags = (p.tags || []).map(t => t.toLowerCase());
+        const domain = (p.domain || "").toLowerCase();
+
+        // Standard role matching
+        if (role.includes(cat) || title.includes(cat) || tags.some(t => t.includes(cat))) return true;
+
+        // Custom mappings for specific categories
+        if (cat === "software development") {
+          return role.includes("sde") || role.includes("software") || role.includes("full stack") || role.includes("backend") || role.includes("frontend") || title.includes("developer") || title.includes("engineer");
+        }
+        if (cat === "ui/ux design") {
+          return role.includes("ui") || role.includes("ux") || role.includes("design") || title.includes("interface");
+        }
+        if (cat === "web development") {
+          return role.includes("web") || role.includes("frontend") || role.includes("backend") || title.includes("web") || tags.includes("web");
+        }
+        if (cat === "mobile development") {
+          return role.includes("mobile") || role.includes("android") || role.includes("ios") || role.includes("app") || title.includes("app");
+        }
+        if (cat === "hr") {
+          return role.includes("hr") || role.includes("resource") || title.includes("human resource") || title.includes("talent");
+        }
+        if (cat === "finance") {
+          return role.includes("finance") || role.includes("banking") || title.includes("finance") || title.includes("bank") || domain.includes("finance") || domain.includes("fintech");
+        }
+        if (cat === "cybersecurity") {
+          return role.includes("security") || title.includes("security") || tags.includes("cyber");
+        }
+        if (cat === "research") {
+          return role.includes("research") || title.includes("research") || tags.includes("research");
+        }
+        if (cat === "cloud engineering") {
+          return role.includes("cloud") || role.includes("infra") || title.includes("cloud") || tags.includes("cloud");
+        }
+        if (cat === "product management") {
+          return role.includes("product") || role.includes("pm") || title.includes("product") || tags.includes("pm");
+        }
+        if (cat === "digital marketing") {
+          return role.includes("marketing") || title.includes("marketing") || tags.includes("digital");
+        }
+        return false;
+      });
     }
 
-    // 3. Location Filter
-    if (filters.location) {
-      res = res.filter(p => p.location === filters.location);
+    // Advanced filters
+    if (type === "internship") {
+      if (filters.type) res = res.filter(p => p.workType === filters.type);
+      if (filters.location) res = res.filter(p => p.location === filters.location);
+      if (filters.roles.length > 0) res = res.filter(p => filters.roles.some(r => p.role?.includes(r) || p.title.includes(r)));
+    } else {
+      if (filters.status) res = res.filter(p => p.status === filters.status);
+      if (filters.eventType) res = res.filter(p => p.eventType === filters.eventType);
+      if (filters.payment) res = res.filter(p => p.payment === filters.payment);
+      if (filters.teamSize) res = res.filter(p => p.teamSize === filters.teamSize);
+      if (filters.openToAll) res = res.filter(p => p.userType === "All" || (p.tags || []).includes("open"));
+      if (filters.compLocation) res = res.filter(p => (p.compLocation || "").toLowerCase().includes(filters.compLocation.toLowerCase()));
+      if (filters.compCategories?.length > 0) res = res.filter(p => filters.compCategories.some(cat => (p.compCategories || []).includes(cat) || (p.domain || "").toLowerCase().includes(cat.toLowerCase())));
+      if (filters.userType) res = res.filter(p => !p.userType || p.userType === filters.userType || p.userType === "All");
+      if (filters.compSkills?.length > 0) res = res.filter(p => filters.compSkills.some(skill => (p.compSkills || []).includes(skill) || (p.tags || []).some(t => t.toLowerCase().includes(skill.toLowerCase()))));
     }
 
-    // 4. Roles Filter
-    if (filters.roles.length > 0) {
-      res = res.filter(p => filters.roles.some(r => p.role?.includes(r) || p.title.includes(r)));
-    }
-
-    // 5. Sort
+    // 5. Sort (Applied to both)
     if (sortBy === "Latest") {
       res.sort((a, b) => new Date(b.datePosted || 0) - new Date(a.datePosted || 0));
     } else if (sortBy === "Alphabetical") {
-      res.sort((a, b) => a.title.localeCompare(b.title));
+      res.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
     } else if (sortBy === "Relevant") {
-      // Basic relevance: items with matching tags or domain first
       res.sort((a, b) => (b.tags?.length || 0) - (a.tags?.length || 0));
     }
 
     return res;
-  }, [pool, query, searched, filters, sortBy, type]);
+  }, [pool, query, searched, filters, sortBy, type, selectedCategory]);
 
   useEffect(() => {
     setResults(getFilteredResults());
@@ -1409,29 +1923,71 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
   const switchType = (t) => {
     setType(t);
     setQuery("");
-    setFilters({ type: null, location: null, roles: [] });
+    setFilters({ 
+      type: null, 
+      location: null, 
+      roles: [],
+      status: null,
+      eventType: null,
+      payment: null,
+      teamSize: null,
+      openToAll: false,
+      compLocation: null,
+      compCategories: [],
+      userType: null,
+      compSkills: []
+    });
+    setSelectedCategory(null);
     setSearched(false);
     setSuggestions([]);
   };
 
-  const setStatus = (id, status) => {
+  const setStatus = async (id, status) => {
+    const item = pool.find(p => p.id === id);
+    if (!item) return;
+    
+    const newStatusData = { type, title: item.title, domain: item.domain || "General", status };
+    
+    // Update local state first to feel instantaneous
     setOpportunities(prev => {
-      const existing = prev.find(o => o.id === id);
-      const item = pool.find(p => p.id === id);
-      const newStatus = { id, type, title: item.title, domain: item.domain, status };
+      const existing = prev.find(o => o.title === item.title && o.type === type);
       addActivity(`Updated ${item.title} to "${status}"`);
-      if (existing) return prev.map(o => o.id === id ? newStatus : o);
-      return [...prev, newStatus];
+      if (existing) return prev.map(o => (o.title === item.title && o.type === type) ? { ...o, status } : o);
+      return [...prev, { ...newStatusData, id: item.id }]; // keep mock id locally for layout
     });
+
+    if (backendOnline) {
+      try {
+        const existing = opportunities.find(o => o.title === item.title && o.type === type);
+        if (existing && existing._id) {
+           await opportunitiesAPI.update(existing._id, { status });
+        } else {
+           const res = await opportunitiesAPI.save(newStatusData);
+           if (res.data?.opportunity) {
+              setOpportunities(prev => prev.map(o => 
+                (o.title === item.title && o.type === type) ? { ...o, _id: res.data.opportunity._id } : o
+              ));
+           }
+        }
+      } catch (err) {
+        console.error("Failed to sync status for", item.title, err);
+      }
+    }
   };
 
-  const getStatus = (id) => opportunities.find(o => o.id === id)?.status || null;
+  const getStatus = (id) => {
+    const item = pool.find(p => p.id === id);
+    if (!item) return null;
+    return opportunities.find(o => o.title === item.title && o.type === type)?.status || null;
+  };
   const statuses = type === "competition" ? COMP_STATUSES : INTERN_STATUSES;
 
   const categoryColors = { hackathon: "badge-blue", coding: "badge-yellow", olympiad: "badge-green", data: "badge-blue", ai: "badge-blue", design: "badge-gray", business: "badge-gray" };
   const categoryLabels = { hackathon: "🔨 Hackathon", coding: "💻 Coding", olympiad: "🏆 Olympiad", data: "📊 Data Science", ai: "🤖 AI/ML", design: "🎨 Design", business: "💼 Business" };
 
-  const activeFilterCount = (filters.type ? 1 : 0) + (filters.location ? 1 : 0) + (filters.roles.length > 0 ? 1 : 0);
+  const activeFilterCount = type === "internship" 
+    ? (filters.type ? 1 : 0) + (filters.location ? 1 : 0) + (filters.roles.length > 0 ? 1 : 0)
+    : (filters.status ? 1 : 0) + (filters.eventType ? 1 : 0) + (filters.payment ? 1 : 0) + (filters.teamSize ? 1 : 0) + (filters.openToAll ? 1 : 0) + (filters.compLocation ? 1 : 0) + (filters.compCategories?.length > 0 ? 1 : 0) + (filters.userType ? 1 : 0) + (filters.compSkills?.length > 0 ? 1 : 0);
 
   return (
     <div className="page" style={{ background: "#F8FAFC" }}>
@@ -1461,17 +2017,17 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
               </div>
               <button className="btn btn-primary" style={{ padding: "0 32px", height: 48, borderRadius: 12 }} onClick={() => doSearch()}>Search</button>
             </div>
+
+            {type === "internship" && (
+              <CategoryBar selected={selectedCategory} onSelect={setSelectedCategory} />
+            )}
             
-            <div className="filter-bar">
-              <button className={`filter-btn${activeFilterCount > 0 ? " active" : ""}`} onClick={() => setShowAllFilters(true)}>
-                ⚙️ Filters {activeFilterCount > 0 && <span className="filter-badge">{activeFilterCount}</span>}
+            <div className="filter-bar" style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16 }}>
+              <button className={`btn btn-outline filter-main-btn${activeFilterCount > 0 ? " active" : ""}`} onClick={() => setShowAllFilters(true)} style={{ borderRadius: 12, padding: "0 20px", height: 44, display: "flex", alignItems: "center", gap: 8, fontWeight: 600, borderColor: "#E2E8F0" }}>
+                <span>⚙️</span> Filters {activeFilterCount > 0 && <span className="filter-count-pill">{activeFilterCount}</span>}
               </button>
-              <div style={{ width: 1, height: 24, background: "var(--border)", margin: "0 8px" }} />
-              <FilterDropdown label="Type" options={WORK_TYPES} selected={filters.type} onSelect={v => setFilters(f => ({ ...f, type: v }))} icon="🏢" />
-              <FilterDropdown label="Location" options={LOCATIONS} selected={filters.location} onSelect={v => setFilters(f => ({ ...f, location: v }))} searchable icon="📍" />
-              <FilterDropdown label="Role" options={ROLES} selected={filters.roles[0] || null} onSelect={v => setFilters(f => ({ ...f, roles: v ? [v] : [] }))} searchable icon="👨‍💻" />
-              <div style={{ marginLeft: "auto" }}>
-                <FilterDropdown label="Sort By" options={SORT_OPTIONS} selected={sortBy} onSelect={v => setSortBy(v || "Latest")} icon="📊" />
+              <div style={{ marginLeft: "auto", color: "#64748B", fontSize: "0.85rem", fontWeight: 500 }}>
+                Sorted by: <span style={{ color: "var(--primary)", fontWeight: 700 }}>{sortBy}</span>
               </div>
             </div>
 
@@ -1493,7 +2049,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
               <div style={{ fontSize: "4rem", marginBottom: 16 }}>🔎</div>
               <h3 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: 8 }}>No matching opportunities</h3>
               <p className="text-muted">We couldn't find anything matching your current filters. Try adjusting them!</p>
-              <button className="btn btn-outline mt-6" onClick={() => { setQuery(""); setFilters({ type: null, location: null, roles: [] }); setSearched(false); }}>Reset All Filters</button>
+              <button className="btn btn-outline mt-6" onClick={() => { setQuery(""); setFilters({ type: null, location: null, roles: [], status: null, eventType: null, payment: null, teamSize: null, openToAll: false }); setSearched(false); }}>Reset All Filters</button>
             </div>
           )}
           {results.map(opp => {
@@ -1518,10 +2074,21 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
                 </div>
 
                 <div className="opp-meta">
-                  {opp.location && <div className="opp-meta-item">📍 {opp.location}</div>}
-                  {opp.workType && <div className="opp-meta-item">🏠 {opp.workType}</div>}
-                  {opp.duration && <div className="opp-meta-item">⏱ {opp.duration}</div>}
-                  {opp.stipend && <div className="opp-meta-item" style={{ color: "var(--success)" }}>💰 {opp.stipend}</div>}
+                  {type === "internship" ? (
+                    <>
+                      {opp.location && <div className="opp-meta-item">📍 {opp.location}</div>}
+                      {opp.workType && <div className="opp-meta-item">🏠 {opp.workType}</div>}
+                      {opp.duration && <div className="opp-meta-item">⏱ {opp.duration}</div>}
+                      {opp.stipend && <div className="opp-meta-item" style={{ color: "var(--success)" }}>💰 {opp.stipend}</div>}
+                    </>
+                  ) : (
+                    <>
+                      {opp.status && <div className="opp-meta-item">📊 {opp.status}</div>}
+                      {opp.eventType && <div className="opp-meta-item">🌐 {opp.eventType}</div>}
+                      {opp.payment && <div className="opp-meta-item">🏛 {opp.payment}</div>}
+                      {opp.teamSize && <div className="opp-meta-item">👥 Team: {opp.teamSize}</div>}
+                    </>
+                  )}
                 </div>
 
                 <div className="divider" style={{ margin: "16px 0" }} />
@@ -1536,7 +2103,17 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
           })}
         </div>
       </div>
-      {showAllFilters && <AllFiltersModal onClose={() => setShowAllFilters(false)} filters={filters} setFilters={setFilters} apply={setFilters} />}
+      {showAllFilters && (
+        <AllFiltersModal 
+          type={type}
+          onClose={() => setShowAllFilters(false)} 
+          filters={filters} 
+          setFilters={setFilters} 
+          apply={setFilters} 
+          currentSort={sortBy}
+          setSort={setSortBy}
+        />
+      )}
       <Footer />
     </div>
   );
@@ -1721,44 +2298,174 @@ function ProfilePage({ user, learningSkills, onEdit, onLogout }) {
 }
 
 // ==================== APP ROOT ====================
+
 export default function App() {
   const [page, setPage] = useState("welcome");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [storedUser, setStoredUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("userId"));
+  const [storedUser, setStoredUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [learningSkills, setLearningSkills] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [searchHistory, setSearchHistory] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
+  const [apiError, setApiError] = useState(null);
+  const [backendOnline, setBackendOnline] = useState(false);
 
+  // Check if backend is reachable on mount
+  useEffect(() => {
+    fetch("http://localhost:5001/api/health")
+      .then(r => r.json())
+      .then(d => { if (d.status === "ok") setBackendOnline(true); })
+      .catch(() => setBackendOnline(false));
+  }, []);
+
+  // Load user data from backend when logged in
+  useEffect(() => {
+    if (!isLoggedIn || !backendOnline) return;
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    // Load skills
+    skillsAPI.getAll()
+      .then(r => {
+        const apiSkills = r.data.skills.map(s => ({
+          _id: s._id,
+          name: s.skillName,
+          progress: s.progress,
+          topics: s.topics.map(t => ({ name: t.name, done: t.completed })),
+        }));
+        setLearningSkills(apiSkills);
+      })
+      .catch(() => {});
+
+    // Load opportunities
+    opportunitiesAPI.getAll()
+      .then(r => {
+        setOpportunities(r.data.opportunities.map(o => ({
+          id: o._id,
+          _id: o._id,
+          type: o.type,
+          title: o.title,
+          domain: o.domain,
+          status: o.status,
+        })));
+      })
+      .catch(() => {});
+
+    // Load history
+    historyAPI.get()
+      .then(r => {
+        setSearchHistory(r.data.history.searchHistory || []);
+        setActivityLogs((r.data.history.activityLogs || []).map(t => ({ text: t, time: "" })));
+      })
+      .catch(() => {});
+  }, [isLoggedIn, backendOnline]);
+
+  // ── Activity & Search (persisted to backend if online) ──────────
   const addActivity = useCallback((text) => {
     setActivityLogs(prev => [...prev, { text, time: "Just now" }]);
-  }, []);
+    if (backendOnline) historyAPI.addActivity(text).catch(() => {});
+  }, [backendOnline]);
 
   const addSearch = useCallback((q) => {
+    if (!q?.trim()) return;
     setSearchHistory(prev => [...prev.filter(s => s !== q), q]);
-  }, []);
+    if (backendOnline) historyAPI.addSearch(q).catch(() => {});
+  }, [backendOnline]);
 
-  const handleLogin = () => { setIsLoggedIn(true); setPage("home"); };
-  const handleLogout = () => { setIsLoggedIn(false); setPage("welcome"); };
-  const handleSaveUser = (data) => {
-    setStoredUser(data);
+  // ── Auth ────────────────────────────────────────────────────────
+  const handleLogin = (userData) => {
     setIsLoggedIn(true);
+    if (userData) {
+      setStoredUser(userData);
+      localStorage.setItem("userId", userData._id);
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
+    setPage("home");
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setStoredUser(null);
+    setLearningSkills([]);
+    setOpportunities([]);
+    setSearchHistory([]);
+    setActivityLogs([]);
+    localStorage.removeItem("userId");
+    localStorage.removeItem("user");
+    setPage("welcome");
+  };
+
+  const handleSaveUser = async (data) => {
+    if (backendOnline) {
+      try {
+        let res;
+        if (data._id) {
+          // Existing user — update profile
+          res = await import('./services/api').then(m => m.profileAPI.update(data));
+          const updated = res.data.user;
+          setStoredUser(updated);
+          localStorage.setItem("user", JSON.stringify(updated));
+        } else {
+          // New signup
+          res = await authAPI.signup(data);
+          const user = res.data.user;
+          setStoredUser(user);
+          localStorage.setItem("userId", user._id);
+          localStorage.setItem("user", JSON.stringify(user));
+          setIsLoggedIn(true);
+        }
+      } catch (err) {
+        console.error("Save user error:", err);
+        // Fall back to local state
+        setStoredUser(data);
+        setIsLoggedIn(true);
+      }
+    } else {
+      setStoredUser(data);
+      setIsLoggedIn(true);
+    }
     setIsEditing(false);
     setPage("dashboard");
   };
+
+  // ── Skill sync helpers ───────────────────────────────────────────
+  const setLearningSkillsWithSync = useCallback(async (updaterOrValue) => {
+    setLearningSkills(prev => {
+      const next = typeof updaterOrValue === "function" ? updaterOrValue(prev) : updaterOrValue;
+      return next;
+    });
+  }, []);
+
+  // ── Opportunity sync helpers ─────────────────────────────────────
+  const setOpportunitiesWithSync = useCallback((updaterOrValue) => {
+    setOpportunities(updaterOrValue);
+  }, []);
 
   if (!isLoggedIn && page === "signup") {
     return (
       <>
         <style>{styles}</style>
-        <SignUpPage onSave={handleSaveUser} onCancel={() => setPage("welcome")} />
+        <SignUpPage
+          onSave={handleSaveUser}
+          onCancel={() => setPage("welcome")}
+          backendOnline={backendOnline}
+        />
       </>
     );
   }
 
   if (!isLoggedIn) {
-    return <WelcomePage storedUser={storedUser} onLogin={handleLogin} onGoSignup={() => setPage("signup")} />;
+    return (
+      <WelcomePage
+        storedUser={storedUser}
+        onLogin={handleLogin}
+        onGoSignup={() => setPage("signup")}
+        backendOnline={backendOnline}
+      />
+    );
   }
 
   if (isEditing) {
@@ -1766,7 +2473,7 @@ export default function App() {
       <>
         <style>{styles}</style>
         <Navbar page="profile" setPage={setPage} isLoggedIn={isLoggedIn} />
-        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} />
+        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} backendOnline={backendOnline} />
       </>
     );
   }
@@ -1776,11 +2483,16 @@ export default function App() {
   return (
     <>
       <style>{styles}</style>
+      {!backendOnline && (
+        <div style={{ background: "#FEF3C7", borderBottom: "1px solid #F59E0B", padding: "8px 24px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 8, position: "fixed", top: 64, left: 0, right: 0, zIndex: 999 }}>
+          ⚠️ <strong>Backend not connected.</strong> Start the server: <code style={{ background: "#FDE68A", padding: "2px 6px", borderRadius: 4 }}>cd server && npm run dev</code>. Data will not persist.
+        </div>
+      )}
       <Navbar {...navProps} />
       {page === "home" && <HomePage user={storedUser} />}
       {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} />}
-      {page === "decision" && <DecisionPage learningSkills={learningSkills} setLearningSkills={setLearningSkills} addActivity={addActivity} addSearch={addSearch} />}
-      {page === "opportunities" && <OpportunitiesPage opportunities={opportunities} setOpportunities={setOpportunities} addActivity={addActivity} addSearch={addSearch} />}
+      {page === "decision" && <DecisionPage learningSkills={learningSkills} setLearningSkills={setLearningSkillsWithSync} addActivity={addActivity} addSearch={addSearch} backendOnline={backendOnline} />}
+      {page === "opportunities" && <OpportunitiesPage opportunities={opportunities} setOpportunities={setOpportunitiesWithSync} addActivity={addActivity} addSearch={addSearch} backendOnline={backendOnline} />}
       {page === "history" && <HistoryPage learningSkills={learningSkills} opportunities={opportunities} searchHistory={searchHistory} activityLogs={activityLogs} />}
       {page === "profile" && <ProfilePage user={storedUser} learningSkills={learningSkills} onEdit={() => setIsEditing(true)} onLogout={handleLogout} />}
     </>
