@@ -52,6 +52,7 @@ const signup = async (req, res) => {
         learningHoursPerWeek: user.learningHoursPerWeek,
         educationLevel: user.educationLevel,
         skills: user.skills,
+        role: user.role,
       },
     });
   } catch (err) {
@@ -101,6 +102,7 @@ const login = async (req, res) => {
         educationLevel: user.educationLevel,
         skills: user.skills,
         phone: user.phone,
+        role: user.role,
       },
     });
   } catch (err) {

@@ -83,6 +83,7 @@ export const adminAPI = {
 export const trafficAPI = {
   logVisit: (data) => api.post('/admin/traffic', data),
   logSearch: (data) => api.post('/admin/searches', data),
+  logHeartbeat: (data) => api.post('/admin/traffic/heartbeat', data),
 };
 
 

@@ -2117,6 +2117,132 @@ footer {
   font-size: 0.75rem;
 }
 
+/* Personalized Guide Card */
+.personalized-guide-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-left: 5px solid var(--primary);
+  overflow: hidden;
+  position: relative;
+}
+
+.guide-welcome {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.guide-main {
+  flex: 1;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.guide-item {
+  background: #fff;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.guide-item-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748B;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.guide-item-val {
+  font-weight: 600;
+  color: #1E293B;
+  font-size: 0.88rem;
+}
+
+.guide-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px dashed var(--border);
+}
+
+.guide-advice {
+  font-size: 0.85rem;
+  color: #475569;
+  max-width: 60%;
+  line-height: 1.5;
+}
+
+.guide-icon-blob {
+  width: 80px;
+  height: 80px;
+  background: var(--bg-section);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
+}
+
+@media (max-width: 768px) {
+  .guide-welcome {
+    flex-direction: column;
+    text-align: center;
+  }
+  .guide-footer {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .guide-advice {
+    max-width: 100%;
+  }
+}
+
+/* Admin Chart Placeholders & Improvements */
+.admin-chart-container {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.pie-chart-mock {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--primary) 0% 30%, 
+    var(--success) 30% 55%, 
+    var(--amber) 55% 75%, 
+    var(--error) 75% 90%, 
+    #94a3b8 90% 100%
+  );
+  position: relative;
+}
+
+.pie-chart-mock::after {
+  content: "";
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  background: #fff;
+  border-radius: 50%;
+}
+
 @media (max-width: 992px) {
   .admin-layout {
     grid-template-columns: 1fr;
@@ -2127,3 +2253,66 @@ footer {
     position: static;
   }
 }
+
+/* ======== CAREER GUIDE ENHANCEMENTS ======== */
+.career-guide-hero {
+  background: linear-gradient(135deg, var(--amber-light) 0%, #FFFBEB 100%);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  border: 1px solid rgba(217, 119, 6, 0.1);
+}
+.career-guide-title { font-size: 2.5rem; font-weight: 800; color: #92400E; margin-bottom: 8px; }
+.career-guide-aspiration { font-style: italic; color: #B45309; opacity: 0.8; font-size: 1.1rem; }
+.career-hero-icon { color: #D97706; opacity: 0.2; }
+
+/* Flowchart Styles */
+.flowchart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 40px 20px;
+  background: var(--bg-section);
+  border-radius: var(--radius-lg);
+  position: relative;
+}
+
+.flow-node {
+  width: 280px;
+  padding: 20px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+}
+.flow-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.flow-node.start { border-color: var(--primary); border-radius: 50px; background: rgba(59, 130, 246, 0.03); }
+.flow-node.end { border-color: var(--green); border-radius: 50px; background: rgba(16, 185, 129, 0.03); }
+.flow-node.decision { border-color: var(--amber); transform: rotate(0deg); clip-path: polygon(15% 0%, 85% 0%, 100% 50%, 85% 100%, 15% 100%, 0% 50%); padding: 25px 40px; }
+
+.flow-connector {
+  width: 2px;
+  height: 40px;
+  background: var(--border);
+  position: relative;
+}
+.flow-connector::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: -4px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 8px solid var(--border);
+}
+
+.node-label { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+.node-type { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; display: block; }

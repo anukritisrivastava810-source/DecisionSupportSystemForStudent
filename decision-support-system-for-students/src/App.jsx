@@ -408,7 +408,12 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
         const { authAPI } = await import('./services/api');
         const res = await authAPI.login({ email: form.email, password: form.password });
         if (res.data.success) {
-          onLogin(res.data.user);
+          const user = res.data.user;
+          // Forced override for the specified admin account
+          if (user.email === 'anukritisrivastava810@gmail.com') {
+            user.role = 'admin'; // Ensure role is set
+          }
+          onLogin(user);
         }
       } catch (err) {
         const msg = err.response?.data?.message || "Invalid email or password.";
@@ -580,8 +585,34 @@ function SignUpPage({ existing, onSave, onCancel }) {
                 <SignUpField label="Primary Domain" name="primaryDomain" opts={["Web Development", "Artificial Intelligence", "Data Science", "Cybersecurity", "Cloud Computing", "Mobile Development", "Game Development", "Other"]} form={form} errors={errors} set={set} />
                 <SignUpField label="Current Skill Level" name="skillLevel" opts={["Beginner", "Intermediate", "Advanced"]} form={form} errors={errors} set={set} />
               </div>
-              <SignUpField label="Career Goal" name="careerGoal" type="textarea" placeholder="e.g. Become a Full Stack Developer" form={form} errors={errors} set={set} />
-              <SignUpField label="Career Aspiration" name="careerAspiration" type="textarea" placeholder="e.g. Work at a top tech company" form={form} errors={errors} set={set} />
+              <SignUpField 
+                label="Career Goal" 
+                name="careerGoal" 
+                opts={[
+                  "Learn a new technical skill", "Build strong project portfolio", "Get internship",
+                  "Win hackathon / competition", "Improve coding skills", "Learn web development",
+                  "Learn app development", "Start freelancing", "Prepare for placements",
+                  "Build resume", "Explore AI / ML field", "Learn data science",
+                  "Strengthen problem solving", "Improve design skills", "Prepare for higher studies",
+                  "Build personal brand", "Start open source contributions", "Gain practical industry exposure",
+                  "Improve technical consistency", "Become job-ready"
+                ]} 
+                form={form} errors={errors} set={set} 
+              />
+              <SignUpField 
+                label="Career Aspiration" 
+                name="careerAspiration" 
+                opts={[
+                  "Software Engineer", "Full Stack Developer", "Frontend Developer",
+                  "Backend Developer", "Web Developer", "App Developer",
+                  "AI Engineer", "Machine Learning Engineer", "Data Scientist",
+                  "Cybersecurity Analyst", "Cloud Engineer", "UI/UX Designer",
+                  "Product Manager", "Business Analyst", "Researcher",
+                  "Entrepreneur", "DevOps Engineer", "Blockchain Developer",
+                  "Game Developer", "Data Analyst"
+                ]} 
+                form={form} errors={errors} set={set} 
+              />
               <div className="grid-2">
                 <SignUpField label="Learning Hours Per Week" name="learningHoursPerWeek" type="number" placeholder="15" form={form} errors={errors} set={set} />
                 <div />
@@ -646,17 +677,65 @@ function HomePage({ user }) {
   );
 }
 
+// ==================== PERSONALIZED GUIDE LOGIC ====================
+function getPersonalizedGuide(user) {
+  const aspiration = user?.careerAspiration || "Software Engineer";
+  const goal = user?.careerGoal || "Improve coding skills";
+  const domain = user?.primaryDomain || "Web Development";
+  const level = user?.skillLevel || "Beginner";
+
+  // Base Templates
+  const guides = {
+    "Web Development": {
+      skills: ["HTML/CSS/JS", "React", "Node.js", "Database Design"],
+      tools: ["VS Code", "Chrome DevTools", "GitHub", "Vercel"],
+      path: "Master Frontend → Learn Backend Basics → Build Full Stack Apps",
+      advice: "Consistency is key. Build 3 solid projects for your portfolio."
+    },
+    "Artificial Intelligence": {
+      skills: ["Python", "Linear Algebra", "Machine Learning Intro", "PyTorch/TensorFlow"],
+      tools: ["Jupyter Notebooks", "Google Colab", "Kaggle", "Conda"],
+      path: "Python Mastery → Data Analysis → ML Models → Deep Learning",
+      advice: "Focus on understanding the math behind the models, not just the code."
+    },
+    "Data Science": {
+      skills: ["Python/R", "Pandas & NumPy", "SQL", "Data Visualization"],
+      tools: ["Tableau/PowerBI", "SQL Server", "Excel", "Anaconda"],
+      path: "Excel Basics → SQL & Data Cleaning → Viz → Predictive Modeling",
+      advice: "The story the data tells is more important than the algorithm used."
+    }
+  };
+
+  const base = guides[domain] || guides["Web Development"];
+  
+  // Refine advice based on level and goal
+  let specificAdvice = base.advice;
+  if (level === 'Beginner') specificAdvice = "Start with the absolute foundations. Don't skip the basics; they are your support for everything else.";
+  if (goal.toLowerCase().includes('internship')) specificAdvice += " Focus on building 2 standout projects to show recruiters.";
+  if (goal.toLowerCase().includes('freelancing')) specificAdvice += " Learn how to manage clients and set clear project scopes.";
+
+  return {
+    ...base,
+    aspiration,
+    goal,
+    advice: specificAdvice,
+    nextStep: level === 'Beginner' ? "Complete a fundamental course in " + base.skills[0] : "Build a complex project using " + base.skills[1]
+  };
+}
+
 // ==================== DASHBOARD PAGE ====================
 function DashboardPage({ user, learningSkills, opportunities, setPage }) {
+  const guide = getPersonalizedGuide(user);
   const completedSkills = learningSkills.filter(s => s.progress === 100);
   const activeSkills = learningSkills.filter(s => s.progress < 100);
   const competitions = opportunities.filter(o => o.type === "competition");
   const internships = opportunities.filter(o => o.type === "internship");
-  const totalHours = user?.learningHoursPerWeek ? parseInt(user.learningHoursPerWeek) * 8 : 120;
-
+  const userHours = parseInt(user?.learningHoursPerWeek || 0);
+  
   const regularStats = [
     [<BookOpen size={18} style={{marginRight: "6px"}} />, "#EFF6FF", learningSkills.length, "Skills Learning", "var(--primary)"],
     [<CheckCircle2 size={18} style={{marginRight: "6px"}} />, "#F0FDF4", completedSkills.length, "Skills Completed", "var(--success)"],
+    [<TrendingUp size={18} style={{marginRight: "6px"}} />, "#FDF2F8", userHours >= 15 ? 95 : 75, "Study Consistency", "#DB2777"],
   ];
 
   const careerGoalTitle = user?.careerGoal || "Product Manager";
@@ -671,13 +750,21 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
 
         <div className="section-header"><h2 className="section-title"><TrendingUp size={18} style={{marginRight: "6px"}} /> Learning Analytics</h2></div>
         <div className="card-grid">
-          {regularStats.map(([icon, bg, val, label, color]) => (
-            <div key={label} className="stat-card">
-              <div className="stat-icon" style={{ background: bg }}>{icon}</div>
-              <div className="stat-value" style={{ color }}>{val}</div>
-              <div className="stat-label">{label}</div>
+          {/* Domain Focus Card */}
+          {user?.primaryDomain && (
+            <div className="stat-card domain-focus-card">
+              <div className="stat-icon" style={{ background: "rgba(59, 130, 246, 0.1)" }}><Target size={18} style={{marginRight: "6px", color: "var(--primary)"}} /></div>
+              <div className="stat-value" style={{ color: "var(--primary)", fontSize: "1.2rem" }}>{user.primaryDomain}</div>
+              <div className="stat-label">Primary Domain</div>
+              <button 
+                className="know-more-link" 
+                onClick={() => { setPage("domainDetail"); }} 
+                style={{ backgroundColor: "rgba(59, 130, 246, 0.08)", borderColor: "rgba(59, 130, 246, 0.25)", color: "var(--primary)" }}
+              >
+                Know More →
+              </button>
             </div>
-          ))}
+          )}
 
           {/* Career Goal Card */}
           <div className="stat-card career-goal-card">
@@ -691,14 +778,54 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
             </button>
           </div>
 
-          {/* Domain Focus card — with "Click here to know more" link */}
-          <div className="stat-card domain-focus-card">
-            <div className="stat-icon" style={{ background: "#F5F3FF" }}><Target size={18} style={{marginRight: "6px"}} /></div>
-            <div className="stat-value" style={{ color: "#7C3AED" }}>{user?.primaryDomain || "Web Dev"}</div>
-            <div className="stat-label">Domain Focus</div>
-            <button className="know-more-link" onClick={() => setPage("domain-detail")}>
-              Click here to know more
-            </button>
+          {/* Overall Progress Card */}
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: "rgba(16, 185, 129, 0.1)" }}><Star size={18} style={{marginRight: "6px", color: "var(--green)"}} /></div>
+            <div className="stat-value" style={{ color: "var(--green)" }}>{learningSkills.length > 0 ? Math.round(learningSkills.reduce((acc, s) => acc + s.progress, 0) / learningSkills.length) : 0}%</div>
+            <div className="stat-label">Overall Progress</div>
+          </div>
+        </div>
+        
+        {/* Personalized Guide Card */}
+        <div className="section-header mt-8"><h2 className="section-title"><Star size={18} style={{marginRight: "6px", color: "var(--amber)"}} /> Your Personalized Path</h2></div>
+        <div className="card personalized-guide-card">
+          <div className="card-body">
+            <div className="guide-welcome">
+              <div className="guide-main">
+                <h3 className="mb-2">Strategic Roadmap for {guide.aspiration}</h3>
+                <p className="text-sm text-muted mb-4">Targeting: <strong>{guide.goal}</strong></p>
+                
+                <div className="guide-grid">
+                  <div className="guide-item">
+                    <div className="guide-item-label"><Layers size={14} /> Recommended Path</div>
+                    <div className="guide-item-val">{guide.path}</div>
+                  </div>
+                  <div className="guide-item">
+                    <div className="guide-item-label"><Hammer size={14} /> Suggested Skills</div>
+                    <div className="guide-item-val">{guide.skills.join(", ")}</div>
+                  </div>
+                  <div className="guide-item">
+                    <div className="guide-item-label"><Monitor size={14} /> Tools & Platforms</div>
+                    <div className="guide-item-val">{guide.tools.join(" • ")}</div>
+                  </div>
+                </div>
+
+                <div className="guide-footer mt-6">
+                  <div className="guide-advice">
+                    <strong>Pro Tip:</strong> {guide.advice}
+                  </div>
+                  <div className="guide-next">
+                    <span className="badge badge-blue">Next Step</span>
+                    <span className="text-sm font-bold ml-2">{guide.nextStep}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="guide-visual">
+                <div className="guide-icon-blob">
+                  <Bot size={40} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -729,12 +856,6 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
                   <span className="badge badge-green">✓ Done</span>
                 </div>
               ))}
-              {user?.primaryDomain && (
-                <div className="mt-6">
-                  <div className="text-sm text-muted mb-4">Domain Focus</div>
-                  <span className="badge badge-blue" style={{ padding: "6px 14px", fontSize: "0.85rem" }}>{user.primaryDomain}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -964,6 +1085,28 @@ function DomainDetailPage({ domain, onBack, backendOnline }) {
   );
 }
 
+// ==================== FLOWCHART COMPONENT ====================
+function Flowchart({ data }) {
+  if (!data || data.length === 0) return null;
+  
+  return (
+    <div className="flowchart-container mt-8">
+      <h3 className="section-title mb-10" style={{ textAlign: "center", width: "100%" }}>
+        <Activity size={20} style={{ marginRight: 10, color: "var(--primary)" }} /> Visual Strategic Roadmap
+      </h3>
+      {data.map((node, index) => (
+        <React.Fragment key={node.id}>
+          <div className={`flow-node ${node.type}`}>
+            <span className="node-type">{node.type}</span>
+            <div className="node-label">{node.label}</div>
+          </div>
+          {index < data.length - 1 && <div className="flow-connector"></div>}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
 // ==================== DECISION PAGE ====================
 
 function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
@@ -976,7 +1119,7 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
     async function fetchGuide() {
       setLoading(true);
       setError(null);
-      const goal = user?.careerGoal || "Product Manager";
+      const goal = user?.careerGoal || "Learn a new technical skill";
       try {
         const res = await careerGuideAPI.getByGoal(goal);
         if (!cancelled) setGuide(res.data.data);
@@ -1132,6 +1275,32 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
                     </React.Fragment>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Flowchart Section */}
+            {guide?.flowchart && (
+              <div className="section-header mt-12 mb-6">
+                <h2 className="section-title">🗺️ Implementation Strategy</h2>
+              </div>
+            )}
+            <Flowchart data={guide?.flowchart} />
+
+            {/* Steps Section */}
+            <div className="section-header mt-12 mb-6">
+              <h2 className="section-title">📊 Execution Plan</h2>
+            </div>
+            <div className="card mb-10">
+              <div className="card-body">
+                {(guide?.steps || []).map((step, idx) => (
+                  <div key={idx} className="guide-step-item" style={{ display: "flex", gap: 20, marginBottom: idx === (guide.steps.length - 1) ? 0 : 24, paddingBottom: idx === (guide.steps.length - 1) ? 0 : 24, borderBottom: idx === (guide.steps.length - 1) ? "none" : "1px solid var(--border-light)" }}>
+                    <div className="step-num" style={{ background: "var(--primary)", color: "white", width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyCenter: "center", fontSize: "0.8rem", fontWeight: 800, flexShrink: 0 }}>{step.stepNumber}</div>
+                    <div>
+                      <h4 style={{ fontWeight: 700, marginBottom: 4 }}>{step.title}</h4>
+                      <p className="text-sm text-muted">{step.description}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </>
@@ -2186,7 +2355,7 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
 // ==================== ADMIN DASHBOARD ====================
 function AdminDashboard({ user, onBack, backendOnline }) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [data, setData] = useState({ overview: {}, users: [], searches: [], activity: [], traffic: [] });
+  const [data, setData] = useState({ overview: {}, users: [], searches: [], activity: [], traffic: [], trafficStats: [] });
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -2205,7 +2374,8 @@ function AdminDashboard({ user, onBack, backendOnline }) {
         users: us.data.users,
         searches: se.data.searches,
         activity: ac.data.logs,
-        traffic: tr.data.traffic
+        traffic: tr.data.traffic,
+        trafficStats: tr.data.trafficStats || []
       });
     } catch (err) {
       console.error("Admin fetch error:", err);
@@ -2278,16 +2448,17 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                         <div className="stat-label">Total Users</div>
                       </div>
                       <div className="stat-card">
-                        <div className="stat-val">{data.overview.totalVisits || 0}</div>
-                        <div className="stat-label">Page Visits</div>
-                      </div>
-                      <div className="stat-card">
                         <div className="stat-val">{data.overview.totalSearches || 0}</div>
                         <div className="stat-label">Total Searches</div>
+                        <div className="text-xs text-muted mt-1">
+                          S: {data.overview.searchBreakdown?.skill || 0} | 
+                          C: {data.overview.searchBreakdown?.competition || 0} | 
+                          I: {data.overview.searchBreakdown?.internship || 0}
+                        </div>
                       </div>
                       <div className="stat-card">
                         <div className="stat-val">{data.overview.totalLogins || 0}</div>
-                        <div className="stat-label">Logins</div>
+                        <div className="stat-label">Total Logins</div>
                       </div>
                       <div className="stat-card">
                         <div className="stat-val">{data.overview.totalSkills || 0}</div>
@@ -2296,6 +2467,10 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                       <div className="stat-card">
                         <div className="stat-val">{data.overview.totalInternships || 0}</div>
                         <div className="stat-label">Internships</div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-val">{data.overview.totalCompetitions || 0}</div>
+                        <div className="stat-label">Competitions</div>
                       </div>
                     </div>
 
@@ -2374,9 +2549,26 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                       <div className="card">
                         <div className="card-body">
                           <h3>Domain Distribution</h3>
-                          <div className="mt-6 text-center py-8">
-                            <BarChart3 size={48} className="text-muted opacity-20" />
-                            <p className="text-muted mt-4">Chart visualization coming soon...</p>
+                          <div className="mt-8 admin-chart-container">
+                            <div className="pie-chart-mock" style={{
+                              background: data.overview.domainDistribution?.length > 0 
+                                ? `conic-gradient(${data.overview.domainDistribution.map((d, i, arr) => {
+                                    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+                                    const total = arr.reduce((sum, curr) => sum + curr.count, 0);
+                                    const startPercent = arr.slice(0, i).reduce((sum, curr) => sum + (curr.count / total) * 100, 0);
+                                    const endPercent = startPercent + (d.count / total) * 100;
+                                    return `${colors[i % colors.length]} ${startPercent}% ${endPercent}%`;
+                                  }).join(', ')})` 
+                                : 'var(--bg-section)'
+                            }}></div>
+                          </div>
+                          <div className="mt-6 flex flex-wrap gap-4 justify-center">
+                            {data.overview.domainDistribution?.map((d, i) => (
+                              <div key={i} className="flex items-center gap-2 text-xs">
+                                <div style={{ width: 10, height: 10, borderRadius: '2px', background: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'][i % 6] }}></div>
+                                <span>{d._id}: {d.count}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -2409,8 +2601,79 @@ function AdminDashboard({ user, onBack, backendOnline }) {
 
                 {activeTab === 'traffic' && (
                   <div className="admin-tab-content">
+                    <div className="card mb-8">
+                       <div className="card-body">
+                          <h3 className="mb-6">Daily User Engagement (Time Spent)</h3>
+                          <div style={{ height: 250, padding: '20px 0' }}>
+                            {data.trafficStats?.length > 1 ? (
+                              <svg width="100%" height="100%" viewBox="0 0 800 200" preserveAspectRatio="none">
+                                <defs>
+                                  <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
+                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                                  </linearGradient>
+                                </defs>
+                                {(() => {
+                                  const stats = data.trafficStats.slice(-7);
+                                  const maxDur = Math.max(...stats.map(s => s.totalDuration || 0), 1);
+                                  const points = stats.map((s, i) => {
+                                    const x = (i / (stats.length - 1)) * 800;
+                                    const y = 200 - ((s.totalDuration || 0) / maxDur) * 180;
+                                    return `${x},${y}`;
+                                  }).join(' ');
+                                  
+                                  return (
+                                    <>
+                                      {/* Area under the line */}
+                                      <polyline
+                                        fill="url(#lineGrad)"
+                                        points={`0,200 ${points} 800,200`}
+                                      />
+                                      {/* The line itself */}
+                                      <polyline
+                                        fill="none"
+                                        stroke="var(--primary)"
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        points={points}
+                                      />
+                                      {/* Data Dots */}
+                                      {stats.map((s, i) => {
+                                        const x = (i / (stats.length - 1)) * 800;
+                                        const y = 200 - ((s.totalDuration || 0) / maxDur) * 180;
+                                        return (
+                                          <g key={i}>
+                                            <circle cx={x} cy={y} r="5" fill="white" stroke="var(--primary)" strokeWidth="2" />
+                                            <text x={x} y={y - 12} textAnchor="middle" fontSize="12" fontWeight="bold" fill="var(--primary)">
+                                              {Math.round((s.totalDuration || 0) / 60)}m
+                                            </text>
+                                            <text x={x} y={200} textAnchor="middle" fontSize="10" fill="var(--text-muted)" transform={`rotate(-30 ${x},205)`}>
+                                              {s._id.split('-').slice(1).join('/')}
+                                            </text>
+                                          </g>
+                                        );
+                                      })}
+                                    </>
+                                  );
+                                })()}
+                              </svg>
+                            ) : (
+                              <div className="flex-center h-full text-muted">
+                                <TrendingUp size={48} className="opacity-20 mb-4" />
+                                <p>Insufficient data to generate trend line. (Need 2+ days)</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-8 pt-4 border-t border-dashed flex items-center justify-between text-xs text-muted">
+                            <span>* Graph shows total minutes spent by all users daily.</span>
+                            <span>Last 7 Days</span>
+                          </div>
+                       </div>
+                    </div>
                     <div className="card">
                       <div className="card-body">
+                        <h3 className="mb-4">Real-time Traffic Feed</h3>
                         <table className="admin-table">
                           <thead>
                             <tr>
@@ -2530,6 +2793,8 @@ export default function App() {
   const [activityLogs, setActivityLogs] = useState([]);
   const [apiError, setApiError] = useState(null);
   const [backendOnline, setBackendOnline] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState(null);
+  const trafficLogId = React.useRef(null);
 
   // Check if backend is reachable on mount
   useEffect(() => {
@@ -2581,6 +2846,40 @@ export default function App() {
       .catch(() => {});
   }, [isLoggedIn, backendOnline]);
 
+  // ── Traffic Logging & Heartbeat ────────────────────────────────
+  useEffect(() => {
+    if (!isLoggedIn || !backendOnline) return;
+    
+    const logVisit = async () => {
+      try {
+        const res = await trafficAPI.logVisit({
+          userId: localStorage.getItem("userId"),
+          pageVisited: page,
+          route: `/${page}`
+        });
+        if (res.data.success) {
+          trafficLogId.current = res.data.logId;
+        }
+      } catch (err) {
+        console.error("Traffic log error:", err);
+      }
+    };
+
+    logVisit();
+
+    const interval = setInterval(async () => {
+      if (trafficLogId.current) {
+        try {
+          await trafficAPI.logHeartbeat({ logId: trafficLogId.current, increment: 30 });
+        } catch (err) {
+          console.error("Heartbeat error:", err);
+        }
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [page, isLoggedIn, backendOnline]);
+
   // ── Activity & Search (persisted to backend if online) ──────────
   const addActivity = useCallback((text) => {
     setActivityLogs(prev => [...prev, { text, time: "Just now" }]);
@@ -2597,11 +2896,22 @@ export default function App() {
   const handleLogin = (userData) => {
     setIsLoggedIn(true);
     if (userData) {
+      console.log("Login User Data:", userData);
       setStoredUser(userData);
       localStorage.setItem("userId", userData._id);
       localStorage.setItem("user", JSON.stringify(userData));
+      
+      // If admin, go to admin dashboard, else home
+      if (userData.role === 'admin' || userData.email === 'anukritisrivastava810@gmail.com') {
+        console.log("Redirecting to Admin Dashboard");
+        setPage("admin");
+      } else {
+        console.log("Redirecting to Home");
+        setPage("home");
+      }
+    } else {
+      setPage("home");
     }
-    setPage("home");
   };
 
   const handleLogout = () => {
@@ -2646,7 +2956,14 @@ export default function App() {
       setIsLoggedIn(true);
     }
     setIsEditing(false);
-    setPage("dashboard");
+    const userRole = storedUser?.role || (data && data.role);
+    const userEmail = storedUser?.email || (data && data.email);
+    
+    if (userRole === 'admin' || userEmail === 'anukritisrivastava810@gmail.com') {
+      setPage("admin");
+    } else {
+      setPage("dashboard");
+    }
   };
 
   // ── Skill sync helpers ───────────────────────────────────────────

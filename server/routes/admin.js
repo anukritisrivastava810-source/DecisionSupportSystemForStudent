@@ -31,9 +31,19 @@ router.post('/searches', async (req, res) => {
 
 router.post('/traffic', async (req, res) => {
   try {
-    const { userId, pageVisited, route } = req.body;
+    const { userId, pageVisited, route, duration = 0 } = req.body;
     const TrafficLog = require('../models/TrafficLog');
-    await TrafficLog.create({ userId, pageVisited, route });
+    const log = await TrafficLog.create({ userId, pageVisited, route, duration });
+    res.json({ success: true, logId: log._id });
+  } catch (err) { res.status(500).json({ success: false }); }
+});
+
+router.post('/traffic/heartbeat', async (req, res) => {
+  try {
+    const { logId, increment = 30 } = req.body;
+    if (!logId) return res.status(400).json({ success: false });
+    const TrafficLog = require('../models/TrafficLog');
+    await TrafficLog.findByIdAndUpdate(logId, { $inc: { duration: increment } });
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false }); }
 });

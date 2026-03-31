@@ -11,11 +11,21 @@ const getOverview = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({ role: 'user' });
     const totalSkills = await SkillProgress.countDocuments();
-    const completedSkills = await SkillProgress.countDocuments({ progress: 100 });
+    
+    // Search Breakdowns
+    const totalSearches = await SearchHistory.countDocuments();
+    const skillSearches = await SearchHistory.countDocuments({ searchType: 'Skill' });
+    const competitionSearches = await SearchHistory.countDocuments({ searchType: 'Competition' });
+    const internshipSearches = await SearchHistory.countDocuments({ searchType: 'Internship' });
+
+    // Domain Distribution for Pie Chart
+    const domainDistribution = await User.aggregate([
+      { $match: { role: 'user' } },
+      { $group: { _id: { $ifNull: ["$primaryDomain", "Others"] }, count: { $sum: 1 } } }
+    ]);
+
     const totalInternships = await Opportunity.countDocuments({ type: 'internship' });
     const totalCompetitions = await Opportunity.countDocuments({ type: 'competition' });
-    const totalSearches = await SearchHistory.countDocuments();
-    const totalVisits = await TrafficLog.countDocuments();
     const totalLogins = await ActivityLog.countDocuments({ action: 'Logged In' });
 
     res.json({
@@ -23,11 +33,15 @@ const getOverview = async (req, res) => {
       data: {
         totalUsers,
         totalSkills,
-        completedSkills,
+        totalSearches,
+        searchBreakdown: {
+          skill: skillSearches,
+          competition: competitionSearches,
+          internship: internshipSearches
+        },
+        domainDistribution,
         totalInternships,
         totalCompetitions,
-        totalSearches,
-        totalVisits,
         totalLogins
       }
     });
@@ -83,11 +97,27 @@ const getActivityLogs = async (req, res) => {
 // @route GET /api/admin/traffic
 const getTraffic = async (req, res) => {
   try {
-    const traffic = await TrafficLog.find()
-      .populate('userId', 'name email')
+    // Filter out traffic from admin users
+    const adminUsers = await User.find({ role: 'admin' }).select('_id');
+    const adminIds = adminUsers.map(u => u._id);
+
+    const traffic = await TrafficLog.find({ userId: { $nin: adminIds } })
+      .populate('userId', 'name email role')
       .sort({ createdAt: -1 })
       .limit(100);
-    res.json({ success: true, traffic });
+
+    // Group for chart: Date vs Time spent (mocking time as count of logs per day for now)
+    const trafficStats = await TrafficLog.aggregate([
+      { $match: { userId: { $nin: adminIds } } },
+      { $group: { 
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 },
+          totalDuration: { $sum: "$duration" }
+      } },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    res.json({ success: true, traffic, trafficStats });
   } catch (err) {
     console.error('Admin Traffic Error:', err);
     res.status(500).json({ success: false, message: 'Server error fetching traffic.' });
