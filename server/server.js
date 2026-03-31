@@ -25,6 +25,9 @@ app.use('/api/opportunities', require('./routes/opportunities'));
 app.use('/api/history', require('./routes/history'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/profile', require('./routes/profile'));
+app.use('/api/domain-info', require('./routes/domainInfo'));
+app.use('/api/career-guide', require('./routes/careerGuide'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Health check
 app.get('/api/health', (req, res) => {

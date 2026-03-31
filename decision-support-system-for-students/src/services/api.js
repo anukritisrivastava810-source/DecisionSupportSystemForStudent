@@ -62,4 +62,28 @@ export const profileAPI = {
   update: (data) => api.put('/profile', data),
 };
 
+export const domainInfoAPI = {
+  getByDomain: (domain) => api.get(`/domain-info/${encodeURIComponent(domain)}`),
+  getAll: () => api.get('/domain-info'),
+};
+
+export const careerGuideAPI = {
+  getByGoal: (goal) => api.get('/career-guide', { params: { goal } }),
+  getAll: () => api.get('/career-guide/all'),
+};
+
+export const adminAPI = {
+  getOverview: () => api.get('/admin/overview'),
+  getUsers: () => api.get('/admin/users'),
+  getSearches: () => api.get('/admin/searches'),
+  getActivity: () => api.get('/admin/activity'),
+  getTraffic: () => api.get('/admin/traffic'),
+};
+
+export const trafficAPI = {
+  logVisit: (data) => api.post('/admin/traffic', data),
+  logSearch: (data) => api.post('/admin/searches', data),
+};
+
+
 export default api;

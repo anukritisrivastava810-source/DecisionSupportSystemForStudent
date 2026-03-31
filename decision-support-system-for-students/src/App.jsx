@@ -1,6 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+
+import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, Heart, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw } from 'lucide-react';
 import './App.css';
-import { authAPI, skillsAPI, opportunitiesAPI, historyAPI } from './services/api';// ==================== STYLES ====================
+import { authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI } from './services/api';
+// ==================== STYLES ====================
 
 
 // ==================== MOCK DATA ====================
@@ -322,9 +325,9 @@ function Footer() {
             <h4>Contact</h4>
             <div className="footer-contact">
               <a href="tel:+919876543210">📞 +91 98765 43210</a>
-              <a href="https://instagram.com/dss_students" target="_blank" rel="noreferrer">📸 @dss_students</a>
+              <a href="https://instagram.com/dss_students" target="_blank" rel="noreferrer"><Camera size={18} style={{marginRight: "6px"}} /> @dss_students</a>
               <a href="https://twitter.com/dss_students" target="_blank" rel="noreferrer">🐦 @dss_students</a>
-              <a href="mailto:support@dssstudents.in">✉️ support@dssstudents.in</a>
+              <a href="mailto:support@dssstudents.in"><Mail size={18} style={{marginRight: "6px"}} /> support@dssstudents.in</a>
             </div>
           </div>
         </div>
@@ -334,10 +337,19 @@ function Footer() {
   );
 }
 
-function Navbar({ page, setPage, isLoggedIn, onLogout }) {
+function Navbar({ page, setPage, isLoggedIn, onLogout, user }) {
   const [open, setOpen] = useState(false);
+  const isAdmin = user?.role === 'admin';
   const links = isLoggedIn
-    ? [["🏠 Home", "home"], ["📊 Dashboard", "dashboard"], ["🎯 Decision", "decision"], ["🚀 Opportunities", "opportunities"], ["📜 History", "history"], ["👤 Profile", "profile"]]
+    ? [
+        [<><Home size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Home</>, "home"],
+        isAdmin ? [<><Settings size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Admin</>, "admin"] : null,
+        [<><LayoutDashboard size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Dashboard</>, "dashboard"],
+        [<><Target size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Decision</>, "decision"],
+        [<><Activity size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Opportunities</>, "opportunities"],
+        [<><History size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> History</>, "history"],
+        [<><User size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Profile</>, "profile"]
+      ].filter(Boolean)
     : [];
 
   return (
@@ -438,7 +450,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
                 <input className="form-input" type="password" placeholder="••••••••" value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))} onKeyDown={e => e.key === "Enter" && handleLogin()} />
               </div>
-              {loginError && <p style={{ color: "var(--error)", fontSize: "0.85rem", margin: 0 }}>❌ {loginError}</p>}
+              {loginError && <p style={{ color: "var(--error)", fontSize: "0.85rem", margin: 0 }}><XCircle size={18} style={{marginRight: "6px"}} /> {loginError}</p>}
               {!backendOnline && (
                 <p style={{ fontSize: "0.8rem", color: "#92400E", background: "#FEF3C7", padding: "8px 12px", borderRadius: 8, margin: 0 }}>
                   ⚠️ Backend offline — start the server for full persistence.
@@ -456,7 +468,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
           )}
           {tab === "signup" && (
             <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ fontSize: "3rem", marginBottom: 12 }}>✨</div>
+              <div style={{ fontSize: "3rem", marginBottom: 12 }}><Star size={18} style={{marginRight: "6px"}} /></div>
               <p style={{ color: "var(--text-muted)", marginBottom: 20, fontSize: "0.9rem" }}>Create your profile to get started with personalized decision support.</p>
               <button className="btn btn-primary btn-lg btn-full" onClick={onGoSignup}>Create Your Profile →</button>
             </div>
@@ -470,20 +482,20 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
             <h2>Make Smarter Academic & Career Decisions</h2>
             <p>A structured system to help students evaluate choices, track skills, and build their professional future with clarity.</p>
             <div className="feature-list">
-              <div className="feature-item"><span className="feature-icon">🎯</span><span>Multi-Criteria Evaluation Framework</span></div>
-              <div className="feature-item"><span className="feature-icon">⚖️</span><span>Personalized Weight Assignment</span></div>
-              <div className="feature-item"><span className="feature-icon">🔍</span><span>Transparent & Explainable Results</span></div>
+              <div className="feature-item"><span className="feature-icon"><Target size={18} style={{marginRight: "6px"}} /></span><span>Multi-Criteria Evaluation Framework</span></div>
+              <div className="feature-item"><span className="feature-icon"><Scale size={18} style={{marginRight: "6px"}} /></span><span>Personalized Weight Assignment</span></div>
+              <div className="feature-item"><span className="feature-icon"><Search size={18} style={{marginRight: "6px"}} /></span><span>Transparent & Explainable Results</span></div>
             </div>
           </div>
         </div>
       </div>
       {modal === "error" && (
-        <Modal icon="❌" title="Wrong Credentials" msg="Please check your email and password and try again.">
+        <Modal icon={<XCircle size={18} style={{marginRight: "6px"}} />} title="Wrong Credentials" msg="Please check your email and password and try again.">
           <button className="btn btn-primary" onClick={() => setModal(null)}>Try Again</button>
         </Modal>
       )}
       {modal === "nouser" && (
-        <Modal icon="👤" title="No Account Found" msg="Please sign up first to create your profile.">
+        <Modal icon={<User size={18} style={{marginRight: "6px"}} />} title="No Account Found" msg="Please sign up first to create your profile.">
           <button className="btn btn-primary" onClick={() => { setModal(null); setTab("signup"); onGoSignup(); }}>Sign Up Now</button>
           <button className="btn btn-outline" onClick={() => setModal(null)}>Close</button>
         </Modal>
@@ -585,7 +597,7 @@ function SignUpPage({ existing, onSave, onCancel }) {
         </div>
       </div>
       {modal && (
-        <Modal icon={existing ? "✅" : "🎉"} title={existing ? "Profile Updated!" : "Registration Successful!"}
+        <Modal icon={existing ? <CheckCircle2 size={18} style={{marginRight: "6px"}} /> : <PartyPopper size={18} style={{marginRight: "6px"}} />} title={existing ? "Profile Updated!" : "Registration Successful!"}
           msg={existing ? "Your profile has been updated successfully." : "Your profile has been created. Welcome to DSS!"}>
           <button className="btn btn-primary" onClick={confirm}>{existing ? "Back to Profile" : "Go to Dashboard →"}</button>
         </Modal>
@@ -619,7 +631,7 @@ function HomePage({ user }) {
             By tracking your learning progress, monitoring opportunities, and maintaining a clear history of your growth, DSS helps you see the bigger picture and make decisions that align with your long-term career aspirations.
           </p>
           <div className="card-grid" style={{ marginTop: 32 }}>
-            {[["🎯", "Goal Setting", "Define and track your learning goals with precision"], ["📈", "Analytics", "Monitor your growth with detailed performance metrics"], ["🚀", "Opportunities", "Discover internships and competitions relevant to your domain"], ["📜", "History", "Maintain a transparent record of all your activities"]].map(([icon, title, desc]) => (
+            {[[<Target size={18} style={{marginRight: "6px"}} />, "Goal Setting", "Define and track your learning goals with precision"], [<TrendingUp size={18} style={{marginRight: "6px"}} />, "Analytics", "Monitor your growth with detailed performance metrics"], [<Activity size={18} style={{marginRight: "6px"}} />, "Opportunities", "Discover internships and competitions relevant to your domain"], [<History size={18} style={{marginRight: "6px"}} />, "History", "Maintain a transparent record of all your activities"]].map(([icon, title, desc]) => (
               <div key={title} style={{ background: "var(--bg-section)", borderRadius: "var(--radius-sm)", padding: 20 }}>
                 <div style={{ fontSize: "1.8rem", marginBottom: 10 }}>{icon}</div>
                 <div style={{ fontWeight: 700, marginBottom: 6 }}>{title}</div>
@@ -635,12 +647,19 @@ function HomePage({ user }) {
 }
 
 // ==================== DASHBOARD PAGE ====================
-function DashboardPage({ user, learningSkills, opportunities }) {
+function DashboardPage({ user, learningSkills, opportunities, setPage }) {
   const completedSkills = learningSkills.filter(s => s.progress === 100);
   const activeSkills = learningSkills.filter(s => s.progress < 100);
   const competitions = opportunities.filter(o => o.type === "competition");
   const internships = opportunities.filter(o => o.type === "internship");
   const totalHours = user?.learningHoursPerWeek ? parseInt(user.learningHoursPerWeek) * 8 : 120;
+
+  const regularStats = [
+    [<BookOpen size={18} style={{marginRight: "6px"}} />, "#EFF6FF", learningSkills.length, "Skills Learning", "var(--primary)"],
+    [<CheckCircle2 size={18} style={{marginRight: "6px"}} />, "#F0FDF4", completedSkills.length, "Skills Completed", "var(--success)"],
+  ];
+
+  const careerGoalTitle = user?.careerGoal || "Product Manager";
 
   return (
     <div className="page">
@@ -650,20 +669,37 @@ function DashboardPage({ user, learningSkills, opportunities }) {
           <p>Track your progress and continue building your future.</p>
         </div>
 
-        <div className="section-header"><h2 className="section-title">📊 Learning Analytics</h2></div>
+        <div className="section-header"><h2 className="section-title"><TrendingUp size={18} style={{marginRight: "6px"}} /> Learning Analytics</h2></div>
         <div className="card-grid">
-          {[
-            ["📚", "#EFF6FF", learningSkills.length, "Skills Learning", "var(--primary)"],
-            ["✅", "#F0FDF4", completedSkills.length, "Skills Completed", "var(--success)"],
-            ["⏱️", "#FFFBEB", totalHours, "Learning Hours", "#D97706"],
-            ["🎯", "#F5F3FF", user?.primaryDomain || "Web Dev", "Domain Focus", "#7C3AED"],
-          ].map(([icon, bg, val, label, color]) => (
+          {regularStats.map(([icon, bg, val, label, color]) => (
             <div key={label} className="stat-card">
               <div className="stat-icon" style={{ background: bg }}>{icon}</div>
               <div className="stat-value" style={{ color }}>{val}</div>
               <div className="stat-label">{label}</div>
             </div>
           ))}
+
+          {/* Career Goal Card */}
+          <div className="stat-card career-goal-card">
+            <div className="stat-icon" style={{ background: "#FFFBEB" }}><Briefcase size={18} style={{marginRight: "6px", color: "#D97706"}} /></div>
+            <div className="stat-value" style={{ color: "#D97706", fontSize: "1.1rem" }}>
+              {careerGoalTitle.length > 20 ? careerGoalTitle.substring(0, 18) + "..." : careerGoalTitle}
+            </div>
+            <div className="stat-label">Career Goal</div>
+            <button className="know-more-link" onClick={() => setPage("career-guide")} style={{ backgroundColor: "rgba(217, 119, 6, 0.08)", borderColor: "rgba(217, 119, 6, 0.25)", color: "#D97706" }}>
+              View my guide →
+            </button>
+          </div>
+
+          {/* Domain Focus card — with "Click here to know more" link */}
+          <div className="stat-card domain-focus-card">
+            <div className="stat-icon" style={{ background: "#F5F3FF" }}><Target size={18} style={{marginRight: "6px"}} /></div>
+            <div className="stat-value" style={{ color: "#7C3AED" }}>{user?.primaryDomain || "Web Dev"}</div>
+            <div className="stat-label">Domain Focus</div>
+            <button className="know-more-link" onClick={() => setPage("domain-detail")}>
+              Click here to know more
+            </button>
+          </div>
         </div>
 
         <div className="section-header mt-8"><h2 className="section-title">🧠 Skills Overview</h2></div>
@@ -703,7 +739,7 @@ function DashboardPage({ user, learningSkills, opportunities }) {
           </div>
         </div>
 
-        <div className="section-header mt-8"><h2 className="section-title">🏆 Participation Summary</h2></div>
+        <div className="section-header mt-8"><h2 className="section-title"><Trophy size={18} style={{marginRight: "6px"}} /> Participation Summary</h2></div>
         <div className="card-grid">
           <div className="card">
             <div className="card-body">
@@ -712,7 +748,7 @@ function DashboardPage({ user, learningSkills, opportunities }) {
                 ["Total Participated", competitions.filter(c => c.status && c.status !== "Interested").length],
                 ["Ongoing", competitions.filter(c => c.status === "Ongoing").length],
                 ["Completed", competitions.filter(c => c.status === "Completed" || c.status === "Won").length],
-                ["Won 🏆", competitions.filter(c => c.status === "Won").length],
+                ["Won", competitions.filter(c => c.status === "Won").length],
               ].map(([k, v]) => (
                 <div key={k} className="flex-between" style={{ padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
                   <span className="text-sm text-muted">{k}</span>
@@ -723,7 +759,7 @@ function DashboardPage({ user, learningSkills, opportunities }) {
           </div>
           <div className="card">
             <div className="card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 16 }}>💼 Internships</h3>
+              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Briefcase size={18} style={{marginRight: "6px"}} /> Internships</h3>
               {[
                 ["Applied", internships.filter(i => i.status === "Applied").length],
                 ["Ongoing", internships.filter(i => i.status === "Ongoing").length],
@@ -744,9 +780,371 @@ function DashboardPage({ user, learningSkills, opportunities }) {
   );
 }
 
+// ==================== DOMAIN DETAIL PAGE ====================
+const APP_ICON_MAP = {
+  ShoppingCart: <ShoppingCart size={24} />,
+  Cloud: <Cloud size={24} />,
+  Globe: <Globe size={24} />,
+  CreditCard: <CreditCard size={24} />,
+  Stethoscope: <Stethoscope size={24} />,
+  Car: <Car size={24} />,
+  MessageSquare: <MessageSquare size={24} />,
+  Target: <Target size={24} />,
+  Cpu: <Cpu size={24} />,
+  HardDrive: <HardDrive size={24} />,
+  Smartphone: <Smartphone size={24} />,
+  Gamepad2: <Gamepad2 size={24} />,
+  Layers: <Layers size={24} />,
+  PenTool: <PenTool size={24} />,
+  Users: <Users size={24} />,
+  Shield: <Shield size={24} />,
+};
+
+const FALLBACK_DOMAIN_DATA = {
+  "Web Development": {
+    description: "Web Development covers building websites and web applications using frontend (HTML/CSS/JS, React) and backend (Node.js, databases) technologies. It is one of the most in-demand technical disciplines globally.",
+    skills: [
+      { name: "HTML & CSS", level: "Foundation" }, { name: "JavaScript (ES6+)", level: "Core" },
+      { name: "React.js / Vue.js", level: "Advanced" }, { name: "Node.js & Express", level: "Backend" },
+      { name: "REST APIs & GraphQL", level: "Intermediate" }, { name: "MongoDB / PostgreSQL", level: "Databases" },
+      { name: "Git & GitHub", level: "Essential" }, { name: "TypeScript", level: "Advanced" },
+    ],
+    applications: [
+      { title: "E-Commerce Platforms", description: "Building scalable online stores with seamless checkout and inventory.", icon: "ShoppingCart" },
+      { title: "SaaS Products", description: "Subscription-based software products powering businesses worldwide.", icon: "Cloud" },
+      { title: "Social Media & Communities", description: "Platforms like Instagram and LinkedIn where millions connect.", icon: "Globe" },
+      { title: "FinTech Applications", description: "Banking portals, payment gateways, and financial dashboards.", icon: "CreditCard" },
+    ],
+  },
+  "Artificial Intelligence": {
+    description: "Artificial Intelligence enables machines to reason, learn, and perceive. It covers ML, deep learning, NLP, and computer vision — transforming every industry from healthcare to autonomous vehicles.",
+    skills: [
+      { name: "Python Programming", level: "Foundation" }, { name: "Machine Learning", level: "Core" },
+      { name: "Deep Learning (TensorFlow/PyTorch)", level: "Advanced" }, { name: "NLP", level: "Specialization" },
+      { name: "Computer Vision", level: "Specialization" }, { name: "MLOps", level: "Advanced" },
+      { name: "Prompt Engineering & LLMs", level: "Emerging" }, { name: "Statistics", level: "Essential" },
+    ],
+    applications: [
+      { title: "Healthcare Diagnostics", description: "AI models diagnose diseases from medical scans with high accuracy.", icon: "Stethoscope" },
+      { title: "Autonomous Vehicles", description: "Self-driving cars rely on AI perception and control systems.", icon: "Car" },
+      { title: "Conversational AI", description: "Chatbots and virtual assistants that understand natural language.", icon: "MessageSquare" },
+      { title: "Recommendation Systems", description: "Personalised content on Netflix, Spotify and Amazon.", icon: "Target" },
+    ],
+  },
+};
+
+function DomainDetailPage({ domain, onBack, backendOnline }) {
+  const [info, setInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchInfo() {
+      setLoading(true);
+      setError(null);
+      if (backendOnline) {
+        try {
+          const res = await domainInfoAPI.getByDomain(domain);
+          if (!cancelled) setInfo(res.data.data);
+        } catch (err) {
+          if (!cancelled) {
+            // Backend 404 or error — use fallback
+            const fallback = FALLBACK_DOMAIN_DATA[domain];
+            if (fallback) setInfo({ domain, ...fallback });
+            else setError("Domain information not found.");
+          }
+        }
+      } else {
+        const fallback = FALLBACK_DOMAIN_DATA[domain];
+        if (fallback) setInfo({ domain, ...fallback });
+        else setError("Domain information not available offline.");
+      }
+      if (!cancelled) setLoading(false);
+    }
+    fetchInfo();
+    return () => { cancelled = true; };
+  }, [domain, backendOnline]);
+
+  return (
+    <div className="page">
+      <div className="container section">
+        {/* Back button */}
+        <button className="btn btn-outline mb-6" style={{ display: "inline-flex", alignItems: "center", gap: 8 }} onClick={onBack}>
+          ← Back to Dashboard
+        </button>
+
+        {loading && (
+          <div className="card text-center" style={{ padding: "60px 24px" }}>
+            <div className="spinner-wrap" style={{ fontSize: "2.5rem", marginBottom: 16 }}>
+              <Activity className="animate-spin" size={48} style={{ color: "var(--primary)" }} />
+            </div>
+            <p className="text-muted">Loading domain information…</p>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="card text-center" style={{ padding: "60px 24px" }}>
+            <div style={{ fontSize: "3rem", marginBottom: 16, color: "var(--text-light)" }}><ShieldAlert size={64} /></div>
+            <p className="text-muted">{error}</p>
+            <button className="btn btn-primary mt-6" onClick={onBack}>Go Back</button>
+          </div>
+        )}
+
+        {!loading && info && (
+          <>
+            {/* Hero heading */}
+            <div className="domain-detail-hero">
+              <div className="domain-detail-icon-wrap">
+                <Target size={32} />
+              </div>
+              <div>
+                <h1 className="domain-detail-title">{info.domain}</h1>
+                <span className="badge badge-blue" style={{ fontSize: "0.8rem", padding: "4px 12px" }}>Strategic Domain Guide</span>
+              </div>
+            </div>
+
+            {/* About / Description */}
+            <div className="card mb-6">
+              <div className="card-body">
+                <h2 style={{ fontWeight: 700, marginBottom: 14, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: 8 }}>
+                  <Globe size={18} style={{ color: "var(--primary)" }} /> About this Domain
+                </h2>
+                <p style={{ lineHeight: 1.85, color: "var(--text-muted)", fontSize: "0.95rem" }}>{info.description}</p>
+              </div>
+            </div>
+
+            {/* Skills to Master */}
+            {info.skills && info.skills.length > 0 && (
+              <div className="card mb-6">
+                <div className="card-body">
+                  <h2 style={{ fontWeight: 700, marginBottom: 18, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: 8 }}>
+                    <BookOpen size={18} style={{ color: "var(--primary)" }} /> Skills to Master
+                  </h2>
+                  <div className="domain-chips-grid">
+                    {info.skills.map((s, i) => (
+                      <div key={i} className="domain-chip">
+                        <span className="domain-chip-name">{s.name}</span>
+                        <span className="domain-chip-level">{s.level}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Industrial Applications */}
+            {info.applications && info.applications.length > 0 && (
+              <div className="card mb-6">
+                <div className="card-body">
+                  <h2 style={{ fontWeight: 700, marginBottom: 18, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: 8 }}>
+                    <Building size={18} style={{ color: "var(--primary)" }} /> Industrial Applications
+                  </h2>
+                  <div className="domain-app-grid">
+                    {info.applications.map((app, i) => (
+                      <div key={i} className="domain-app-card">
+                        <div className="domain-app-icon" style={{ color: "var(--primary)" }}>
+                          {APP_ICON_MAP[app.icon] || <Layers size={24} />}
+                        </div>
+                        <div className="domain-app-content">
+                          <div className="domain-app-title">{app.title}</div>
+                          <div className="domain-app-desc">{app.description}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
 // ==================== DECISION PAGE ====================
+
+function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
+  const [guide, setGuide] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchGuide() {
+      setLoading(true);
+      setError(null);
+      const goal = user?.careerGoal || "Product Manager";
+      try {
+        const res = await careerGuideAPI.getByGoal(goal);
+        if (!cancelled) setGuide(res.data.data);
+      } catch (err) {
+        if (!cancelled) setError("Could not find a specific guide for your goal, but here is a general roadmap.");
+      }
+      if (!cancelled) setLoading(false);
+    }
+    fetchGuide();
+    return () => { cancelled = true; };
+  }, [user, backendOnline]);
+
+  const knownSkills = learningSkills.map(s => s.name.toLowerCase());
+  const required = guide?.requiredSkills || [];
+  const skillsToLearn = required.filter(s => !knownSkills.includes(s.toLowerCase()));
+  const skillsKnown = required.filter(s => knownSkills.includes(s.toLowerCase()));
+
+  const userHours = parseInt(user?.learningHoursPerWeek || 0);
+  const requiredHours = guide?.requiredHoursPerWeek || 20;
+  const hourProgress = Math.min(100, (userHours / requiredHours) * 100);
+
+  return (
+    <div className="page">
+      <div className="container section">
+        <button className="btn btn-outline mb-8" onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <ArrowRight size={16} style={{ transform: "rotate(180deg)" }} /> Back to Dashboard
+        </button>
+
+        {loading ? (
+          <div className="card text-center" style={{ padding: "80px 24px" }}>
+            <Activity className="animate-spin" size={48} style={{ color: "var(--primary)", margin: "0 auto 16px" }} />
+            <p className="text-muted">Analysing your career path…</p>
+          </div>
+        ) : (
+          <>
+            {/* Professional Hero Section */}
+            <div className="career-guide-hero">
+              <div className="career-hero-content">
+                <div className="badge badge-amber mb-4" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <Award size={14} /> Personalised Career Roadmap
+                </div>
+                <h1 className="career-guide-title">{guide?.goalKeyword || user?.careerGoal}</h1>
+                <p className="career-guide-aspiration">“{user?.careerAspiration || "Striving for excellence in tech."}”</p>
+              </div>
+              <div className="career-hero-icon">
+                <Briefcase size={80} strokeWidth={1} />
+              </div>
+            </div>
+
+            {/* Overview Section */}
+            <div className="card mb-8">
+              <div className="card-body">
+                <h2 className="guide-section-title"><Target size={20} /> Career Overview</h2>
+                <p className="guide-text">{guide?.overview}</p>
+              </div>
+            </div>
+
+            <div className="card-grid mb-8" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))" }}>
+              {/* Skills Gap Analysis */}
+              <div className="card">
+                <div className="card-body">
+                  <h2 className="guide-section-title"><Shield size={20} /> Skills Gap Analysis</h2>
+                  <div className="skills-gap-container">
+                    <div className="skills-column">
+                      <div className="skills-column-label">Already Known</div>
+                      {skillsKnown.length > 0 ? (
+                        skillsKnown.map(s => (
+                          <div key={s} className="skill-gap-item known">
+                            <CheckCircle2 size={16} /> <span>{s}</span>
+                          </div>
+                        ))
+                      ) : <p className="text-sm text-muted italic">No matching skills found in your profile yet.</p>}
+                    </div>
+                    <div className="skills-column">
+                      <div className="skills-column-label">Required to Learn</div>
+                      {skillsToLearn.length > 0 ? (
+                        skillsToLearn.map(s => (
+                          <div key={s} className="skill-gap-item missing">
+                            <XCircle size={16} /> <span>{s}</span>
+                          </div>
+                        ))
+                      ) : <p className="text-sm text-success font-bold italic">You have mastered all core skills!</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Hours Benchmark */}
+              <div className="card">
+                <div className="card-body">
+                  <h2 className="guide-section-title"><Clock size={20} /> Learning Commitment</h2>
+                  <p className="text-sm text-muted mb-6">Comparison of your current commitment vs. industry benchmark.</p>
+                  
+                  <div className="hours-comparison">
+                    <div className="flex-between mb-2">
+                       <span className="text-sm font-600">Your Current Commitment</span>
+                       <span className="text-sm font-700">{userHours} hrs/week</span>
+                    </div>
+                    <div className="hour-track">
+                      <div className="hour-bar" style={{ width: `${hourProgress}%` }}></div>
+                    </div>
+                    <div className="flex-between mt-4">
+                       <span className="text-sm text-muted">Goal Benchmark</span>
+                       <span className="badge badge-blue">{requiredHours} hrs/week</span>
+                    </div>
+                  </div>
+
+                  <div className="info-box mt-8">
+                    <TrendingUp size={16} />
+                    <p className="text-sm">
+                      {userHours >= requiredHours 
+                        ? "Excellent! You are maintaining an optimal learning pace for this career goal."
+                        : `Increasing your weekly commitment by ${requiredHours - userHours} hours will significantly accelerate your progress.`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Path Steps */}
+            <h2 className="section-title mb-6"><Layers size={22} /> Strategic Execution Steps</h2>
+            <div className="career-steps-container mb-12">
+              {guide?.steps?.map((step, i) => (
+                <div key={i} className="career-step-card">
+                  <div className="career-step-number">{step.stepNumber}</div>
+                  <div className="career-step-body">
+                    <h3 className="career-step-title">{step.title}</h3>
+                    <p className="career-step-desc">{step.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Flowchart Section */}
+            <div className="card mb-12">
+              <div className="card-body">
+                <h2 className="guide-section-title"><Monitor size={20} /> Technical Journey Map</h2>
+                <div className="flowchart-container">
+                  {guide?.flowchart?.map((node, idx) => (
+                    <React.Fragment key={node.id}>
+                      <div className={`flow-node node-${node.type}`}>
+                        {node.type === 'start' && <Globe size={14} />}
+                        {node.type === 'decision' && <ShieldAlert size={14} />}
+                        {node.type === 'end' && <Trophy size={14} />}
+                        <span>{node.label}</span>
+                      </div>
+                      {idx < guide.flowchart.length - 1 && (
+                        <div className="flow-connector">
+                          <div className="connector-line"></div>
+                          <ChevronRight size={16} className="connector-arrow" />
+                        </div>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
 function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearch, backendOnline }) {
   const [query, setQuery] = useState("");
+
   const [results, setResults] = useState([]);
   const [searched, setSearched] = useState(false);
 
@@ -836,7 +1234,7 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
       
       updatedSkill = { ...s, topics, progress };
       
-      if (progress === 100 && s.progress < 100) addActivity(`Completed all topics in ${skillName}! 🎉`);
+      if (progress === 100 && s.progress < 100) addActivity(`Completed all topics in ${skillName}!`);
       else if (topics.find(t => t.name === topicName)?.done) addActivity(`Completed "${topicName}" in ${skillName}`);
       
       return updatedSkill;
@@ -863,13 +1261,13 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
     <div className="page">
       <div className="container section">
         <div className="section-header">
-          <h1 className="section-title" style={{ fontSize: "1.6rem" }}>🎯 Decision — Skill Planning</h1>
+          <h1 className="section-title" style={{ fontSize: "1.6rem" }}><Target size={18} style={{marginRight: "6px"}} /> Decision — Skill Planning</h1>
           <p className="section-sub">Search skills, set learning goals, and track your progress.</p>
         </div>
 
         <div className="card mb-6">
           <div className="card-body">
-            <h3 style={{ fontWeight: 700, marginBottom: 14 }}>🔍 Search Skills</h3>
+            <h3 style={{ fontWeight: 700, marginBottom: 14 }}><Search size={18} style={{marginRight: "6px"}} /> Search Skills</h3>
             <div className="search-bar">
               <input className="form-input" placeholder="Search skills (e.g. JavaScript, AI, Web Development...)" value={query}
                 onChange={e => handleQueryChange(e.target.value)} onKeyDown={e => e.key === "Enter" && doSearch()} />
@@ -890,7 +1288,7 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
 
             {searched && results.length === 0 && (
               <div className="card text-center" style={{ marginTop: 20, padding: 24, background: "var(--bg-section)" }}>
-                <div style={{ fontSize: "2rem", marginBottom: 8 }}>🔍</div>
+                <div style={{ fontSize: "2rem", marginBottom: 8 }}><Search size={18} style={{marginRight: "6px"}} /></div>
                 <p className="text-muted">No matching skills found. Try a different term or check spelling.</p>
               </div>
             )}
@@ -904,7 +1302,7 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
 
         {learningSkills.length > 0 && (
           <>
-            <div className="section-header"><h2 className="section-title">📚 My Learning Goals</h2></div>
+            <div className="section-header"><h2 className="section-title"><BookOpen size={18} style={{marginRight: "6px"}} /> My Learning Goals</h2></div>
             <div className="card-grid">
               {learningSkills.map(skill => (
                 <div key={skill.name} className="skill-card">
@@ -951,13 +1349,12 @@ const ROLES = ["AI Research", "Backend", "Blockchain", "Business Development", "
 const SORT_OPTIONS = ["Latest", "Relevant", "Alphabetical"];
 
 const CATEGORY_ITEMS = [
-  { name: "Software Development", icon: "🖥️" },
-  { name: "Web Development", icon: "🌐" },
-  { name: "Data Science", icon: "⚛️" },
-  { name: "Cybersecurity", icon: "🛡️" },
-  { name: "UI/UX Design", icon: "🎨" },
-  { name: "Mobile Development", icon: "📱" },
-  { name: "Cloud Engineering", icon: "☁️" },
+  { name: "Software Development", icon: <Code size={18} style={{marginRight: "6px"}} /> },
+  { name: "Web Development", icon: <Globe size={18} style={{marginRight: "6px"}} /> },
+  { name: "Data Science", icon: <Database size={18} style={{marginRight: "6px"}} /> },
+  { name: "Cybersecurity", icon: <Shield size={18} style={{marginRight: "6px"}} /> },
+  { name: "UI/UX Design", icon: <Palette size={18} style={{marginRight: "6px"}} /> },
+  { name: "Mobile Development", icon: <Phone size={18} style={{marginRight: "6px"}} /> },
   { name: "Research", icon: "🔬" },
   { name: "Product Management", icon: "📋" },
   { name: "Finance", icon: "💳" },
@@ -1157,7 +1554,7 @@ function AllFiltersModal({ onClose, filters, setFilters, apply, currentSort, set
         return (
           <div className="filter-options-grid">
             <div style={{ marginBottom: 12 }}>
-              <input className="form-input" placeholder="🔍 Search location..." value={locSearch} onChange={e => setLocSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
+              <input className="form-input" placeholder="Search location..." value={locSearch} onChange={e => setLocSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
             </div>
             {COMP_LOCATIONS.filter(l => l.toLowerCase().includes(locSearch.toLowerCase())).map(l => (
               <label key={l} className={`filter-option-item${tempFilters.compLocation === l ? " active" : ""}`}>
@@ -1175,7 +1572,7 @@ function AllFiltersModal({ onClose, filters, setFilters, apply, currentSort, set
         return (
           <div>
             <div style={{ marginBottom: 12 }}>
-              <input className="form-input" placeholder="🔍 Search Categories..." value={catSearch} onChange={e => setCatSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
+              <input className="form-input" placeholder="Search Categories..." value={catSearch} onChange={e => setCatSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
               {COMP_CATEGORIES.filter(c => c.toLowerCase().includes(catSearch.toLowerCase())).map(c => (
@@ -1216,7 +1613,7 @@ function AllFiltersModal({ onClose, filters, setFilters, apply, currentSort, set
         return (
           <div>
             <div style={{ marginBottom: 12 }}>
-              <input className="form-input" placeholder="🔍 Search Skills..." value={skillSearch} onChange={e => setSkillSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
+              <input className="form-input" placeholder="Search Skills..." value={skillSearch} onChange={e => setSkillSearch(e.target.value)} style={{ borderRadius: 10, height: 40 }} />
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
               {COMP_SKILLS.filter(s => s.toLowerCase().includes(skillSearch.toLowerCase())).map(s => (
@@ -1536,7 +1933,15 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
   const statuses = type === "competition" ? COMP_STATUSES : INTERN_STATUSES;
 
   const categoryColors = { hackathon: "badge-blue", coding: "badge-yellow", olympiad: "badge-green", data: "badge-blue", ai: "badge-blue", design: "badge-gray", business: "badge-gray" };
-  const categoryLabels = { hackathon: "🔨 Hackathon", coding: "💻 Coding", olympiad: "🏆 Olympiad", data: "📊 Data Science", ai: "🤖 AI/ML", design: "🎨 Design", business: "💼 Business" };
+  const categoryLabels = { 
+    hackathon: <><Hammer size={12} /> Hackathon</>, 
+    coding: <><Code size={12} /> Coding</>, 
+    olympiad: <><Trophy size={12} /> Olympiad</>, 
+    data: <><Database size={12} /> Data Science</>, 
+    ai: <><Bot size={12} /> AI/ML</>, 
+    design: <><Palette size={12} /> Design</>, 
+    business: <><Briefcase size={12} /> Business</> 
+  };
 
   const activeFilterCount = type === "internship" 
     ? (filters.type ? 1 : 0) + (filters.location ? 1 : 0) + (filters.roles.length > 0 ? 1 : 0)
@@ -1546,14 +1951,14 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
     <div className="page" style={{ background: "#F8FAFC" }}>
       <div className="container section">
         <div className="section-header">
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2.2rem", fontWeight: 800, color: "#0F172A", marginBottom: 8 }}>🚀 Opportunities</h1>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2.2rem", fontWeight: 800, color: "#0F172A", marginBottom: 8 }}><Activity size={18} style={{marginRight: "6px"}} /> Opportunities</h1>
           <p className="text-muted" style={{ fontSize: "1rem" }}>Discover premium internships and competitions tailored for your career growth.</p>
         </div>
 
         <div className="flex-between mb-8" style={{ background: "white", padding: "12px 24px", borderRadius: "16px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)", border: "1px solid var(--border)" }}>
           <div className="type-toggle" style={{ border: "none", background: "var(--bg-section)", padding: 4, borderRadius: 12 }}>
             <button className={`type-btn${type === "competition" ? " active" : ""}`} onClick={() => switchType("competition")} style={{ borderRadius: 10 }}>🏅 Competitions</button>
-            <button className={`type-btn${type === "internship" ? " active" : ""}`} onClick={() => switchType("internship")} style={{ borderRadius: 10 }}>💼 Internships</button>
+            <button className={`type-btn${type === "internship" ? " active" : ""}`} onClick={() => switchType("internship")} style={{ borderRadius: 10 }}><Briefcase size={18} style={{marginRight: "6px"}} /> Internships</button>
           </div>
           <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-muted)" }}>{results.length} results found</span>
         </div>
@@ -1566,7 +1971,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
                   placeholder={`Search for ${type}s (e.g. Google, AI, Web Dev...)`}
                   value={query} onChange={e => handleQueryChange(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && doSearch()} />
-                <span style={{ position: "absolute", left: 16, top: 13, fontSize: "1.2rem", opacity: 0.5 }}>🔍</span>
+                <span style={{ position: "absolute", left: 16, top: 13, fontSize: "1.2rem", opacity: 0.5 }}><Search size={18} style={{marginRight: "6px"}} /></span>
               </div>
               <button className="btn btn-primary" style={{ padding: "0 32px", height: 48, borderRadius: 12 }} onClick={() => doSearch()}>Search</button>
             </div>
@@ -1577,7 +1982,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
             
             <div className="filter-bar" style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16 }}>
               <button className={`btn btn-outline filter-main-btn${activeFilterCount > 0 ? " active" : ""}`} onClick={() => setShowAllFilters(true)} style={{ borderRadius: 12, padding: "0 20px", height: 44, display: "flex", alignItems: "center", gap: 8, fontWeight: 600, borderColor: "#E2E8F0" }}>
-                <span>⚙️</span> Filters {activeFilterCount > 0 && <span className="filter-count-pill">{activeFilterCount}</span>}
+                <span><Settings size={18} style={{marginRight: "6px"}} /></span> Filters {activeFilterCount > 0 && <span className="filter-count-pill">{activeFilterCount}</span>}
               </button>
               <div style={{ marginLeft: "auto", color: "#64748B", fontSize: "0.85rem", fontWeight: 500 }}>
                 Sorted by: <span style={{ color: "var(--primary)", fontWeight: 700 }}>{sortBy}</span>
@@ -1629,15 +2034,13 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
                 <div className="opp-meta">
                   {type === "internship" ? (
                     <>
-                      {opp.location && <div className="opp-meta-item">📍 {opp.location}</div>}
-                      {opp.workType && <div className="opp-meta-item">🏠 {opp.workType}</div>}
-                      {opp.duration && <div className="opp-meta-item">⏱ {opp.duration}</div>}
-                      {opp.stipend && <div className="opp-meta-item" style={{ color: "var(--success)" }}>💰 {opp.stipend}</div>}
+                      {opp.location && <div className="opp-meta-item"><MapPin size={14} style={{marginRight: "4px"}} /> {opp.location}</div>}
+                      {opp.workType && <div className="opp-meta-item"><Home size={14} style={{marginRight: "4px"}} /> {opp.workType}</div>}
+                      {opp.duration && <div className="opp-meta-item"><Clock size={14} style={{marginRight: "4px"}} /> {opp.duration}</div>}
+                      {opp.stipend && <div className="opp-meta-item" style={{ color: "var(--success)" }}><DollarSign size={14} style={{marginRight: "4px"}} /> {opp.stipend}</div>}
                     </>
                   ) : (
                     <>
-                      {opp.status && <div className="opp-meta-item">📊 {opp.status}</div>}
-                      {opp.eventType && <div className="opp-meta-item">🌐 {opp.eventType}</div>}
                       {opp.payment && <div className="opp-meta-item">🏛 {opp.payment}</div>}
                       {opp.teamSize && <div className="opp-meta-item">👥 Team: {opp.teamSize}</div>}
                     </>
@@ -1684,7 +2087,7 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           <p className="text-muted">Track your learning journey and participation records.</p>
         </div>
 
-        <div className="section-header"><h2 className="section-title">✅ Completed Skills</h2></div>
+        <div className="section-header"><h2 className="section-title"><CheckCircle2 size={18} style={{marginRight: "6px"}} /> Completed Skills</h2></div>
         <div className="card mb-6">
           <div className="card-body">
             {completedSkills.length === 0 && <p className="text-muted text-sm">No completed skills yet. Keep going!</p>}
@@ -1702,11 +2105,11 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           </div>
         </div>
 
-        <div className="section-header"><h2 className="section-title">🏆 Participation History</h2></div>
+        <div className="section-header"><h2 className="section-title"><Trophy size={18} style={{marginRight: "6px"}} /> Participation History</h2></div>
         <div className="card-grid mb-6">
           <div className="card">
             <div className="card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 16 }}>🏅 Competitions</h3>
+              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Award size={18} style={{marginRight: "6px"}} /> Competitions</h3>
               {opportunities.filter(o => o.type === "competition" && o.status).length === 0 && <p className="text-muted text-sm">No competition history yet.</p>}
               {opportunities.filter(o => o.type === "competition" && o.status).map(o => (
                 <div key={o.id} className="flex-between" style={{ padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
@@ -1721,7 +2124,7 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           </div>
           <div className="card">
             <div className="card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 16 }}>💼 Internships</h3>
+              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Briefcase size={18} style={{marginRight: "6px"}} /> Internships</h3>
               {opportunities.filter(o => o.type === "internship" && o.status).length === 0 && <p className="text-muted text-sm">No internship history yet.</p>}
               {opportunities.filter(o => o.type === "internship" && o.status).map(o => (
                 <div key={o.id} className="flex-between" style={{ padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
@@ -1736,13 +2139,13 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           </div>
         </div>
 
-        <div className="section-header"><h2 className="section-title">🔍 Search History</h2></div>
+        <div className="section-header"><h2 className="section-title"><Search size={18} style={{marginRight: "6px"}} /> Search History</h2></div>
         <div className="card mb-6">
           <div className="card-body">
             {searchHistory.length === 0 && <p className="text-muted text-sm">No searches yet.</p>}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {[...searchHistory].reverse().map((s, i) => (
-                <span key={i} className="badge badge-gray" style={{ padding: "5px 12px" }}>🔍 {s}</span>
+                <span key={i} className="badge badge-gray" style={{ padding: "5px 12px" }}><Search size={18} style={{marginRight: "6px"}} /> {s}</span>
               ))}
             </div>
           </div>
@@ -1772,6 +2175,268 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+// ==================== ADMIN DASHBOARD ====================
+function AdminDashboard({ user, onBack, backendOnline }) {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [data, setData] = useState({ overview: {}, users: [], searches: [], activity: [], traffic: [] });
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    if (!backendOnline) return;
+    setLoading(true);
+    try {
+      const [ov, us, se, ac, tr] = await Promise.all([
+        adminAPI.getOverview(),
+        adminAPI.getUsers(),
+        adminAPI.getSearches(),
+        adminAPI.getActivity(),
+        adminAPI.getTraffic()
+      ]);
+      setData({
+        overview: ov.data.data,
+        users: us.data.users,
+        searches: se.data.searches,
+        activity: ac.data.logs,
+        traffic: tr.data.traffic
+      });
+    } catch (err) {
+      console.error("Admin fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [backendOnline]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  if (user?.role !== 'admin') {
+    return (
+      <div className="page section text-center">
+        <h2>Access Denied</h2>
+        <p>You do not have permission to view this page.</p>
+        <button className="btn btn-primary mt-4" onClick={onBack}>Go Back</button>
+      </div>
+    );
+  }
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: <Monitor size={18} /> },
+    { id: 'users', label: 'User Records', icon: <Users size={18} /> },
+    { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={18} /> },
+    { id: 'activity', label: 'Activity Logs', icon: <ClipboardList size={18} /> },
+    { id: 'traffic', label: 'Traffic', icon: <Globe size={18} /> }
+  ];
+
+  return (
+    <div className="page" style={{ background: "#F1F5F9" }}>
+      <div className="container" style={{ paddingTop: 40, paddingBottom: 80 }}>
+        <div className="flex-between mb-8">
+          <div>
+            <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "2.4rem", color: "#0F172A" }}>Admin Console</h1>
+            <p className="text-muted">Monitor platform performance and user engagement</p>
+          </div>
+          <div style={{ display: "flex", gap: 12 }}>
+            <button className="btn btn-outline" onClick={fetchData}><RefreshCcw size={16} /> Refresh</button>
+            <button className="btn btn-primary" onClick={onBack}>← Student View</button>
+          </div>
+        </div>
+
+        <div className="admin-layout">
+          <div className="admin-sidebar card">
+            {tabs.map(tab => (
+              <button 
+                key={tab.id} 
+                className={`admin-nav-btn${activeTab === tab.id ? " active" : ""}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.icon} {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="admin-main">
+            {loading ? (
+              <div className="card section text-center">
+                <p>Loading analytics data...</p>
+              </div>
+            ) : (
+              <>
+                {activeTab === 'overview' && (
+                  <div className="admin-tab-content">
+                    <div className="stats-grid">
+                      <div className="stat-card">
+                        <div className="stat-val">{data.overview.totalUsers || 0}</div>
+                        <div className="stat-label">Total Users</div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-val">{data.overview.totalVisits || 0}</div>
+                        <div className="stat-label">Page Visits</div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-val">{data.overview.totalSearches || 0}</div>
+                        <div className="stat-label">Total Searches</div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-val">{data.overview.totalLogins || 0}</div>
+                        <div className="stat-label">Logins</div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-val">{data.overview.totalSkills || 0}</div>
+                        <div className="stat-label">Skills Tracked</div>
+                      </div>
+                      <div className="stat-card">
+                        <div className="stat-val">{data.overview.totalInternships || 0}</div>
+                        <div className="stat-label">Internships</div>
+                      </div>
+                    </div>
+
+                    <div className="card mt-8">
+                      <div className="card-body">
+                        <h3 className="mb-4">Platform Health</h3>
+                        <div className="flex-between" style={{ padding: "12px 0", borderBottom: "1px solid var(--border)" }}>
+                          <span>Backend Status</span>
+                          <span className="badge badge-green">Online</span>
+                        </div>
+                        <div className="flex-between" style={{ padding: "12px 0", borderBottom: "1px solid var(--border)" }}>
+                          <span>Database Sync</span>
+                          <span className="badge badge-blue">Real-time</span>
+                        </div>
+                        <div className="flex-between" style={{ padding: "12px 0" }}>
+                          <span>Data Retention</span>
+                          <span className="text-muted text-sm">365 Days</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'users' && (
+                  <div className="admin-tab-content">
+                    <div className="card">
+                      <div className="card-body" style={{ overflowX: "auto" }}>
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Email</th>
+                              <th>Domain</th>
+                              <th>Skill Level</th>
+                              <th>Hours/Wk</th>
+                              <th>Joined</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.users.map(u => (
+                              <tr key={u._id}>
+                                <td style={{ fontWeight: 600 }}>{u.name}</td>
+                                <td>{u.email}</td>
+                                <td><span className="badge badge-blue">{u.primaryDomain || u.domainOfInterest}</span></td>
+                                <td>{u.skillLevel}</td>
+                                <td>{u.learningHoursPerWeek}</td>
+                                <td className="text-muted text-sm">{new Date(u.createdAt).toLocaleDateString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'analytics' && (
+                  <div className="admin-tab-content">
+                    <div className="grid-2">
+                      <div className="card">
+                        <div className="card-body">
+                          <h3>Recent Searches</h3>
+                          <div className="mt-4">
+                            {data.searches.slice(0, 10).map((s, i) => (
+                              <div key={i} className="flex-between mb-4 pb-2" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                                <div>
+                                  <div style={{ fontWeight: 600 }}>{s.query}</div>
+                                  <div className="text-xs text-muted">{s.userId?.name || 'Guest'} • {s.searchType}</div>
+                                </div>
+                                <span className="text-xs text-muted">{new Date(s.createdAt).toLocaleTimeString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="card">
+                        <div className="card-body">
+                          <h3>Domain Distribution</h3>
+                          <div className="mt-6 text-center py-8">
+                            <BarChart3 size={48} className="text-muted opacity-20" />
+                            <p className="text-muted mt-4">Chart visualization coming soon...</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'activity' && (
+                  <div className="admin-tab-content">
+                    <div className="card">
+                      <div className="card-body">
+                        <div className="timeline">
+                          {data.activity.map((l, i) => (
+                            <div key={i} className="timeline-item">
+                              <div className="timeline-dot" />
+                              <div className="timeline-content">
+                                <div className="flex-between">
+                                  <div className="timeline-title">{l.action} — {l.details}</div>
+                                  <div className="timeline-time">{new Date(l.createdAt).toLocaleString()}</div>
+                                </div>
+                                <div className="text-xs text-muted">{l.userId?.name || 'System'} ({l.userId?.email || 'N/A'})</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'traffic' && (
+                  <div className="admin-tab-content">
+                    <div className="card">
+                      <div className="card-body">
+                        <table className="admin-table">
+                          <thead>
+                            <tr>
+                              <th>User</th>
+                              <th>Page</th>
+                              <th>Route</th>
+                              <th>Timestamp</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {data.traffic.map((t, i) => (
+                              <tr key={i}>
+                                <td>{t.userId?.name || 'Guest'}</td>
+                                <td><span className="badge badge-gray">{t.pageVisited}</span></td>
+                                <td className="text-sm code">{t.route}</td>
+                                <td className="text-muted text-sm">{new Date(t.createdAt).toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -1997,6 +2662,30 @@ export default function App() {
     setOpportunities(updaterOrValue);
   }, []);
 
+  // ─── Traffic Tracking ───────────────────────────────────────────
+  useEffect(() => {
+    if (!backendOnline) return;
+    
+    // Internal Traffic Logging
+    const logVisit = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        await trafficAPI.logVisit({
+          userId,
+          pageVisited: page.charAt(0).toUpperCase() + page.slice(1),
+          route: `/${page}`
+        });
+      } catch (err) {
+        console.error("Traffic log error:", err);
+      }
+    };
+    
+    logVisit();
+
+    // GA4 Placeholder (Would typically use react-ga4)
+    console.log(`[GA4] Page View: ${page}`);
+  }, [page, backendOnline]);
+
   if (!isLoggedIn && page === "signup") {
     return (
       <>
@@ -2025,13 +2714,13 @@ export default function App() {
     return (
       <>
         
-        <Navbar page="profile" setPage={setPage} isLoggedIn={isLoggedIn} />
+        <Navbar page="profile" setPage={setPage} isLoggedIn={isLoggedIn} user={storedUser} />
         <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} backendOnline={backendOnline} />
       </>
     );
   }
 
-  const navProps = { page, setPage, isLoggedIn, onLogout: handleLogout };
+  const navProps = { page, setPage, isLoggedIn, onLogout: handleLogout, user: storedUser };
 
   return (
     <>
@@ -2043,8 +2732,31 @@ export default function App() {
       )}
       <Navbar {...navProps} />
       {page === "home" && <HomePage user={storedUser} />}
-      {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} />}
+      {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} setPage={setPage} />}
+      {page === "admin" && (
+        <AdminDashboard 
+          user={storedUser} 
+          onBack={() => setPage("home")} 
+          backendOnline={backendOnline} 
+        />
+      )}
+      {page === "domain-detail" && (
+        <DomainDetailPage
+          domain={storedUser?.primaryDomain || "Web Development"}
+          onBack={() => setPage("dashboard")}
+          backendOnline={backendOnline}
+        />
+      )}
+      {page === "career-guide" && (
+        <CareerGuidePage
+          user={storedUser}
+          learningSkills={learningSkills}
+          onBack={() => setPage("dashboard")}
+          backendOnline={backendOnline}
+        />
+      )}
       {page === "decision" && <DecisionPage learningSkills={learningSkills} setLearningSkills={setLearningSkillsWithSync} addActivity={addActivity} addSearch={addSearch} backendOnline={backendOnline} />}
+
       {page === "opportunities" && <OpportunitiesPage opportunities={opportunities} setOpportunities={setOpportunitiesWithSync} addActivity={addActivity} addSearch={addSearch} backendOnline={backendOnline} />}
       {page === "history" && <HistoryPage learningSkills={learningSkills} opportunities={opportunities} searchHistory={searchHistory} activityLogs={activityLogs} />}
       {page === "profile" && <ProfilePage user={storedUser} learningSkills={learningSkills} onEdit={() => setIsEditing(true)} onLogout={handleLogout} />}

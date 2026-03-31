@@ -1,5 +1,6 @@
 const SkillProgress = require('../models/SkillProgress');
 const History = require('../models/History');
+const ActivityLog = require('../models/ActivityLog');
 
 // Helper to recalculate progress
 const calcProgress = (topics) => {
@@ -41,6 +42,14 @@ const addSkill = async (req, res) => {
       progress: 0,
     });
 
+    // Log Activity
+    await ActivityLog.create({
+      userId,
+      action: 'Added Skill',
+      page: 'Decision',
+      details: `Started learning ${skillName}`,
+    });
+
     res.status(201).json({ success: true, skill });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -72,7 +81,22 @@ const updateSkill = async (req, res) => {
         { $addToSet: { completedSkills: skill.skillName } },
         { upsert: true }
       );
+      // Log Activity
+      await ActivityLog.create({
+        userId,
+        action: 'Completed Skill',
+        page: 'Decision',
+        details: `Mastered ${skill.skillName}`,
+      });
     }
+
+    // Regular progress update log
+    await ActivityLog.create({
+      userId,
+      action: 'Updated Progress',
+      page: 'Decision',
+      details: `${skill.skillName} progress: ${skill.progress}%`,
+    });
 
     res.json({ success: true, skill });
   } catch (err) {

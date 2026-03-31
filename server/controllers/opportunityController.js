@@ -1,5 +1,6 @@
 const Opportunity = require('../models/Opportunity');
 const History = require('../models/History');
+const ActivityLog = require('../models/ActivityLog');
 
 // @desc  Get all opportunities for a user
 // @route GET /api/opportunities
@@ -25,6 +26,15 @@ const saveOpportunity = async (req, res) => {
     if (!type || !title) return res.status(400).json({ success: false, message: 'Type and title are required.' });
 
     const opp = await Opportunity.create({ userId, type, title, domain: domain || '', status: status || 'Interested' });
+    
+    // Log Activity
+    await ActivityLog.create({
+      userId,
+      action: `Added ${type === 'competition' ? 'Competition' : 'Internship'}`,
+      page: 'Opportunities',
+      details: `Saved ${title}`,
+    });
+
     res.status(201).json({ success: true, opportunity: opp });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -53,7 +63,23 @@ const updateOpportunity = async (req, res) => {
         { $addToSet: { [field]: opp.title } },
         { upsert: true }
       );
+      
+      // Log Activity
+      await ActivityLog.create({
+        userId,
+        action: `Achieved ${opp.type === 'competition' ? 'Victory' : 'Completion'}`,
+        page: 'Opportunities',
+        details: `${opp.type}: ${opp.title} marked as ${status}`,
+      });
     }
+
+    // Log status update
+    await ActivityLog.create({
+      userId,
+      action: 'Updated Opportunity',
+      page: 'Opportunities',
+      details: `${opp.title} status changed to ${status}`,
+    });
 
     res.json({ success: true, opportunity: opp });
   } catch (err) {

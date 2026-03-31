@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   primaryDomain: { type: String, default: '' },
   skillLevel: { type: String, default: 'Beginner' },
   careerAspiration: { type: String, default: '' },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
   learningHoursPerWeek: { type: Number, default: 5 },
 }, { timestamps: true });
 

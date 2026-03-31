@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const History = require('../models/History');
+const ActivityLog = require('../models/ActivityLog');
 
 // @desc  Register a new user
 // @route POST /api/auth/signup
@@ -29,6 +30,14 @@ const signup = async (req, res) => {
 
     // Create empty history record
     await History.create({ userId: user._id });
+
+    // Log Activity
+    await ActivityLog.create({
+      userId: user._id,
+      action: 'Signed Up',
+      page: 'SignUp',
+      details: `User ${name} registered.`,
+    });
 
     res.status(201).json({
       success: true,
@@ -69,6 +78,14 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
+
+    // Log Activity
+    await ActivityLog.create({
+      userId: user._id,
+      action: 'Logged In',
+      page: 'Login',
+      details: `User ${user.name} logged in.`,
+    });
 
     res.json({
       success: true,
