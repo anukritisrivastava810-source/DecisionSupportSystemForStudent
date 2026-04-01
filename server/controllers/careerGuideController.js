@@ -12,18 +12,28 @@ exports.getByGoal = async (req, res) => {
     // Try exact match first (case-insensitive)
     let guide = await CareerGuide.findOne({ goalKeyword: { $regex: new RegExp(goal, 'i') } });
 
-    // Keyword-based fallback — split goal into words and check each
+    // Keyword-based fallback — score guides by word overlap
     if (!guide) {
       const words = goal.toLowerCase().split(/\s+/);
       const all = await CareerGuide.find({});
-      guide = all.find(g =>
-        words.some(w => g.goalKeyword.toLowerCase().includes(w))
-      ) || null;
-    }
+      
+      let bestGuide = null;
+      let maxScore = 0;
 
-    // Ultimate fallback — return first guide
-    if (!guide) {
-      guide = await CareerGuide.findOne({});
+      all.forEach(g => {
+        const kw = g.goalKeyword.toLowerCase();
+        let score = 0;
+        words.forEach(w => {
+          if (kw.includes(w)) score++;
+        });
+        
+        if (score > maxScore) {
+          maxScore = score;
+          bestGuide = g;
+        }
+      });
+
+      guide = bestGuide;
     }
 
     if (!guide) return res.status(404).json({ success: false, message: 'No career guide found' });

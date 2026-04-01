@@ -124,10 +124,33 @@ const getTraffic = async (req, res) => {
   }
 };
 
+// @desc  Delete a user
+// @route DELETE /api/admin/users/:id
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+    
+    // Prevent deleting other admins (optional safeguard)
+    if (user.role === 'admin') {
+      return res.status(403).json({ success: false, message: 'Cannot delete admin users.' });
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'User deleted successfully.' });
+  } catch (err) {
+    console.error('Admin Delete User Error:', err);
+    res.status(500).json({ success: false, message: 'Server error deleting user.' });
+  }
+};
+
 module.exports = {
   getOverview,
   getAllUsers,
   getSearches,
   getActivityLogs,
-  getTraffic
+  getTraffic,
+  deleteUser
 };

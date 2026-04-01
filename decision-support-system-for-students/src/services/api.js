@@ -78,6 +78,7 @@ export const adminAPI = {
   getSearches: () => api.get('/admin/searches'),
   getActivity: () => api.get('/admin/activity'),
   getTraffic: () => api.get('/admin/traffic'),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
 };
 
 export const trafficAPI = {

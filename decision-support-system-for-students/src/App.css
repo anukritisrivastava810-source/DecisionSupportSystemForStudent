@@ -1937,17 +1937,24 @@ footer {
 /* Flowchart */
 .flowchart-container {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
   align-items: center;
-  justify-content: center;
-  gap: 20px;
-  padding: 40px 20px;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 40px 30px;
   background: #F1F5F9;
   border-radius: 16px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .flow-node {
-  padding: 14px 24px;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 200px;
+  padding: 16px 24px;
   background: white;
   border: 2px solid #CBD5E1;
   border-radius: 12px;
@@ -1959,6 +1966,8 @@ footer {
   gap: 10px;
   box-shadow: var(--shadow-sm);
   position: relative;
+  white-space: nowrap;
+  transition: transform 0.2s;
 }
 
 .node-start {
@@ -1987,6 +1996,7 @@ footer {
   display: flex;
   align-items: center;
   color: #94A3B8;
+  flex-shrink: 0;
 }
 
 .connector-line {
@@ -2009,13 +2019,6 @@ footer {
   }
   .skills-gap-container {
     grid-template-columns: 1fr;
-  }
-  .flowchart-container {
-    flex-direction: column;
-  }
-  .flow-connector {
-    transform: rotate(90deg);
-    margin: 10px 0;
   }
 }
 
@@ -2269,50 +2272,3 @@ footer {
 .career-guide-aspiration { font-style: italic; color: #B45309; opacity: 0.8; font-size: 1.1rem; }
 .career-hero-icon { color: #D97706; opacity: 0.2; }
 
-/* Flowchart Styles */
-.flowchart-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  padding: 40px 20px;
-  background: var(--bg-section);
-  border-radius: var(--radius-lg);
-  position: relative;
-}
-
-.flow-node {
-  width: 280px;
-  padding: 20px;
-  background: white;
-  border: 2px solid var(--border);
-  border-radius: var(--radius);
-  text-align: center;
-  position: relative;
-  z-index: 2;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s;
-}
-.flow-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
-.flow-node.start { border-color: var(--primary); border-radius: 50px; background: rgba(59, 130, 246, 0.03); }
-.flow-node.end { border-color: var(--green); border-radius: 50px; background: rgba(16, 185, 129, 0.03); }
-.flow-node.decision { border-color: var(--amber); transform: rotate(0deg); clip-path: polygon(15% 0%, 85% 0%, 100% 50%, 85% 100%, 15% 100%, 0% 50%); padding: 25px 40px; }
-
-.flow-connector {
-  width: 2px;
-  height: 40px;
-  background: var(--border);
-  position: relative;
-}
-.flow-connector::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: -4px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 8px solid var(--border);
-}
-
-.node-label { font-weight: 700; font-size: 0.95rem; color: var(--text); }
-.node-type { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; display: block; }

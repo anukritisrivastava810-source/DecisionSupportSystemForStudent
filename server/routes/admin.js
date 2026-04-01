@@ -5,7 +5,8 @@ const {
   getAllUsers,
   getSearches,
   getActivityLogs,
-  getTraffic
+  getTraffic,
+  deleteUser
 } = require('../controllers/adminController');
 
 // Middleware to check if user is admin
@@ -18,6 +19,7 @@ router.get('/users', getAllUsers);
 router.get('/searches', getSearches);
 router.get('/activity', getActivityLogs);
 router.get('/traffic', getTraffic);
+router.delete('/users/:id', deleteUser);
 
 // Tracking endpoints (accessible to users to log their data)
 router.post('/searches', async (req, res) => {

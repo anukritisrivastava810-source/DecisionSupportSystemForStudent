@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 
-import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, Heart, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw } from 'lucide-react';
+import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, Heart, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw, Trash2 } from 'lucide-react';
 import './App.css';
 import { authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI } from './services/api';
 // ==================== STYLES ====================
@@ -738,7 +738,7 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
     [<TrendingUp size={18} style={{marginRight: "6px"}} />, "#FDF2F8", userHours >= 15 ? 95 : 75, "Study Consistency", "#DB2777"],
   ];
 
-  const careerGoalTitle = user?.careerGoal || "Product Manager";
+  const careerGoalTitle = user?.careerAspiration || user?.careerGoal || "Product Manager";
 
   return (
     <div className="page">
@@ -758,7 +758,7 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
               <div className="stat-label">Primary Domain</div>
               <button 
                 className="know-more-link" 
-                onClick={() => { setPage("domainDetail"); }} 
+                onClick={() => { setPage("domain-detail"); }} 
                 style={{ backgroundColor: "rgba(59, 130, 246, 0.08)", borderColor: "rgba(59, 130, 246, 0.25)", color: "var(--primary)" }}
               >
                 Know More →
@@ -786,48 +786,6 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
           </div>
         </div>
         
-        {/* Personalized Guide Card */}
-        <div className="section-header mt-8"><h2 className="section-title"><Star size={18} style={{marginRight: "6px", color: "var(--amber)"}} /> Your Personalized Path</h2></div>
-        <div className="card personalized-guide-card">
-          <div className="card-body">
-            <div className="guide-welcome">
-              <div className="guide-main">
-                <h3 className="mb-2">Strategic Roadmap for {guide.aspiration}</h3>
-                <p className="text-sm text-muted mb-4">Targeting: <strong>{guide.goal}</strong></p>
-                
-                <div className="guide-grid">
-                  <div className="guide-item">
-                    <div className="guide-item-label"><Layers size={14} /> Recommended Path</div>
-                    <div className="guide-item-val">{guide.path}</div>
-                  </div>
-                  <div className="guide-item">
-                    <div className="guide-item-label"><Hammer size={14} /> Suggested Skills</div>
-                    <div className="guide-item-val">{guide.skills.join(", ")}</div>
-                  </div>
-                  <div className="guide-item">
-                    <div className="guide-item-label"><Monitor size={14} /> Tools & Platforms</div>
-                    <div className="guide-item-val">{guide.tools.join(" • ")}</div>
-                  </div>
-                </div>
-
-                <div className="guide-footer mt-6">
-                  <div className="guide-advice">
-                    <strong>Pro Tip:</strong> {guide.advice}
-                  </div>
-                  <div className="guide-next">
-                    <span className="badge badge-blue">Next Step</span>
-                    <span className="text-sm font-bold ml-2">{guide.nextStep}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="guide-visual">
-                <div className="guide-icon-blob">
-                  <Bot size={40} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div className="section-header mt-8"><h2 className="section-title">🧠 Skills Overview</h2></div>
         <div className="card-grid">
@@ -1119,7 +1077,7 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
     async function fetchGuide() {
       setLoading(true);
       setError(null);
-      const goal = user?.careerGoal || "Learn a new technical skill";
+      const goal = user?.careerAspiration || user?.careerGoal || "Learn a new technical skill";
       try {
         const res = await careerGuideAPI.getByGoal(goal);
         if (!cancelled) setGuide(res.data.data);
@@ -1239,19 +1197,6 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
               </div>
             </div>
 
-            {/* Path Steps */}
-            <h2 className="section-title mb-6"><Layers size={22} /> Strategic Execution Steps</h2>
-            <div className="career-steps-container mb-12">
-              {guide?.steps?.map((step, i) => (
-                <div key={i} className="career-step-card">
-                  <div className="career-step-number">{step.stepNumber}</div>
-                  <div className="career-step-body">
-                    <h3 className="career-step-title">{step.title}</h3>
-                    <p className="career-step-desc">{step.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
 
             {/* Flowchart Section */}
             <div className="card mb-12">
@@ -1278,31 +1223,6 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
               </div>
             </div>
 
-            {/* Flowchart Section */}
-            {guide?.flowchart && (
-              <div className="section-header mt-12 mb-6">
-                <h2 className="section-title">🗺️ Implementation Strategy</h2>
-              </div>
-            )}
-            <Flowchart data={guide?.flowchart} />
-
-            {/* Steps Section */}
-            <div className="section-header mt-12 mb-6">
-              <h2 className="section-title">📊 Execution Plan</h2>
-            </div>
-            <div className="card mb-10">
-              <div className="card-body">
-                {(guide?.steps || []).map((step, idx) => (
-                  <div key={idx} className="guide-step-item" style={{ display: "flex", gap: 20, marginBottom: idx === (guide.steps.length - 1) ? 0 : 24, paddingBottom: idx === (guide.steps.length - 1) ? 0 : 24, borderBottom: idx === (guide.steps.length - 1) ? "none" : "1px solid var(--border-light)" }}>
-                    <div className="step-num" style={{ background: "var(--primary)", color: "white", width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyCenter: "center", fontSize: "0.8rem", fontWeight: 800, flexShrink: 0 }}>{step.stepNumber}</div>
-                    <div>
-                      <h4 style={{ fontWeight: 700, marginBottom: 4 }}>{step.title}</h4>
-                      <p className="text-sm text-muted">{step.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </>
         )}
       </div>
@@ -2388,6 +2308,24 @@ function AdminDashboard({ user, onBack, backendOnline }) {
     fetchData();
   }, [fetchData]);
 
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+    try {
+      const res = await adminAPI.deleteUser(userId);
+      if (res.data.success) {
+        setData(prev => ({ ...prev, users: prev.users.filter(u => u._id !== userId) }));
+        // Also update overview count
+        setData(prev => ({ 
+          ...prev, 
+          overview: { ...prev.overview, totalUsers: (prev.overview.totalUsers || 1) - 1 } 
+        }));
+      }
+    } catch (err) {
+      console.error("Delete user error:", err);
+      alert("Failed to delete user: " + (err.response?.data?.message || err.message));
+    }
+  };
+
   if (user?.role !== 'admin') {
     return (
       <div className="page section text-center">
@@ -2507,6 +2445,7 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                               <th>Skill Level</th>
                               <th>Hours/Wk</th>
                               <th>Joined</th>
+                              <th style={{ textAlign: "right" }}>Actions</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -2518,6 +2457,16 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                                 <td>{u.skillLevel}</td>
                                 <td>{u.learningHoursPerWeek}</td>
                                 <td className="text-muted text-sm">{new Date(u.createdAt).toLocaleDateString()}</td>
+                                <td style={{ textAlign: "right" }}>
+                                  <button 
+                                    className="btn btn-sm btn-outline" 
+                                    style={{ color: "#EF4444", borderColor: "#FEE2E2", padding: "4px 8px" }}
+                                    onClick={() => handleDeleteUser(u._id)}
+                                    title="Delete User"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
