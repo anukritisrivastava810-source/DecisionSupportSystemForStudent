@@ -456,10 +456,10 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))} onKeyDown={e => e.key === "Enter" && handleLogin()} />
               </div>
               {loginError && <p style={{ color: "var(--error)", fontSize: "0.85rem", margin: 0 }}><XCircle size={18} style={{marginRight: "6px"}} /> {loginError}</p>}
-              {!backendOnline && (
-                <p style={{ fontSize: "0.8rem", color: "#92400E", background: "#FEF3C7", padding: "8px 12px", borderRadius: 8, margin: 0 }}>
+              {backendOnline === false && (
+                <div className="warning-banner">
                   ⚠️ Backend offline — start the server for full persistence.
-                </p>
+                </div>
               )}
               <button className="btn btn-primary btn-lg btn-full" style={{ marginTop: 8 }} onClick={handleLogin} disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login →"}
@@ -2749,8 +2749,10 @@ export default function App() {
   useEffect(() => {
   const checkBackend = async () => {
     try {
+      console.log("Checking backend...");
       const res = await fetch("https://decisionsupportsystemforstudent.onrender.com/api/health");
       const data = await res.json();
+      console.log("Health response:", data);
 
       if (data.status === "ok") {
         setBackendOnline(true);
@@ -2758,8 +2760,8 @@ export default function App() {
         setBackendOnline(false);
       }
     } catch (error) {
-      console.log("Backend still waking up...");
-      setTimeout(checkBackend, 5000); // retry after 5 sec
+      console.error("Health check failed:", error);
+      setBackendOnline(false);
     }
   };
 
