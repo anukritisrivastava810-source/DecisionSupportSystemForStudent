@@ -2741,17 +2741,30 @@ export default function App() {
   const [searchHistory, setSearchHistory] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [apiError, setApiError] = useState(null);
-  const [backendOnline, setBackendOnline] = useState(false);
+  const [backendOnline, setBackendOnline] = useState(null);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const trafficLogId = React.useRef(null);
 
   // Check if backend is reachable on mount
   useEffect(() => {
-    fetch("https://decisionsupportsystemforstudent.onrender.com/api/health")
-      .then(r => r.json())
-      .then(d => { if (d.status === "ok") setBackendOnline(true); })
-      .catch(() => setBackendOnline(false));
-  }, []);
+  const checkBackend = async () => {
+    try {
+      const res = await fetch("https://decisionsupportsystemforstudent.onrender.com/api/health");
+      const data = await res.json();
+
+      if (data.status === "ok") {
+        setBackendOnline(true);
+      } else {
+        setBackendOnline(false);
+      }
+    } catch (error) {
+      console.log("Backend still waking up...");
+      setTimeout(checkBackend, 5000); // retry after 5 sec
+    }
+  };
+
+  checkBackend();
+}, []);
 
   // Load user data from backend when logged in
   useEffect(() => {
