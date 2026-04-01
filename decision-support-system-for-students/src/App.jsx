@@ -2747,7 +2747,7 @@ export default function App() {
 
   // Check if backend is reachable on mount
   useEffect(() => {
-    fetch("http://localhost:5001/api/health")
+    fetch("https://decisionsupportsystemforstudent.onrender.com/api/health")
       .then(r => r.json())
       .then(d => { if (d.status === "ok") setBackendOnline(true); })
       .catch(() => setBackendOnline(false));

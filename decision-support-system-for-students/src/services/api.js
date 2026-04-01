@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5001/api';
+const BASE_URL = "https://decisionsupportsystemforstudent.onrender.com/api";
 
 // Create axios instance
 const api = axios.create({

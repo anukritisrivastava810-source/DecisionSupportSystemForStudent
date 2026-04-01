@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const DomainInfo = require('./models/DomainInfo');
 const CareerGuide = require('./models/CareerGuide');
 
-const MONGO_URI = 'mongodb://localhost:27017/student-support-system';
+const MONGO_URI = process.env.MONGO_URI;
 
 const domains = [
   {
