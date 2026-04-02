@@ -402,31 +402,41 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
     setLoginError("");
     if (!form.email || !form.password) { setLoginError("Please enter email and password."); return; }
 
-    if (backendOnline) {
-      setIsLoading(true);
-      try {
-        const { authAPI } = await import('./services/api');
-        const res = await authAPI.login({ email: form.email, password: form.password });
-        if (res.data.success) {
-          const user = res.data.user;
-          // Forced override for the specified admin account
-          if (user.email === 'anukritisrivastava810@gmail.com') {
-            user.role = 'admin'; // Ensure role is set
-          }
-          onLogin(user);
+    setIsLoading(true);
+    try {
+      // Always attempt network login first
+      const { authAPI } = await import('./services/api');
+      const res = await authAPI.login({ email: form.email, password: form.password });
+      if (res.data.success) {
+        const user = res.data.user;
+        // Forced override for the specified admin account
+        if (user.email === 'anukritisrivastava810@gmail.com') {
+          user.role = 'admin'; 
         }
-      } catch (err) {
-        const msg = err.response?.data?.message || "Invalid email or password.";
-        setLoginError(msg);
-      } finally {
-        setIsLoading(false);
+        onLogin(user);
+        return;
       }
+    } catch (err) {
+      // If backend explicitly rejected them (401), show error
+      if (err.response && err.response.status === 401) {
+        setLoginError(err.response.data.message || "Invalid email or password.");
+        setIsLoading(false);
+        return;
+      }
+      // If network error, only then try fallback to localStorage
+      console.log("Network error, trying local fallback...");
+    } finally {
+      setIsLoading(false);
+    }
+
+    // Fallback: match against locally stored user
+    if (!storedUser) { setModal("nouser"); return; }
+    const ok = form.email === storedUser.email && form.password === storedUser.password;
+    if (ok) {
+      onLogin(storedUser);
     } else {
-      // Fallback: match against locally stored user
-      if (!storedUser) { setModal("nouser"); return; }
-      const ok = form.email === storedUser.email && form.password === storedUser.password;
-      if (ok) onLogin(storedUser);
-      else setModal("error");
+      setLoginError("Invalid email or password (offline).");
+      setModal("error");
     }
   };
 
@@ -917,22 +927,20 @@ function DomainDetailPage({ domain, onBack, backendOnline }) {
     async function fetchInfo() {
       setLoading(true);
       setError(null);
-      if (backendOnline) {
-        try {
-          const res = await domainInfoAPI.getByDomain(domain);
-          if (!cancelled) setInfo(res.data.data);
-        } catch (err) {
-          if (!cancelled) {
-            // Backend 404 or error — use fallback
-            const fallback = FALLBACK_DOMAIN_DATA[domain];
-            if (fallback) setInfo({ domain, ...fallback });
-            else setError("Domain information not found.");
-          }
+      try {
+        console.log(`[DomainDetail] Fetching info for domain: ${domain}`);
+        const res = await domainInfoAPI.getByDomain(domain);
+        if (!cancelled) {
+          setInfo(res.data.data);
+          console.log("[DomainDetail] Domain info loaded from server");
         }
-      } else {
-        const fallback = FALLBACK_DOMAIN_DATA[domain];
-        if (fallback) setInfo({ domain, ...fallback });
-        else setError("Domain information not available offline.");
+      } catch (err) {
+        console.log("[DomainDetail] Server fetch failed, using fallback:", err.message);
+        if (!cancelled) {
+          const fallback = FALLBACK_DOMAIN_DATA[domain];
+          if (fallback) setInfo({ domain, ...fallback });
+          else setError("Domain information not found.");
+        }
       }
       if (!cancelled) setLoading(false);
     }
@@ -1105,6 +1113,13 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
           <div className="card text-center" style={{ padding: "80px 24px" }}>
             <Activity className="animate-spin" size={48} style={{ color: "var(--primary)", margin: "0 auto 16px" }} />
             <p className="text-muted">Analysing your career path…</p>
+          </div>
+        ) : error && !guide ? (
+          <div className="card text-center" style={{ padding: "60px 24px" }}>
+             <ShieldAlert size={48} style={{ color: "var(--amber)", margin: "0 auto 16px" }} />
+             <h2 className="mb-2">Goal Not Found</h2>
+             <p className="text-muted mb-6">{error}</p>
+             <button className="btn btn-primary" onClick={onBack}>Update Career Goal</button>
           </div>
         ) : (
           <>
@@ -2274,9 +2289,10 @@ function AdminDashboard({ user, onBack, backendOnline }) {
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    if (!backendOnline) return;
+    // Attempt fetch regardless of initial health status
     setLoading(true);
     try {
+      console.log("[AdminDashboard] Fetching admin data...");
       const [ov, us, se, ac, tr] = await Promise.all([
         adminAPI.getOverview(),
         adminAPI.getUsers(),
@@ -2292,12 +2308,13 @@ function AdminDashboard({ user, onBack, backendOnline }) {
         traffic: tr.data.traffic,
         trafficStats: tr.data.trafficStats || []
       });
+      console.log("[AdminDashboard] Admin data loaded successfully");
     } catch (err) {
-      console.error("Admin fetch error:", err);
+      console.error("[AdminDashboard] Admin fetch error:", err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
-  }, [backendOnline]);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -2730,6 +2747,7 @@ export default function App() {
   const [storedUser, setStoredUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
   });
+  const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [learningSkills, setLearningSkills] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
@@ -2782,10 +2800,11 @@ export default function App() {
 
   // Load user data from backend when logged in
   useEffect(() => {
-    if (!isLoggedIn || !backendOnline) return;
+    if (!isLoggedIn) return; // Wait for login
     const userId = localStorage.getItem("userId");
     if (!userId) return;
 
+    console.log("[App] Fetching user sync data for:", userId);
     // Load skills
     skillsAPI.getAll()
       .then(r => {
@@ -2796,8 +2815,9 @@ export default function App() {
           topics: s.topics.map(t => ({ name: t.name, done: t.completed })),
         }));
         setLearningSkills(apiSkills);
+        console.log("[App] Skills synced from server");
       })
-      .catch(() => {});
+      .catch((err) => { console.log("[App] Skills sync skipped (offline or error)"); });
 
     // Load opportunities
     opportunitiesAPI.getAll()
@@ -2810,17 +2830,19 @@ export default function App() {
           domain: o.domain,
           status: o.status,
         })));
+        console.log("[App] Opportunities synced from server");
       })
-      .catch(() => {});
+      .catch((err) => { console.log("[App] Opportunities sync skipped"); });
 
     // Load history
     historyAPI.get()
       .then(r => {
         setSearchHistory(r.data.history.searchHistory || []);
         setActivityLogs((r.data.history.activityLogs || []).map(t => ({ text: t, time: "" })));
+        console.log("[App] History synced from server");
       })
-      .catch(() => {});
-  }, [isLoggedIn, backendOnline]);
+      .catch((err) => { console.log("[App] History sync skipped"); });
+  }, [isLoggedIn]); // Removed backendOnline from dependencies
 
   // ── Traffic Logging & Heartbeat ────────────────────────────────
   useEffect(() => {
@@ -2903,38 +2925,45 @@ export default function App() {
   };
 
   const handleSaveUser = async (data) => {
-    if (backendOnline) {
-      try {
-        let res;
-        if (data._id) {
-          // Existing user — update profile
-          res = await import('./services/api').then(m => m.profileAPI.update(data));
-          const updated = res.data.user;
-          setStoredUser(updated);
-          localStorage.setItem("user", JSON.stringify(updated));
-        } else {
-          // New signup
-          res = await authAPI.signup(data);
-          const user = res.data.user;
-          setStoredUser(user);
-          localStorage.setItem("userId", user._id);
-          localStorage.setItem("user", JSON.stringify(user));
-          setIsLoggedIn(true);
-        }
-      } catch (err) {
-        console.error("Save user error:", err);
-        // Fall back to local state
-        setStoredUser(data);
-        setIsLoggedIn(true);
+    let finalUser = data; // fallback to submitted data
+
+    setIsLoading(true); // Assuming there's a loading state, if not we ignore it
+    try {
+      let res;
+      if (data._id) {
+        // Network first: Existing user — update profile
+        console.log("Attempting profile update for:", data._id);
+        const { profileAPI } = await import('./services/api');
+        res = await profileAPI.update(data);
+        finalUser = res.data.user;
+        console.log("Profile updated successfully on server");
+      } else {
+        // Network first: New signup
+        console.log("Attempting signup for:", data.email);
+        res = await authAPI.signup(data);
+        finalUser = res.data.user;
+        console.log("Signup successful on server");
       }
-    } else {
-      setStoredUser(data);
+      
+      // Update local storage and state with the server's truth
+      setStoredUser(finalUser);
+      localStorage.setItem("userId", finalUser._id);
+      localStorage.setItem("user", JSON.stringify(finalUser));
       setIsLoggedIn(true);
+    } catch (err) {
+      console.error("Persistence failed on server, falling back to local storage:", err.response?.data?.message || err.message);
+      // Fall back to submitted data if server call failed
+      setStoredUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
+      setIsLoggedIn(true);
+    } finally {
+      setIsEditing(false);
     }
-    setIsEditing(false);
-    const userRole = storedUser?.role || (data && data.role);
-    const userEmail = storedUser?.email || (data && data.email);
-    
+
+    // Use finalUser (actual server response) for role-based navigation — not stale state
+    const userRole = finalUser?.role;
+    const userEmail = finalUser?.email;
+
     if (userRole === 'admin' || userEmail === 'anukritisrivastava810@gmail.com') {
       setPage("admin");
     } else {
@@ -2957,7 +2986,7 @@ export default function App() {
 
   // ─── Traffic Tracking ───────────────────────────────────────────
   useEffect(() => {
-    if (!backendOnline) return;
+    if (!isLoggedIn) return;
     
     // Internal Traffic Logging
     const logVisit = async () => {
