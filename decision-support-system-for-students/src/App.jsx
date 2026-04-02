@@ -1082,16 +1082,37 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
   useEffect(() => {
     let cancelled = false;
     async function fetchGuide() {
-      // Ensure we have a valid goal before calling backend
-      const goal = (user?.careerGoal || user?.primaryDomain || user?.careerAspiration || "Learn a new technical skill").trim();
-      if (!goal) return;
+      // 1. Precise job-role mapping for domains
+      const domainToDefaultCareerGoal = {
+        "Web Development": "Full Stack Developer",
+        "Artificial Intelligence": "AI Engineer",
+        "Data Science": "Data Scientist",
+        "Cybersecurity": "Cybersecurity Analyst",
+        "Cloud Computing": "Cloud Engineer",
+        "Mobile App Development": "App Developer",
+        "Game Development": "Game Developer",
+        "DevOps & Infrastructure": "DevOps Engineer",
+        "UI/UX Design": "UI/UX Designer",
+        "Blockchain": "Blockchain Developer"
+      };
 
-      console.log(`[CareerGuide] Fetching roadmap for: "${goal}"`);
+
+      // 2. Fetch Logic: Prefer exact goal, then map domain, else fallback
+      const backendCareerGoal = (
+        user?.careerGoal || 
+        domainToDefaultCareerGoal[user?.primaryDomain] || 
+        "Software Engineer"
+      ).trim();
+
+      if (!backendCareerGoal) return;
+
+      console.log(`[CareerGuide] Fetching roadmap for target: "${backendCareerGoal}"`);
+
       setLoading(true);
       setError(null);
       
       try {
-        const res = await careerGuideAPI.getByGoal(goal);
+        const res = await careerGuideAPI.getByGoal(backendCareerGoal);
         if (!cancelled) {
           if (res.data && res.data.success) {
             setGuide(res.data.data);
