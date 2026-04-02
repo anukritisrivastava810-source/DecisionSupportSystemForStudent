@@ -2,6 +2,7 @@
   "name": "decision-support-system-for-students",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://anukritisrivastava810-source.github.io/DecisionSupportSystemForStudent",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
