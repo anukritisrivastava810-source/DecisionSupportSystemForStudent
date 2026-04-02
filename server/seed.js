@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const DomainInfo = require('./models/DomainInfo');
 const CareerGuide = require('./models/CareerGuide');

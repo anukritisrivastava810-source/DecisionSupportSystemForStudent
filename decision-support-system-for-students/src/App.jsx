@@ -1083,7 +1083,7 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
     let cancelled = false;
     async function fetchGuide() {
       // Ensure we have a valid goal before calling backend
-      const goal = (user?.careerGoal || user?.careerAspiration || "Learn a new technical skill").trim();
+      const goal = (user?.careerGoal || user?.primaryDomain || user?.careerAspiration || "Learn a new technical skill").trim();
       if (!goal) return;
 
       console.log(`[CareerGuide] Fetching roadmap for: "${goal}"`);
