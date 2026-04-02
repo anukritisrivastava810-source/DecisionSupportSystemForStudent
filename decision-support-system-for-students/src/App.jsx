@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 
 import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, Heart, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw, Trash2 } from 'lucide-react';
 import './App.css';
-import { BASE_URL, authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI } from './services/api';
+import { BASE_URL, authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI, healthAPI, profileAPI } from './services/api';
 // ==================== STYLES ====================
 
 
@@ -405,7 +405,6 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
     setIsLoading(true);
     try {
       // Always attempt network login first
-      const { authAPI } = await import('./services/api');
       const res = await authAPI.login({ email: form.email, password: form.password });
       if (res.data.success) {
         const user = res.data.user;
@@ -417,6 +416,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
         return;
       }
     } catch (err) {
+      console.error("[Login] Server login failed:", err.response?.data?.message || err.message);
       // If backend explicitly rejected them (401), show error
       if (err.response && err.response.status === 401) {
         setLoginError(err.response.data.message || "Invalid email or password.");
@@ -424,18 +424,22 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
         return;
       }
       // If network error, only then try fallback to localStorage
-      console.log("Network error, trying local fallback...");
+      console.log("[Login] Network error, trying local fallback...");
     } finally {
       setIsLoading(false);
     }
 
     // Fallback: match against locally stored user
-    if (!storedUser) { setModal("nouser"); return; }
+    if (!storedUser) { 
+      setLoginError("Offline: No account found on this device.");
+      setModal("nouser"); 
+      return; 
+    }
     const ok = form.email === storedUser.email && form.password === storedUser.password;
     if (ok) {
       onLogin(storedUser);
     } else {
-      setLoginError("Invalid email or password (offline).");
+      setLoginError("Invalid email or password (offline mode).");
       setModal("error");
     }
   };
@@ -1078,18 +1082,41 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
   useEffect(() => {
     let cancelled = false;
     async function fetchGuide() {
+      // Ensure we have a valid goal before calling backend
+      const goal = (user?.careerGoal || user?.careerAspiration || "Learn a new technical skill").trim();
+      if (!goal) return;
+
+      console.log(`[CareerGuide] Fetching roadmap for: "${goal}"`);
       setLoading(true);
       setError(null);
-      const goal = user?.careerAspiration || user?.careerGoal || "Learn a new technical skill";
+      
       try {
         const res = await careerGuideAPI.getByGoal(goal);
-        if (!cancelled) setGuide(res.data.data);
+        if (!cancelled) {
+          if (res.data && res.data.success) {
+            setGuide(res.data.data);
+            console.log("[CareerGuide] Roadmap data loaded successfully");
+          } else {
+            throw new Error(res.data?.message || "Invalid roadmap data received");
+          }
+        }
       } catch (err) {
-        if (!cancelled) setError("Could not find a specific guide for your goal, but here is a general roadmap.");
+        console.error("[CareerGuide] Fetch error:", err.response?.data?.message || err.message);
+        if (!cancelled) {
+          setError(err.response?.data?.message || "Could not find a specific guide for your goal, but check the general paths.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      if (!cancelled) setLoading(false);
     }
-    fetchGuide();
+    
+    if (backendOnline === true) {
+      fetchGuide();
+    } else if (backendOnline === false) {
+      setLoading(false);
+      setError("Backend is currently offline. Persistence and guides are unavailable.");
+    }
+    
     return () => { cancelled = true; };
   }, [user, backendOnline]);
 
@@ -2751,7 +2778,15 @@ function ProfilePage({ user, learningSkills, onEdit, onLogout }) {
 // ==================== APP ROOT ====================
 
 export default function App() {
-  const [page, setPage] = useState("welcome");
+  const [page, _setPage] = useState("welcome");
+  const [apiError, setApiError] = useState(null);
+
+  const setPage = useCallback((p) => {
+    setApiError(null); 
+    _setPage(p);
+    window.scrollTo(0, 0);
+  }, []);
+
   const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("userId"));
   const [storedUser, setStoredUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
@@ -2762,50 +2797,47 @@ export default function App() {
   const [opportunities, setOpportunities] = useState([]);
   const [searchHistory, setSearchHistory] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
-  const [apiError, setApiError] = useState(null);
+
   const [backendOnline, setBackendOnline] = useState(null);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const trafficLogId = React.useRef(null);
 
 
-  // Check if backend is reachable on mount with retries
-  useEffect(() => {
-    const checkBackend = async (retries = 3) => {
-      for (let i = 0; i < retries; i++) {
-        try {
-          console.log(`Checking backend (attempt ${i + 1}/${retries})...`);
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+  const checkBackend = useCallback(async (retries = 5) => {
+    setBackendOnline(null); // Set to connecting state
+    for (let i = 0; i < retries; i++) {
+      try {
+        console.log(`[App] Checking backend (attempt ${i + 1}/${retries})...`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // Increased 8s timeout
 
-          const res = await fetch(`${BASE_URL}/health`, {
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
-          
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          
-          const data = await res.json();
-          console.log("Health response:", data);
+        const res = await healthAPI.check({ signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        console.log("[App] Health response:", res.data);
 
-          if (data.status === "ok") {
-            setBackendOnline(true);
-            return;
-          }
-        } catch (error) {
-          console.error(`Attempt ${i + 1} failed:`, error.message);
-          if (i < retries - 1) {
-            const delay = Math.pow(2, i) * 1000; // Exponential backoff: 1s, 2s, 4s
-            console.log(`Retrying in ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-          }
+        if (res.data && res.data.status === "ok") {
+          setBackendOnline(true);
+          console.log("[App] Backend online confirmed");
+          return true;
+        }
+      } catch (error) {
+        console.warn(`[App] Backend check attempt ${i + 1} failed:`, error.message);
+        if (i < retries - 1) {
+          const delay = Math.min(Math.pow(2, i) * 1000, 10000); // 1s, 2s, 4s, 8s, max 10s
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
-      console.error("All health check attempts failed.");
-      setBackendOnline(false);
-    };
-
-    checkBackend(5); // 5 attempts for Render cold-start
+    }
+    console.error("[App] All health check attempts failed.");
+    setBackendOnline(false);
+    return false;
   }, []);
+
+  // Check if backend is reachable on mount
+  useEffect(() => {
+    checkBackend(8); // Increased tries for Render cold-start
+  }, [checkBackend]);
 
   // Load user data from backend when logged in
   useEffect(() => {
@@ -2816,53 +2848,67 @@ export default function App() {
     console.log("[App] Fetching user sync data for:", userId);
     
     // Sync Profile First
-    import('./services/api').then(m => m.profileAPI.get())
+    profileAPI.get()
       .then(r => {
-        if (r.data.user) {
+        if (r.data && r.data.user) {
           setStoredUser(r.data.user);
           localStorage.setItem("user", JSON.stringify(r.data.user));
           console.log("[App] Profile synced from server");
         }
       })
-      .catch(() => { console.log("[App] Profile sync skipped"); });
+      .catch((err) => { 
+        console.error("[App] Profile sync failed:", err.response?.data?.message || err.message); 
+      });
 
     // Load skills
     skillsAPI.getAll()
       .then(r => {
-        const apiSkills = r.data.skills.map(s => ({
-          _id: s._id,
-          name: s.skillName,
-          progress: s.progress,
-          topics: s.topics.map(t => ({ name: t.name, done: t.completed })),
-        }));
-        setLearningSkills(apiSkills);
-        console.log("[App] Skills synced from server");
+        if (r.data && r.data.skills) {
+          const apiSkills = r.data.skills.map(s => ({
+            _id: s._id,
+            name: s.skillName,
+            progress: s.progress,
+            topics: s.topics.map(t => ({ name: t.name, done: t.completed })),
+          }));
+          setLearningSkills(apiSkills);
+          console.log("[App] Skills synced from server");
+        }
       })
-      .catch((err) => { console.log("[App] Skills sync skipped (offline or error)"); });
+      .catch((err) => { 
+        console.error("[App] Skills sync failed:", err.response?.data?.message || err.message); 
+      });
 
     // Load opportunities
     opportunitiesAPI.getAll()
       .then(r => {
-        setOpportunities(r.data.opportunities.map(o => ({
-          id: o._id,
-          _id: o._id,
-          type: o.type,
-          title: o.title,
-          domain: o.domain,
-          status: o.status,
-        })));
-        console.log("[App] Opportunities synced from server");
+        if (r.data && r.data.opportunities) {
+          setOpportunities(r.data.opportunities.map(o => ({
+            id: o._id,
+            _id: o._id,
+            type: o.type,
+            title: o.title,
+            domain: o.domain,
+            status: o.status,
+          })));
+          console.log("[App] Opportunities synced from server");
+        }
       })
-      .catch((err) => { console.log("[App] Opportunities sync skipped"); });
+      .catch((err) => { 
+        console.error("[App] Opportunities sync failed:", err.response?.data?.message || err.message); 
+      });
 
     // Load history
     historyAPI.get()
       .then(r => {
-        setSearchHistory(r.data.history.searchHistory || []);
-        setActivityLogs((r.data.history.activityLogs || []).map(t => ({ text: t, time: "" })));
-        console.log("[App] History synced from server");
+        if (r.data && r.data.history) {
+          setSearchHistory(r.data.history.searchHistory || []);
+          setActivityLogs((r.data.history.activityLogs || []).map(t => ({ text: t, time: "" })));
+          console.log("[App] History synced from server");
+        }
       })
-      .catch((err) => { console.log("[App] History sync skipped"); });
+      .catch((err) => { 
+        console.error("[App] History sync failed:", err.response?.data?.message || err.message); 
+      });
   }, [isLoggedIn]); // Removed backendOnline from dependencies
 
   // ── Traffic Logging & Heartbeat ────────────────────────────────
@@ -2902,13 +2948,21 @@ export default function App() {
   // ── Activity & Search (persisted to backend if online) ──────────
   const addActivity = useCallback((text) => {
     setActivityLogs(prev => [...prev, { text, time: "Just now" }]);
-    if (backendOnline) historyAPI.addActivity(text).catch(() => {});
+    if (backendOnline) {
+      historyAPI.addActivity(text).catch((err) => {
+        console.warn("[App] Failed to save activity to server:", err.message);
+      });
+    }
   }, [backendOnline]);
 
   const addSearch = useCallback((q) => {
     if (!q?.trim()) return;
     setSearchHistory(prev => [...prev.filter(s => s !== q), q]);
-    if (backendOnline) historyAPI.addSearch(q).catch(() => {});
+    if (backendOnline) {
+      historyAPI.addSearch(q).catch((err) => {
+        console.warn("[App] Failed to save search to server:", err.message);
+      });
+    }
   }, [backendOnline]);
 
   // ── Auth ────────────────────────────────────────────────────────
@@ -2946,49 +3000,57 @@ export default function App() {
   };
 
   const handleSaveUser = async (data) => {
-    let finalUser = data; // fallback to submitted data
-
-    setIsLoading(true); // Assuming there's a loading state, if not we ignore it
+    let finalUser = data; 
+    setIsLoading(true);
+    
     try {
       let res;
       if (data._id) {
-        // Network first: Existing user — update profile
-        console.log("Attempting profile update for:", data._id);
-        const { profileAPI } = await import('./services/api');
+        // Network first: Update
+        console.log("[App] Attempting profile update for:", data._id);
         res = await profileAPI.update(data);
         finalUser = res.data.user;
-        console.log("Profile updated successfully on server");
+        console.log("[App] Profile updated successfully on server");
       } else {
-        // Network first: New signup
-        console.log("Attempting signup for:", data.email);
+        // Network first: Signup
+        console.log("[App] Attempting signup for:", data.email);
         res = await authAPI.signup(data);
         finalUser = res.data.user;
-        console.log("Signup successful on server");
+        console.log("[App] Signup successful on server");
       }
       
-      // Update local storage and state with the server's truth
+      // Update state and storage on success
       setStoredUser(finalUser);
       localStorage.setItem("userId", finalUser._id);
       localStorage.setItem("user", JSON.stringify(finalUser));
       setIsLoggedIn(true);
+      setIsEditing(false);
     } catch (err) {
-      console.error("Persistence failed on server, falling back to local storage:", err.response?.data?.message || err.message);
-      // Fall back to submitted data if server call failed
+      const errMsg = err.response?.data?.message || err.message;
+      console.error("[App] Persistence check failed:", errMsg);
+      
+      // If we are confirmed online but the server rejected the data, we must STOP here.
+      if (backendOnline === true) {
+         setApiError("Server error: " + errMsg);
+         // Don't log them in with invalid data if server said NO
+         if (!data._id) return; // Stop signup if email exists etc
+      }
+
+      // If we are actually offline, allow local fallback
+      console.warn("[App] Proceeding with local state due to offline/network issue");
       setStoredUser(data);
       localStorage.setItem("user", JSON.stringify(data));
       setIsLoggedIn(true);
-    } finally {
       setIsEditing(false);
+    } finally {
       setIsLoading(false);
     }
 
-    // Use finalUser (actual server response) for role-based navigation — not stale state
     const userRole = finalUser?.role;
     const userEmail = finalUser?.email;
-
     if (userRole === 'admin' || userEmail === 'anukritisrivastava810@gmail.com') {
       setPage("admin");
-    } else {
+    } else if (page === "welcome" || page === "signup") {
       setPage("dashboard");
     }
   };
@@ -3075,8 +3137,19 @@ export default function App() {
         </div>
       )}
       {backendOnline === false && (
-        <div style={{ background: "#FEF3C7", borderBottom: "1px solid #F59E0B", padding: "8px 24px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 8, position: "fixed", top: 68, left: 0, right: 0, zIndex: 1001, color: "#92400E" }}>
-          ⚠️ <strong>Backend offline.</strong> Start the server for full persistence.
+        <div style={{ background: "#FEF3C7", borderBottom: "1px solid #F59E0B", padding: "8px 24px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 12, position: "fixed", top: 68, left: 0, right: 0, zIndex: 1001, color: "#92400E" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+            ⚠️ <strong>Backend offline.</strong> Start the server for full persistence.
+          </div>
+          <button className="btn btn-primary" onClick={() => checkBackend(3)} style={{ padding: "4px 12px", height: "auto", fontSize: "0.75rem" }}>
+            <RefreshCcw size={12} /> Retry Connection
+          </button>
+        </div>
+      )}
+      {apiError && (
+        <div style={{ background: "#FEE2E2", borderBottom: "1px solid #EF4444", padding: "8px 24px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 12, position: "fixed", top: backendOnline === true ? 0 : 100, left: 0, right: 0, zIndex: 1002, color: "#991B1B" }}>
+          <div style={{ flex: 1 }}>⚠️ <strong>Error:</strong> {apiError}</div>
+          <button onClick={() => setApiError(null)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", fontWeight: "bold" }}>✕</button>
         </div>
       )}
       <Navbar {...navProps} />

@@ -21,6 +21,11 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
 };
 
+// ─── Health ──────────────────────────────────────────────
+export const healthAPI = {
+  check: (config) => api.get('/health', config)
+};
+
 // ─── Skills ─────────────────────────────────────────────
 export const skillsAPI = {
   getAll: () => api.get('/skills'),
