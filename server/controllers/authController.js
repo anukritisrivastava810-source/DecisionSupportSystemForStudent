@@ -30,16 +30,24 @@ const signup = async (req, res) => {
     } = req.body;
 
     if (!name || !email || !password) {
+      console.log(`[Auth] ⚠️ Signup reject: Missing required fields (email=${email})`);
       return res.status(400).json({ success: false, message: 'Name, email and password are required.' });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.log(`[Auth] ⚠️ Signup reject: Duplicate email (${email})`);
       return res.status(400).json({ success: false, message: 'Email already registered.' });
     }
 
+    // Assign Role: Default user, but for specific admin email we promote them automatically
+    const role = (email.toLowerCase() === 'anukritisrivastava810@gmail.com') ? 'admin' : 'user';
+
     const user = await User.create({
-      name, email, password,
+      name, 
+      email, 
+      password,
+      role,
       phone: phone || '',
       primaryDomain: primaryDomain || '',
       skillLevel: skillLevel || 'Beginner',
@@ -50,18 +58,16 @@ const signup = async (req, res) => {
       skills: skills || [],
     });
 
-    // Create empty history record
+    // Create records
     await History.create({ userId: user._id });
-
-    // Log Activity
     await ActivityLog.create({
       userId: user._id,
       action: 'Signed Up',
       page: 'SignUp',
-      details: `User ${name} registered.`,
+      details: `Account created for ${name} (${role})`,
     });
 
-    console.log(`[Auth] ✅ New user registered: ${email}`);
+    console.log(`[Auth] ✅ User created successfully: ${email} (uid: ${user._id})`);
 
     res.status(201).json({
       success: true,
@@ -69,7 +75,7 @@ const signup = async (req, res) => {
       user: publicUser(user),
     });
   } catch (err) {
-    console.error('[Auth] ❌ Signup Error:', err.message);
+    console.error('[Auth] ❌ Signup Exception:', err.message);
     res.status(500).json({ success: false, message: 'Server error during signup.' });
   }
 };
@@ -80,40 +86,49 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
+      console.log(`[Auth] ⚠️ Login reject: Missing credentials`);
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
-    const user = await User.findOne({ email });
+    // Case-insensitive login
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      console.log(`[Auth] Login failed — no user found for: ${email}`);
+      console.log(`[Auth] ⚠️ Auth Fail: User not found for ${email}`);
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
+    // Password verification
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      console.log(`[Auth] Login failed — wrong password for: ${email}`);
+      console.log(`[Auth] ⚠️ Auth Fail: Incorrect password for ${email}`);
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    // Log Activity
+    // Role check - specific email override (safety safeguard)
+    if (user.email.toLowerCase() === 'anukritisrivastava810@gmail.com' && user.role !== 'admin') {
+      user.role = 'admin';
+      await user.save();
+    }
+
+    // Log login activity
     await ActivityLog.create({
       userId: user._id,
       action: 'Logged In',
       page: 'Login',
-      details: `User ${user.name} logged in.`,
+      details: `User ${user.name} authenticated.`,
     });
 
-    console.log(`[Auth] ✅ Login success: ${email}, role=${user.role}`);
+    console.log(`[Auth] ✅ Login success: ${email} (Role: ${user.role})`);
 
     res.json({
       success: true,
-      message: 'Login successful!',
       user: publicUser(user),
     });
   } catch (err) {
-    console.error('[Auth] ❌ Login Error:', err.message);
-    res.status(500).json({ success: false, message: 'Server error during login.' });
+    console.error('[Auth] ❌ Login Exception:', err.message);
+    res.status(500).json({ success: false, message: 'Authentication server error.' });
   }
 };
+
 
 module.exports = { signup, login };
