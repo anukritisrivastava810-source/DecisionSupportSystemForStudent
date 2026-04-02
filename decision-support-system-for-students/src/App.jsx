@@ -2287,6 +2287,7 @@ function AdminDashboard({ user, onBack, backendOnline }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [data, setData] = useState({ overview: {}, users: [], searches: [], activity: [], traffic: [], trafficStats: [] });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchData = useCallback(async () => {
     // Attempt fetch regardless of initial health status
@@ -2310,7 +2311,9 @@ function AdminDashboard({ user, onBack, backendOnline }) {
       });
       console.log("[AdminDashboard] Admin data loaded successfully");
     } catch (err) {
-      console.error("[AdminDashboard] Admin fetch error:", err.response?.data?.message || err.message);
+      const msg = err.response?.data?.message || err.message;
+      console.error("[AdminDashboard] Admin fetch error:", msg);
+      setError("Failed to load admin analytics: " + msg);
     } finally {
       setLoading(false);
     }
@@ -2384,6 +2387,12 @@ function AdminDashboard({ user, onBack, backendOnline }) {
           </div>
 
           <div className="admin-main">
+            {error && (
+              <div className="card mb-6" style={{ borderColor: "#FEE2E2", backgroundColor: "#FEF2F2", color: "#DC2626", padding: "12px 16px", borderRadius: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                <ShieldAlert size={20} />
+                <span className="text-sm font-semibold">{error}</span>
+              </div>
+            )}
             {loading ? (
               <div className="card section text-center">
                 <p>Loading analytics data...</p>
@@ -2805,6 +2814,18 @@ export default function App() {
     if (!userId) return;
 
     console.log("[App] Fetching user sync data for:", userId);
+    
+    // Sync Profile First
+    import('./services/api').then(m => m.profileAPI.get())
+      .then(r => {
+        if (r.data.user) {
+          setStoredUser(r.data.user);
+          localStorage.setItem("user", JSON.stringify(r.data.user));
+          console.log("[App] Profile synced from server");
+        }
+      })
+      .catch(() => { console.log("[App] Profile sync skipped"); });
+
     // Load skills
     skillsAPI.getAll()
       .then(r => {
@@ -2958,6 +2979,7 @@ export default function App() {
       setIsLoggedIn(true);
     } finally {
       setIsEditing(false);
+      setIsLoading(false);
     }
 
     // Use finalUser (actual server response) for role-based navigation — not stale state
