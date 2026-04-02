@@ -456,11 +456,6 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))} onKeyDown={e => e.key === "Enter" && handleLogin()} />
               </div>
               {loginError && <p style={{ color: "var(--error)", fontSize: "0.85rem", margin: 0 }}><XCircle size={18} style={{marginRight: "6px"}} /> {loginError}</p>}
-              {backendOnline === false && (
-                <div className="warning-banner">
-                  ⚠️ Backend offline — start the server for full persistence.
-                </div>
-              )}
               <button className="btn btn-primary btn-lg btn-full" style={{ marginTop: 8 }} onClick={handleLogin} disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login →"}
               </button>
@@ -2745,28 +2740,45 @@ export default function App() {
   const [selectedDomain, setSelectedDomain] = useState(null);
   const trafficLogId = React.useRef(null);
 
-  // Check if backend is reachable on mount
+
+  // Check if backend is reachable on mount with retries
   useEffect(() => {
-  const checkBackend = async () => {
-    try {
-      console.log("Checking backend...");
-      const res = await fetch("https://decisionsupportsystemforstudent.onrender.com/api/health");
-      const data = await res.json();
-      console.log("Health response:", data);
+    const checkBackend = async (retries = 3) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          console.log(`Checking backend (attempt ${i + 1}/${retries})...`);
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
-      if (data.status === "ok") {
-        setBackendOnline(true);
-      } else {
-        setBackendOnline(false);
+          const res = await fetch("https://decisionsupportsystemforstudent.onrender.com/api/health", {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          
+          const data = await res.json();
+          console.log("Health response:", data);
+
+          if (data.status === "ok") {
+            setBackendOnline(true);
+            return;
+          }
+        } catch (error) {
+          console.error(`Attempt ${i + 1} failed:`, error.message);
+          if (i < retries - 1) {
+            const delay = Math.pow(2, i) * 1000; // Exponential backoff: 1s, 2s, 4s
+            console.log(`Retrying in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
       }
-    } catch (error) {
-      console.error("Health check failed:", error);
+      console.error("All health check attempts failed.");
       setBackendOnline(false);
-    }
-  };
+    };
 
-  checkBackend();
-}, []);
+    checkBackend(5); // 5 attempts for Render cold-start
+  }, []);
 
   // Load user data from backend when logged in
   useEffect(() => {
@@ -3006,9 +3018,14 @@ export default function App() {
   return (
     <>
       
-      {!backendOnline && (
-        <div style={{ background: "#FEF3C7", borderBottom: "1px solid #F59E0B", padding: "8px 24px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 8, position: "fixed", top: 64, left: 0, right: 0, zIndex: 999 }}>
-          ⚠️ <strong>Backend not connected.</strong> Start the server: <code style={{ background: "#FDE68A", padding: "2px 6px", borderRadius: 4 }}>cd server && npm run dev</code>. Data will not persist.
+      {backendOnline === null && (
+        <div style={{ background: "#DBEAFE", borderBottom: "1px solid #3B82F6", padding: "8px 24px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 8, position: "fixed", top: 68, left: 0, right: 0, zIndex: 1001, color: "#1E40AF" }}>
+          🔄 <strong>Connecting to backend...</strong> Render may take a moment to wake up.
+        </div>
+      )}
+      {backendOnline === false && (
+        <div style={{ background: "#FEF3C7", borderBottom: "1px solid #F59E0B", padding: "8px 24px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 8, position: "fixed", top: 68, left: 0, right: 0, zIndex: 1001, color: "#92400E" }}>
+          ⚠️ <strong>Backend offline.</strong> Start the server for full persistence.
         </div>
       )}
       <Navbar {...navProps} />
