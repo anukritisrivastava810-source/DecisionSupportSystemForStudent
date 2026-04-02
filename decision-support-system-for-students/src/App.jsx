@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 
 import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, Heart, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw, Trash2 } from 'lucide-react';
 import './App.css';
-import { authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI } from './services/api';
+import { BASE_URL, authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI } from './services/api';
 // ==================== STYLES ====================
 
 
@@ -2777,7 +2777,7 @@ export default function App() {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
-          const res = await fetch("https://decisionsupportsystemforstudent.onrender.com/api/health", {
+          const res = await fetch(`${BASE_URL}/health`, {
             signal: controller.signal
           });
           clearTimeout(timeoutId);
