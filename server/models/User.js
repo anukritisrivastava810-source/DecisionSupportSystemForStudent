@@ -18,6 +18,12 @@ const userSchema = new mongoose.Schema({
   learningHoursPerWeek: { type: Number, default: 5 },
   // Tracks how the account was created
   authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
+  // Onboarding fields
+  profileCompleted: { type: Boolean, default: false },
+  branch: { type: String, default: '' },
+  yearOfStudy: { type: String, default: '' },
+  academicInterests: [{ type: String }],
+  careerInterests: [{ type: String }],
 }, { timestamps: true });
 
 // Hash password before saving — only when using local auth and password changed

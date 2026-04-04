@@ -23,7 +23,9 @@ const updateProfile = async (req, res) => {
 
     const allowed = [
       'name', 'phone', 'domainOfInterest', 'educationLevel', 'skills',
-      'careerGoal', 'primaryDomain', 'skillLevel', 'careerAspiration', 'learningHoursPerWeek'
+      'careerGoal', 'primaryDomain', 'skillLevel', 'careerAspiration', 
+      'learningHoursPerWeek', 'branch', 'yearOfStudy', 'academicInterests', 
+      'careerInterests', 'profileCompleted'
     ];
     const updates = {};
     allowed.forEach(field => {

@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 
-import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, Heart, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw, Trash2 } from 'lucide-react';
+import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw, Trash2 } from 'lucide-react';
 import './App.css';
-import { BASE_URL, authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI, healthAPI, profileAPI } from './services/api';
+import { authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI, healthAPI, profileAPI } from './services/api';
 // ==================== STYLES ====================
 
 
@@ -340,6 +340,7 @@ function Footer() {
 function Navbar({ page, setPage, isLoggedIn, onLogout, user }) {
   const [open, setOpen] = useState(false);
   const isAdmin = user?.role === 'admin';
+  if (page === 'onboarding') return null;
   const links = isLoggedIn
     ? [
         [<><Home size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Home</>, "home"],
@@ -608,18 +609,38 @@ function SignUpField({ label, name, type = "text", placeholder = "", opts = null
 
 // ==================== SIGNUP PAGE ====================
 function SignUpPage({ existing, onSave, onCancel }) {
-  const blank = { name: "", email: "", phone: "", password: "", domainOfInterest: "", educationLevel: "", skills: "", careerGoal: "", primaryDomain: "", skillLevel: "", careerAspiration: "", learningHoursPerWeek: "" };
-  const [form, setForm] = useState(existing ? { ...existing, skills: Array.isArray(existing.skills) ? existing.skills.join(", ") : existing.skills } : blank);
+  const isGoogleUser = existing?.authProvider === 'google';
+
+  const blank = {
+    name: "", email: "", phone: "", password: "",
+    domainOfInterest: "", educationLevel: "", skills: "",
+    careerGoal: "", primaryDomain: "", skillLevel: "Beginner",
+    careerAspiration: "", learningHoursPerWeek: ""
+  };
+
+  const [form, setForm] = useState(() => {
+    if (existing) {
+      return {
+        ...existing,
+        skills: Array.isArray(existing.skills) ? existing.skills.join(", ") : (existing.skills || ""),
+      };
+    }
+    return blank;
+  });
+
   const [errors, setErrors] = useState({});
   const [modal, setModal] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
   const validate = () => {
     const e = {};
     if (!form.name) e.name = "Required";
     if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) e.email = "Valid email required";
-    if (!form.phone) e.phone = "Required";
-    if (!form.password || form.password.length < 6) e.password = "Min 6 characters";
+    // Password only required for manual signup
+    if (!isGoogleUser && (!form.password || form.password.length < 6)) e.password = "Min 6 characters";
+    // Phone only required for manual signup
+    if (!isGoogleUser && !form.phone) e.phone = "Required";
     if (!form.domainOfInterest) e.domainOfInterest = "Required";
     if (!form.educationLevel) e.educationLevel = "Required";
     setErrors(e);
@@ -627,12 +648,28 @@ function SignUpPage({ existing, onSave, onCancel }) {
   };
 
   const submit = () => { if (validate()) setModal(true); };
+
   const confirm = () => {
-    onSave({ ...form, skills: form.skills ? form.skills.split(",").map(s => s.trim()).filter(Boolean) : [] });
+    const payload = {
+      ...form,
+      skills: form.skills ? form.skills.split(",").map(s => s.trim()).filter(Boolean) : [],
+      profileCompleted: true,
+    };
+    if (isGoogleUser) delete payload.password; // Never send blank password for Google users
+    onSave(payload);
     setModal(false);
   };
 
+  // Heading and subtitle differ by context
+  const heading = isGoogleUser && existing?.profileCompleted === false
+    ? "Complete Your Profile"
+    : (existing ? "Edit Your Profile" : "Welcome to DSS");
 
+  const subtitle = isGoogleUser && existing?.profileCompleted === false
+    ? "Please fill in a few details to personalise your experience."
+    : (existing ? "Update your information below." : "Let's personalise your journey and help you make smarter decisions.");
+
+  const btnLabel = existing ? "Update Profile ✓" : "Create Profile →";
 
   return (
     <div className="page">
@@ -640,32 +677,63 @@ function SignUpPage({ existing, onSave, onCancel }) {
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <div className="text-center mb-6">
             <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", marginBottom: 8 }}>
-              {existing ? "Edit Your Profile" : "Welcome to DSS"}
+              {heading}
             </h1>
-            <p className="text-muted">{existing ? "Update your information below." : "Let's personalize your journey and help you make smarter decisions."}</p>
+            <p className="text-muted">{subtitle}</p>
           </div>
           <div className="card">
             <div className="card-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+
+              {/* Row 1: Name + Email */}
               <div className="grid-2">
                 <SignUpField label="Full Name *" name="name" placeholder="Anukriti Srivastava" form={form} errors={errors} set={set} />
-                <SignUpField label="Email Address *" name="email" type="email" placeholder="you@example.com" form={form} errors={errors} set={set} />
+                <div className="form-group">
+                  <label className="form-label">Email Address *</label>
+                  <input
+                    className="form-input"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={form.email || ""}
+                    onChange={e => !isGoogleUser && set("email", e.target.value)}
+                    disabled={isGoogleUser}
+                    style={isGoogleUser ? { background: "var(--bg-section)", cursor: "not-allowed", opacity: 0.7 } : {}}
+                  />
+                  {errors.email && <span style={{ color: "var(--error)", fontSize: "0.8rem" }}>{errors.email}</span>}
+                </div>
               </div>
-              <div className="grid-2">
-                <SignUpField label="Phone Number *" name="phone" type="tel" placeholder="9876543210" form={form} errors={errors} set={set} />
-                <SignUpField label="Password *" name="password" type="password" placeholder="Min 6 characters" form={form} errors={errors} set={set} />
-              </div>
+
+              {/* Row 2: Phone + Password (manual only) OR Phone alone (Google) */}
+              {!isGoogleUser ? (
+                <div className="grid-2">
+                  <SignUpField label="Phone Number *" name="phone" type="tel" placeholder="9876543210" form={form} errors={errors} set={set} />
+                  <SignUpField label="Password *" name="password" type="password" placeholder="Min 6 characters" form={form} errors={errors} set={set} />
+                </div>
+              ) : (
+                <div className="grid-2">
+                  <SignUpField label="Phone Number" name="phone" type="tel" placeholder="9876543210" form={form} errors={errors} set={set} />
+                  <div /> {/* spacer to preserve grid layout */}
+                </div>
+              )}
+
+              {/* Row 3: Domain of Interest + Education Level */}
               <div className="grid-2">
                 <SignUpField label="Domain of Interest *" name="domainOfInterest" placeholder="e.g. Web Development, AI" form={form} errors={errors} set={set} />
                 <SignUpField label="Education Level *" name="educationLevel" opts={["High School", "Diploma", "B.Tech/B.E", "B.Sc", "BCA", "MCA", "M.Tech", "MBA", "Other"]} form={form} errors={errors} set={set} />
               </div>
+
+              {/* Skills */}
               <SignUpField label="Skills (comma-separated)" name="skills" placeholder="JavaScript, Python, React" form={form} errors={errors} set={set} />
+
+              {/* Row 4: Primary Domain + Skill Level */}
               <div className="grid-2">
                 <SignUpField label="Primary Domain" name="primaryDomain" opts={["Web Development", "Artificial Intelligence", "Data Science", "Cybersecurity", "Cloud Computing", "Mobile Development", "Game Development", "Other"]} form={form} errors={errors} set={set} />
                 <SignUpField label="Current Skill Level" name="skillLevel" opts={["Beginner", "Intermediate", "Advanced"]} form={form} errors={errors} set={set} />
               </div>
-              <SignUpField 
-                label="Career Goal" 
-                name="careerGoal" 
+
+              {/* Career Goal */}
+              <SignUpField
+                label="Career Goal"
+                name="careerGoal"
                 opts={[
                   "Learn a new technical skill", "Build strong project portfolio", "Get internship",
                   "Win hackathon / competition", "Improve coding skills", "Learn web development",
@@ -674,12 +742,14 @@ function SignUpPage({ existing, onSave, onCancel }) {
                   "Strengthen problem solving", "Improve design skills", "Prepare for higher studies",
                   "Build personal brand", "Start open source contributions", "Gain practical industry exposure",
                   "Improve technical consistency", "Become job-ready"
-                ]} 
-                form={form} errors={errors} set={set} 
+                ]}
+                form={form} errors={errors} set={set}
               />
-              <SignUpField 
-                label="Career Aspiration" 
-                name="careerAspiration" 
+
+              {/* Career Aspiration */}
+              <SignUpField
+                label="Career Aspiration"
+                name="careerAspiration"
                 opts={[
                   "Software Engineer", "Full Stack Developer", "Frontend Developer",
                   "Backend Developer", "Web Developer", "App Developer",
@@ -688,34 +758,45 @@ function SignUpPage({ existing, onSave, onCancel }) {
                   "Product Manager", "Business Analyst", "Researcher",
                   "Entrepreneur", "DevOps Engineer", "Blockchain Developer",
                   "Game Developer", "Data Analyst"
-                ]} 
-                form={form} errors={errors} set={set} 
+                ]}
+                form={form} errors={errors} set={set}
               />
+
+              {/* Learning Hours */}
               <div className="grid-2">
                 <SignUpField label="Learning Hours Per Week" name="learningHoursPerWeek" type="number" placeholder="15" form={form} errors={errors} set={set} />
                 <div />
               </div>
+
+              {/* Submit */}
               <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
                 <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={submit}>
-                  {existing ? "Update Profile ✓" : "Create Profile →"}
+                  {btnLabel}
                 </button>
                 {onCancel && <button className="btn btn-outline" onClick={onCancel}>Cancel</button>}
               </div>
+
             </div>
           </div>
         </div>
       </div>
+
       {modal && (
-        <Modal icon={existing ? <CheckCircle2 size={18} style={{marginRight: "6px"}} /> : <PartyPopper size={18} style={{marginRight: "6px"}} />} title={existing ? "Profile Updated!" : "Registration Successful!"}
-          msg={existing ? "Your profile has been updated successfully." : "Your profile has been created. Welcome to DSS!"}>
-          <button className="btn btn-primary" onClick={confirm}>{existing ? "Back to Profile" : "Go to Dashboard →"}</button>
+        <Modal
+          icon={existing ? <CheckCircle2 size={18} style={{ marginRight: "6px" }} /> : <PartyPopper size={18} style={{ marginRight: "6px" }} />}
+          title={existing ? "Profile Updated!" : "Registration Successful!"}
+          msg={existing ? "Your profile has been updated successfully." : "Your profile has been created. Welcome to DSS!"}
+        >
+          <button className="btn btn-primary" onClick={confirm}>
+            {existing ? "Back to Profile" : "Go to Dashboard →"}
+          </button>
         </Modal>
       )}
     </div>
   );
 }
 
-// ==================== HOME PAGE ====================
+
 function HomePage({ user }) {
   return (
     <div className="page">
@@ -803,6 +884,7 @@ function getPersonalizedGuide(user) {
 
 // ==================== DASHBOARD PAGE ====================
 function DashboardPage({ user, learningSkills, opportunities, setPage }) {
+  // eslint-disable-next-line no-unused-vars
   const guide = getPersonalizedGuide(user);
   const completedSkills = learningSkills.filter(s => s.progress === 100);
   const activeSkills = learningSkills.filter(s => s.progress < 100);
@@ -810,6 +892,7 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
   const internships = opportunities.filter(o => o.type === "internship");
   const userHours = parseInt(user?.learningHoursPerWeek || 0);
   
+  // eslint-disable-next-line no-unused-vars
   const regularStats = [
     [<BookOpen size={18} style={{marginRight: "6px"}} />, "#EFF6FF", learningSkills.length, "Skills Learning", "var(--primary)"],
     [<CheckCircle2 size={18} style={{marginRight: "6px"}} />, "#F0FDF4", completedSkills.length, "Skills Completed", "var(--success)"],
@@ -1120,6 +1203,7 @@ function DomainDetailPage({ domain, onBack, backendOnline }) {
 }
 
 // ==================== FLOWCHART COMPONENT ====================
+// eslint-disable-next-line no-unused-vars
 function Flowchart({ data }) {
   if (!data || data.length === 0) return null;
   
@@ -1627,6 +1711,7 @@ const COMP_SKILLS = [
 ];
 
 
+// eslint-disable-next-line no-unused-vars
 function FilterDropdown({ label, options, selected, onSelect, searchable = false, icon = "⚡" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -1976,6 +2061,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
     userType: null,
     compSkills: []
   });
+  // eslint-disable-next-line no-unused-vars
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [sortBy, setSortBy] = useState("Latest");
@@ -2891,7 +2977,18 @@ function ProfilePage({ user, learningSkills, onEdit, onLogout }) {
 // ==================== APP ROOT ====================
 
 export default function App() {
-  const [page, _setPage] = useState("welcome");
+  const [page, _setPage] = useState(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return "welcome";
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      if (user.role === 'admin' || user.email === 'anukritisrivastava810@gmail.com') return "admin";
+      if (user.profileCompleted === false) return "onboarding";
+      return "home";
+    } catch {
+      return "home";
+    }
+  });
   const [apiError, setApiError] = useState(null);
 
   const setPage = useCallback((p) => {
@@ -2904,6 +3001,7 @@ export default function App() {
   const [storedUser, setStoredUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
   });
+  // eslint-disable-next-line no-unused-vars
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [learningSkills, setLearningSkills] = useState([]);
@@ -2912,6 +3010,7 @@ export default function App() {
   const [activityLogs, setActivityLogs] = useState([]);
 
   const [backendOnline, setBackendOnline] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [selectedDomain, setSelectedDomain] = useState(null);
   const trafficLogId = React.useRef(null);
 
@@ -2949,8 +3048,8 @@ export default function App() {
 
   // Check if backend is reachable on mount
   useEffect(() => {
-    checkBackend(8); // Increased tries for Render cold-start
-  }, [checkBackend]);
+    checkBackend(2); setTimeout(() => checkBackend(8), 500);
+  }, [checkBackend, isLoggedIn]);
 
   // Load user data from backend when logged in
   useEffect(() => {
@@ -2964,9 +3063,16 @@ export default function App() {
     profileAPI.get()
       .then(r => {
         if (r.data && r.data.user) {
-          setStoredUser(r.data.user);
-          localStorage.setItem("user", JSON.stringify(r.data.user));
+          const syncedUser = r.data.user;
+          setStoredUser(syncedUser);
+          localStorage.setItem("user", JSON.stringify(syncedUser));
           console.log("[App] Profile synced from server");
+
+          // Check if onboarding is needed
+          const isAdmin = syncedUser.role === 'admin' || syncedUser.email === 'anukritisrivastava810@gmail.com';
+          if (!isAdmin && syncedUser.profileCompleted === false && page !== 'onboarding') {
+            setPage('onboarding');
+          }
         }
       })
       .catch((err) => { 
@@ -3022,7 +3128,7 @@ export default function App() {
       .catch((err) => { 
         console.error("[App] History sync failed:", err.response?.data?.message || err.message); 
       });
-  }, [isLoggedIn]); // Removed backendOnline from dependencies
+  }, [isLoggedIn, page, setPage]); // Fixed dependencies
 
   // ── Traffic Logging & Heartbeat ────────────────────────────────
   useEffect(() => {
@@ -3089,10 +3195,13 @@ export default function App() {
       // Persist JWT token for future authenticated requests
       if (token) localStorage.setItem("token", token);
       
-      // If admin, go to admin dashboard, else home
+      // If admin, go to admin dashboard
       if (userData.role === 'admin' || userData.email === 'anukritisrivastava810@gmail.com') {
         console.log("Redirecting to Admin Dashboard");
         setPage("admin");
+      } else if (userData.profileCompleted === false) {
+        console.log("Profile incomplete, redirecting to Onboarding");
+        setPage("onboarding");
       } else {
         console.log("Redirecting to Home");
         setPage("home");
@@ -3116,50 +3225,41 @@ export default function App() {
   };
 
   const handleSaveUser = async (data) => {
-    let finalUser = data; 
+    let finalUser = data;
     setIsLoading(true);
-    
+
     try {
       let res;
-      if (data._id) {
-        // Network first: Update
+      // Google users always have an _id already (created by googleAuth); use update path.
+      // Manual new signup will have no _id.
+      const isUpdate = !!data._id;
+
+      if (isUpdate) {
         console.log("[App] Attempting profile update for:", data._id);
         res = await profileAPI.update(data);
         finalUser = res.data.user;
         console.log("[App] Profile updated successfully on server");
       } else {
-        // Network first: Signup
         console.log("[App] Attempting signup for:", data.email);
         res = await authAPI.signup(data);
         finalUser = res.data.user;
         console.log("[App] Signup successful on server");
       }
-      
+
       // Update state and storage on success
       setStoredUser(finalUser);
       localStorage.setItem("userId", finalUser._id);
       localStorage.setItem("user", JSON.stringify(finalUser));
-      // Store JWT token returned from signup/profile update
       if (res.data.token) localStorage.setItem("token", res.data.token);
       setIsLoggedIn(true);
       setIsEditing(false);
     } catch (err) {
       const errMsg = err.response?.data?.message || err.message;
-      console.error("[App] Persistence check failed:", errMsg);
-      
-      // If we are confirmed online but the server rejected the data, we must STOP here.
-      if (backendOnline === true) {
-         setApiError("Server error: " + errMsg);
-         // Don't log them in with invalid data if server said NO
-         if (!data._id) return; // Stop signup if email exists etc
-      }
-
-      // If we are actually offline, allow local fallback
-      console.warn("[App] Proceeding with local state due to offline/network issue");
-      setStoredUser(data);
-      localStorage.setItem("user", JSON.stringify(data));
-      setIsLoggedIn(true);
-      setIsEditing(false);
+      console.error("[App] Save failed:", errMsg);
+      setApiError("Error: " + errMsg);
+      // Stop here — do not redirect or log in with bad data
+      setIsLoading(false);
+      return;
     } finally {
       setIsLoading(false);
     }
@@ -3168,7 +3268,7 @@ export default function App() {
     const userEmail = finalUser?.email;
     if (userRole === 'admin' || userEmail === 'anukritisrivastava810@gmail.com') {
       setPage("admin");
-    } else if (page === "welcome" || page === "signup") {
+    } else if (page === "welcome" || page === "signup" || page === "onboarding") {
       setPage("dashboard");
     }
   };
@@ -3208,7 +3308,7 @@ export default function App() {
 
     // GA4 Placeholder (Would typically use react-ga4)
     console.log(`[GA4] Page View: ${page}`);
-  }, [page, backendOnline]);
+  }, [page, backendOnline, isLoggedIn]);
 
   if (!isLoggedIn && page === "signup") {
     return (
@@ -3271,6 +3371,7 @@ export default function App() {
         </div>
       )}
       <Navbar {...navProps} />
+      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} />}
       {page === "home" && <HomePage user={storedUser} />}
       {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} setPage={setPage} />}
       {page === "admin" && (

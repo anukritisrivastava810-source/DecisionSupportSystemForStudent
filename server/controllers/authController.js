@@ -22,6 +22,11 @@ const publicUser = (user) => ({
   skills: user.skills || [],
   role: user.role,
   authProvider: user.authProvider || 'local',
+  profileCompleted: user.profileCompleted || false,
+  branch: user.branch || '',
+  yearOfStudy: user.yearOfStudy || '',
+  academicInterests: user.academicInterests || [],
+  careerInterests: user.careerInterests || [],
 });
 
 // @desc  Register a new user
@@ -34,7 +39,8 @@ const signup = async (req, res) => {
       learningHoursPerWeek, educationLevel, skills
     } = req.body;
 
-    if (!name || !email || !password) {
+    // Password is only required for local registration
+    if (!name || !email || (!password && req.body.authProvider !== 'google')) {
       console.log(`[Auth] ⚠️ Signup reject: Missing required fields (email=${email})`);
       return res.status(400).json({ success: false, message: 'Name, email and password are required.' });
     }
@@ -53,15 +59,22 @@ const signup = async (req, res) => {
       email,
       password,
       role,
-      authProvider: 'local',
+      authProvider: req.body.authProvider || 'local',
       phone: phone || '',
       primaryDomain: primaryDomain || '',
+      domainOfInterest: req.body.domainOfInterest || '',
       skillLevel: skillLevel || 'Beginner',
       careerAspiration: careerAspiration || '',
       careerGoal: careerGoal || '',
       learningHoursPerWeek: learningHoursPerWeek || 5,
       educationLevel: educationLevel || '',
       skills: skills || [],
+      branch: req.body.branch || '',
+      yearOfStudy: req.body.yearOfStudy || '',
+      academicInterests: req.body.academicInterests || [],
+      careerInterests: req.body.careerInterests || [],
+      // Manual/Complete signup implies profileCompleted: true
+      profileCompleted: req.body.profileCompleted !== undefined ? req.body.profileCompleted : true,
     });
 
     // Create records
@@ -195,6 +208,7 @@ const googleAuth = async (req, res) => {
         password: '',  // No password for Google users
         authProvider: 'google',
         role,
+        profileCompleted: false, // New Google users need onboarding
       });
 
       await History.create({ userId: user._id });
