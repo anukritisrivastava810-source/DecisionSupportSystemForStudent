@@ -446,7 +446,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
     setLoginError("");
     setIsLoading(true);
     try {
@@ -461,9 +461,32 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
       }
     } catch (err) {
       console.error("[Google Login] Failed:", err.response?.data?.message || err.message);
-      setLoginError(err.response?.data?.message || "Google Sign-In failed. Please try again.");
+      if (err.response?.data?.isNewUser) {
+        setLoginError("No account found. Please complete signup first.");
+        setTab("signup");
+      } else {
+        setLoginError(err.response?.data?.message || "Google Sign-In failed.");
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignupSuccess = (credentialResponse) => {
+    setLoginError("");
+    try {
+      // Decode the JWT token payload (middle part of base64 string)
+      const payloadBase64Url = credentialResponse.credential.split('.')[1];
+      const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(payloadBase64));
+      
+      const { name, email } = payload;
+      
+      // Store temporary google info without an ID to trigger signup flow
+      onGoSignup({ name, email, authProvider: 'google', profileCompleted: false, credential: credentialResponse.credential });
+    } catch (err) {
+      console.error("Google decoding error:", err);
+      setLoginError("Could not process Google signup.");
     }
   };
 
@@ -514,7 +537,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
               {/* Google Login Button */}
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
+                  onSuccess={handleGoogleLoginSuccess}
                   onError={handleGoogleError}
                   text="signin_with"
                   shape="rectangular"
@@ -547,7 +570,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
               {/* Google Sign-up Button */}
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
+                  onSuccess={handleGoogleSignupSuccess}
                   onError={handleGoogleError}
                   text="signup_with"
                   shape="rectangular"
@@ -3315,6 +3338,7 @@ export default function App() {
       <>
         
         <SignUpPage
+          existing={storedUser}
           onSave={handleSaveUser}
           onCancel={() => setPage("welcome")}
           backendOnline={backendOnline}
@@ -3328,7 +3352,10 @@ export default function App() {
       <WelcomePage
         storedUser={storedUser}
         onLogin={handleLogin}
-        onGoSignup={() => setPage("signup")}
+        onGoSignup={(googleData) => {
+          if (googleData) setStoredUser(googleData);
+          setPage("signup");
+        }}
         backendOnline={backendOnline}
       />
     );
