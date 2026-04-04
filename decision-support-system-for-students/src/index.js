@@ -7,7 +7,11 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // Replace with your actual Google Client ID from Google Cloud Console
 // Also set REACT_APP_GOOGLE_CLIENT_ID in your .env for security
-const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID_HERE';
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+if (!GOOGLE_CLIENT_ID) {
+  console.warn('[Warning] ❌ REACT_APP_GOOGLE_CLIENT_ID is not defined in .env. Google Sign-In will fail.');
+}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

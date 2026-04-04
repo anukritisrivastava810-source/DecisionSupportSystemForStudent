@@ -7,10 +7,10 @@ const connectDB = require('./config/db');
 dotenv.config();
 
 // Validate critical env vars at startup
-const requiredEnv = ['MONGO_URI', 'JWT_SECRET'];
+const requiredEnv = ['MONGO_URI', 'JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
 requiredEnv.forEach((key) => {
   if (!process.env[key]) {
-    console.error(`[Server] ❌ Missing required environment variable: ${key}`);
+    console.error(`[Server] ❌ FATAL ERROR: Missing environment variable: ${key}`);
     process.exit(1);
   }
 });
@@ -22,21 +22,24 @@ const app = express();
 app.use(helmet());
 
 // CORS: allow only known origins
-const allowedOrigins = [
+const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+const defaultOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'https://anukritisrivastava810-source.github.io',
-  'https://anukritisrivastava810-source.github.io/DecisionSupportSystemForStudent'
 ];
+const allowedOrigins = [...new Set([...envOrigins, ...defaultOrigins])];
 
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (Postman, mobile apps, etc.)
     if (!origin) return callback(null, true);
 
-    const isAllowed = allowedOrigins.some(allowed =>
-      origin === allowed || origin.startsWith(allowed)
-    );
+    const isAllowed = allowedOrigins.some(allowed => {
+      const strippedOrigin = origin.replace(/\/$/, "");
+      const strippedAllowed = allowed.replace(/\/$/, "");
+      return strippedOrigin === strippedAllowed;
+    });
 
     if (isAllowed) {
       callback(null, true);
