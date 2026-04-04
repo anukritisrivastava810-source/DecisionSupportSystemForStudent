@@ -1082,7 +1082,7 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
   useEffect(() => {
     let cancelled = false;
     async function fetchGuide() {
-      // 1. Precise job-role mapping for domains
+      // 1. Domain to Default Career Aspiration mapping
       const domainToDefaultCareerGoal = {
         "Web Development": "Full Stack Developer",
         "Artificial Intelligence": "AI Engineer",
@@ -1096,13 +1096,36 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
         "Blockchain": "Blockchain Developer"
       };
 
+      // 2. Fetch Logic: Precise role mapping prioritizing careerAspiration
+      const goalToAspirationMap = {
+        "Explore AI / ML field": "AI Engineer",
+        "Learn web development": "Full Stack Developer",
+        "Learn data science": "Data Scientist",
+        "Learn app development": "App Developer",
+        "Improve design skills": "UI/UX Designer",
+        "Strengthen problem solving": "Software Engineer",
+        "Prepare for placements": "Software Engineer",
+        "Become job-ready": "Software Engineer",
+        "Get internship": "Software Engineer",
+        "Build resume": "Software Engineer",
+        "Build personal brand": "Software Engineer"
+      };
 
-      // 2. Fetch Logic: Prefer exact goal, then map domain, else fallback
+      const selectedGoal = user?.careerGoal;
+      const selectedAspiration = user?.careerAspiration;
+
       const backendCareerGoal = (
-        user?.careerGoal || 
+        selectedAspiration || 
+        goalToAspirationMap[selectedGoal] || 
         domainToDefaultCareerGoal[user?.primaryDomain] || 
+        selectedGoal ||
         "Software Engineer"
       ).trim();
+
+      // Console logs as requested
+      console.log(`[CareerGuide] selected careerGoal: "${selectedGoal}"`);
+      console.log(`[CareerGuide] selected careerAspiration: "${selectedAspiration}"`);
+      console.log(`[CareerGuide] final target being sent to /api/career-guide: "${backendCareerGoal}"`);
 
       if (!backendCareerGoal) return;
 
@@ -1177,7 +1200,7 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
                 <div className="badge badge-amber mb-4" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                   <Award size={14} /> Personalised Career Roadmap
                 </div>
-                <h1 className="career-guide-title">{guide?.goalKeyword || user?.careerGoal}</h1>
+                <h1 className="career-guide-title">{guide?.goalKeyword || user?.careerAspiration || user?.careerGoal}</h1>
                 <p className="career-guide-aspiration">“{user?.careerAspiration || "Striving for excellence in tech."}”</p>
               </div>
               <div className="career-hero-icon">
