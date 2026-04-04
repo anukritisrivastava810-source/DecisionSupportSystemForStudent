@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   phone: { type: String, default: '' },
-  password: { type: String, required: true },
+  // password is optional for Google-auth users
+  password: { type: String, default: '' },
   domainOfInterest: { type: String, default: '' },
   educationLevel: { type: String, default: '' },
   skills: [{ type: String }],
@@ -15,17 +16,20 @@ const userSchema = new mongoose.Schema({
   careerAspiration: { type: String, default: '' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   learningHoursPerWeek: { type: Number, default: 5 },
+  // Tracks how the account was created
+  authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
 }, { timestamps: true });
 
-// Hash password before saving
+// Hash password before saving — only when using local auth and password changed
 userSchema.pre('save', async function () {
-  if (!this.isModified('password')) return;
+  if (!this.isModified('password') || !this.password) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare password
+// Compare password for local login
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (!this.password) return false; // Google users have no password
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

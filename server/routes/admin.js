@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { protect, adminOnly } = require('../middleware/auth');
 const {
   getOverview,
   getAllUsers,
@@ -9,19 +10,16 @@ const {
   deleteUser
 } = require('../controllers/adminController');
 
-// Middleware to check if user is admin
-// Since we don't have JWT yet, we'll check for a custom header or just rely on the frontend for now
-// But a proper implementation would use an 'admin' route check.
-// For now, let's just make it available.
+// All admin read/delete endpoints require valid JWT + admin role
+router.get('/overview', protect, adminOnly, getOverview);
+router.get('/users', protect, adminOnly, getAllUsers);
+router.get('/searches', protect, adminOnly, getSearches);
+router.get('/activity', protect, adminOnly, getActivityLogs);
+router.get('/traffic', protect, adminOnly, getTraffic);
+router.delete('/users/:id', protect, adminOnly, deleteUser);
 
-router.get('/overview', getOverview);
-router.get('/users', getAllUsers);
-router.get('/searches', getSearches);
-router.get('/activity', getActivityLogs);
-router.get('/traffic', getTraffic);
-router.delete('/users/:id', deleteUser);
-
-// Tracking endpoints (accessible to users to log their data)
+// Tracking endpoints — authenticated users can log their own analytics
+// These do NOT require admin role, just a valid session (userid header fine)
 router.post('/searches', async (req, res) => {
   try {
     const { userId, query, searchType } = req.body;

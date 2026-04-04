@@ -1,32 +1,63 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
 dotenv.config();
 
+// Validate critical env vars at startup
+const requiredEnv = ['MONGO_URI', 'JWT_SECRET'];
+requiredEnv.forEach((key) => {
+  if (!process.env[key]) {
+    console.error(`[Server] ❌ Missing required environment variable: ${key}`);
+    process.exit(1);
+  }
+});
+
 const app = express();
 
-// Middleware
+// ── Security Middleware ──────────────────────────────────────────────
+// Helmet sets secure HTTP headers (CSP, HSTS, X-Frame-Options, etc.)
+app.use(helmet());
+
+// CORS: allow only known origins
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://anukritisrivastava810-source.github.io',
+  'https://anukritisrivastava810-source.github.io/DecisionSupportSystemForStudent'
+];
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://decisionsupportsystemforstudent.netlify.app',
-    'https://anukritisrivastava810-source.github.io'
-  ],
+  origin: function (origin, callback) {
+    // allow requests with no origin (Postman, mobile apps, etc.)
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.some(allowed =>
+      origin === allowed || origin.startsWith(allowed)
+    );
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
+
 app.use(express.json());
 
-// Wait for DB then Boot Server
+// ── Server Boot ──────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5001;
 
 async function startServer() {
   try {
     // 1. Force DB Connection First
     await connectDB();
-    console.log("[Server] 🔌 Database established");
+    console.log('[Server] 🔌 Database established');
 
     // 2. Load Routes
     app.use('/api/auth', require('./routes/auth'));
@@ -40,16 +71,15 @@ async function startServer() {
     app.use('/api/career-guide', require('./routes/careerGuide'));
     app.use('/api/admin', require('./routes/admin'));
 
-    // Enhanced Health check (Real Readiness)
+    // Health check (Real Readiness)
     app.get('/api/health', (req, res) => {
       const mongoose = require('mongoose');
       const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-      
-      res.json({ 
-        status: 'ok', 
+      res.json({
+        status: 'ok',
         db: dbStatus,
         service: 'Decision Support API',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     });
 
@@ -59,10 +89,9 @@ async function startServer() {
     });
 
   } catch (err) {
-    console.error("[Server] ❌ Critical Startup Failure:", err.message);
+    console.error('[Server] ❌ Critical Startup Failure:', err.message);
     process.exit(1);
   }
 }
 
 startServer();
-

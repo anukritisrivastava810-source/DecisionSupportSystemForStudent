@@ -1,6 +1,10 @@
 const User = require('../models/User');
 const History = require('../models/History');
 const ActivityLog = require('../models/ActivityLog');
+const { generateToken } = require('../middleware/auth');
+const { OAuth2Client } = require('google-auth-library');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Helper to build safe public user object (all fields frontend needs)
 const publicUser = (user) => ({
@@ -17,6 +21,7 @@ const publicUser = (user) => ({
   educationLevel: user.educationLevel || '',
   skills: user.skills || [],
   role: user.role,
+  authProvider: user.authProvider || 'local',
 });
 
 // @desc  Register a new user
@@ -44,10 +49,11 @@ const signup = async (req, res) => {
     const role = (email.toLowerCase() === 'anukritisrivastava810@gmail.com') ? 'admin' : 'user';
 
     const user = await User.create({
-      name, 
-      email, 
+      name,
+      email,
       password,
       role,
+      authProvider: 'local',
       phone: phone || '',
       primaryDomain: primaryDomain || '',
       skillLevel: skillLevel || 'Beginner',
@@ -67,11 +73,13 @@ const signup = async (req, res) => {
       details: `Account created for ${name} (${role})`,
     });
 
+    const token = generateToken(user._id);
     console.log(`[Auth] ✅ User created successfully: ${email} (uid: ${user._id})`);
 
     res.status(201).json({
       success: true,
       message: 'Account created successfully!',
+      token,
       user: publicUser(user),
     });
   } catch (err) {
@@ -97,6 +105,11 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
+    // Reject Google-only users trying to login with password
+    if (user.authProvider === 'google' && !user.password) {
+      return res.status(401).json({ success: false, message: 'This account uses Google Sign-In. Please use Google login.' });
+    }
+
     // Password verification
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
@@ -118,10 +131,12 @@ const login = async (req, res) => {
       details: `User ${user.name} authenticated.`,
     });
 
+    const token = generateToken(user._id);
     console.log(`[Auth] ✅ Login success: ${email} (Role: ${user.role})`);
 
     res.json({
       success: true,
+      token,
       user: publicUser(user),
     });
   } catch (err) {
@@ -130,5 +145,81 @@ const login = async (req, res) => {
   }
 };
 
+// @desc  Google OAuth login/signup
+// @route POST /api/auth/google
+const googleAuth = async (req, res) => {
+  try {
+    const { credential } = req.body;
 
-module.exports = { signup, login };
+    if (!credential) {
+      return res.status(400).json({ success: false, message: 'Google credential token is required.' });
+    }
+
+    // Verify the Google ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId } = payload;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Could not retrieve email from Google.' });
+    }
+
+    // Find or create user
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (user) {
+      // Existing user — update authProvider if needed
+      if (user.authProvider !== 'google') {
+        user.authProvider = 'google';
+        await user.save();
+      }
+      console.log(`[Auth] ✅ Google Login: existing user ${email}`);
+
+      await ActivityLog.create({
+        userId: user._id,
+        action: 'Google Login',
+        page: 'Login',
+        details: `User ${user.name} authenticated via Google.`,
+      });
+    } else {
+      // New user via Google — create account
+      const role = (email.toLowerCase() === 'anukritisrivastava810@gmail.com') ? 'admin' : 'user';
+
+      user = await User.create({
+        name,
+        email: email.toLowerCase(),
+        password: '',  // No password for Google users
+        authProvider: 'google',
+        role,
+      });
+
+      await History.create({ userId: user._id });
+      await ActivityLog.create({
+        userId: user._id,
+        action: 'Google Signup',
+        page: 'SignUp',
+        details: `New account created via Google for ${name} (${role})`,
+      });
+
+      console.log(`[Auth] ✅ Google Signup: new user ${email} (uid: ${user._id})`);
+    }
+
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      token,
+      user: publicUser(user),
+    });
+  } catch (err) {
+    console.error('[Auth] ❌ Google Auth Exception:', err.message);
+    res.status(401).json({ success: false, message: 'Google authentication failed.' });
+  }
+};
+
+
+module.exports = { signup, login, googleAuth };

@@ -408,11 +408,12 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
       const res = await authAPI.login({ email: form.email, password: form.password });
       if (res.data.success) {
         const user = res.data.user;
+        const token = res.data.token;
         // Forced override for the specified admin account
         if (user.email === 'anukritisrivastava810@gmail.com') {
           user.role = 'admin'; 
         }
-        onLogin(user);
+        onLogin(user, token);
         return;
       }
     } catch (err) {
@@ -437,12 +438,40 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
     }
     const ok = form.email === storedUser.email && form.password === storedUser.password;
     if (ok) {
-      onLogin(storedUser);
+      onLogin(storedUser, null);
     } else {
       setLoginError("Invalid email or password (offline mode).");
       setModal("error");
     }
   };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoginError("");
+    setIsLoading(true);
+    try {
+      const res = await authAPI.googleAuth(credentialResponse.credential);
+      if (res.data.success) {
+        const user = res.data.user;
+        const token = res.data.token;
+        if (user.email === 'anukritisrivastava810@gmail.com') {
+          user.role = 'admin';
+        }
+        onLogin(user, token);
+      }
+    } catch (err) {
+      console.error("[Google Login] Failed:", err.response?.data?.message || err.message);
+      setLoginError(err.response?.data?.message || "Google Sign-In failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setLoginError("Google Sign-In was cancelled or failed.");
+  };
+
+  // Dynamically import GoogleLogin to avoid SSR issues
+  const { GoogleLogin } = require('@react-oauth/google');
 
   return (
     <>
@@ -451,7 +480,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
         <div className="welcome-left">
           <div className="welcome-brand">
             <h1>DSS • for Students</h1>
-            <p>Make smarter academic & career decisions</p>
+            <p>Make smarter academic &amp; career decisions</p>
           </div>
           <div className="welcome-tabs">
             <button className={`welcome-tab${tab === "login" ? " active" : ""}`} onClick={() => setTab("login")}>Login</button>
@@ -473,6 +502,27 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
               <button className="btn btn-primary btn-lg btn-full" style={{ marginTop: 8 }} onClick={handleLogin} disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login →"}
               </button>
+
+              {/* Divider */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "4px 0" }}>
+                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 500 }}>or continue with</span>
+                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+              </div>
+
+              {/* Google Login Button */}
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  text="signin_with"
+                  shape="rectangular"
+                  theme="outline"
+                  size="large"
+                  width="100%"
+                />
+              </div>
+
               {!storedUser && (
                 <p className="text-sm text-muted text-center">
                   No account yet? <span style={{ color: "var(--primary)", cursor: "pointer", fontWeight: 600 }} onClick={() => { setTab("signup"); onGoSignup(); }}>Create one</span>
@@ -485,6 +535,25 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
               <div style={{ fontSize: "3rem", marginBottom: 12 }}><Star size={18} style={{marginRight: "6px"}} /></div>
               <p style={{ color: "var(--text-muted)", marginBottom: 20, fontSize: "0.9rem" }}>Create your profile to get started with personalized decision support.</p>
               <button className="btn btn-primary btn-lg btn-full" onClick={onGoSignup}>Create Your Profile →</button>
+
+              {/* Divider */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "16px 0" }}>
+                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+                <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 500 }}>or sign up with</span>
+                <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+              </div>
+
+              {/* Google Sign-up Button */}
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  text="signup_with"
+                  shape="rectangular"
+                  theme="outline"
+                  size="large"
+                />
+              </div>
             </div>
           )}
         </div>
@@ -493,12 +562,12 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
           <div className="welcome-geo" style={{ width: 120, height: 120, bottom: "20%", left: "8%", animationDelay: "1s" }} />
           <div className="welcome-geo" style={{ width: 80, height: 80, top: "50%", left: "20%", animationDelay: "2s" }} />
           <div className="welcome-right-content">
-            <h2>Make Smarter Academic & Career Decisions</h2>
+            <h2>Make Smarter Academic &amp; Career Decisions</h2>
             <p>A structured system to help students evaluate choices, track skills, and build their professional future with clarity.</p>
             <div className="feature-list">
               <div className="feature-item"><span className="feature-icon"><Target size={18} style={{marginRight: "6px"}} /></span><span>Multi-Criteria Evaluation Framework</span></div>
               <div className="feature-item"><span className="feature-icon"><Scale size={18} style={{marginRight: "6px"}} /></span><span>Personalized Weight Assignment</span></div>
-              <div className="feature-item"><span className="feature-icon"><Search size={18} style={{marginRight: "6px"}} /></span><span>Transparent & Explainable Results</span></div>
+              <div className="feature-item"><span className="feature-icon"><Search size={18} style={{marginRight: "6px"}} /></span><span>Transparent &amp; Explainable Results</span></div>
             </div>
           </div>
         </div>
@@ -3010,13 +3079,15 @@ export default function App() {
   }, [backendOnline]);
 
   // ── Auth ────────────────────────────────────────────────────────
-  const handleLogin = (userData) => {
+  const handleLogin = (userData, token) => {
     setIsLoggedIn(true);
     if (userData) {
       console.log("Login User Data:", userData);
       setStoredUser(userData);
       localStorage.setItem("userId", userData._id);
       localStorage.setItem("user", JSON.stringify(userData));
+      // Persist JWT token for future authenticated requests
+      if (token) localStorage.setItem("token", token);
       
       // If admin, go to admin dashboard, else home
       if (userData.role === 'admin' || userData.email === 'anukritisrivastava810@gmail.com') {
@@ -3040,6 +3111,7 @@ export default function App() {
     setActivityLogs([]);
     localStorage.removeItem("userId");
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setPage("welcome");
   };
 
@@ -3067,6 +3139,8 @@ export default function App() {
       setStoredUser(finalUser);
       localStorage.setItem("userId", finalUser._id);
       localStorage.setItem("user", JSON.stringify(finalUser));
+      // Store JWT token returned from signup/profile update
+      if (res.data.token) localStorage.setItem("token", res.data.token);
       setIsLoggedIn(true);
       setIsEditing(false);
     } catch (err) {

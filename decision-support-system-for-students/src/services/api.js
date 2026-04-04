@@ -8,10 +8,19 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach userId from localStorage to every request
+// ── Request interceptor: attach JWT (preferred) or legacy userId header ──
 api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
   const userId = localStorage.getItem('userId');
-  if (userId) config.headers['userid'] = userId;
+
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  // Keep legacy userid header for backward-compatible routes
+  if (userId) {
+    config.headers['userid'] = userId;
+  }
+
   return config;
 });
 
@@ -19,6 +28,7 @@ api.interceptors.request.use((config) => {
 export const authAPI = {
   signup: (data) => api.post('/auth/signup', data),
   login: (data) => api.post('/auth/login', data),
+  googleAuth: (credential) => api.post('/auth/google', { credential }),
 };
 
 // ─── Health ──────────────────────────────────────────────
