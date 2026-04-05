@@ -28,27 +28,17 @@ const defaultOrigins = [
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
-  'https://anukritisrivastava810-source.github.io',
-  'https://anukritisrivastava810-source.github.io/DecisionSupportSystemForStudent'
+  'https://anukritisrivastava810-source.github.io'
 ];
+// Note: Origin headers do not contain paths, so we only need the domain.
 const allowedOrigins = [...new Set([...envOrigins, ...defaultOrigins])];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-
-    const allowedBaseOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-      'https://anukritisrivastava810-source.github.io'
-    ];
+    if (!origin) return callback(null, true); // Mobile apps, Postman, curl, etc.
 
     const strippedOrigin = origin.replace(/\/$/, "");
-    const isAllowed = allowedBaseOrigins.includes(strippedOrigin);
-
-    if (isAllowed) {
+    if (allowedOrigins.includes(strippedOrigin)) {
       callback(null, true);
     } else {
       console.log('❌ CORS blocked origin:', origin);

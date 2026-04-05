@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-export const BASE_URL = process.env.REACT_APP_API_URL || "https://decisionsupportsystemforstudent.onrender.com";
+const isProduction = process.env.NODE_ENV === 'production';
+
+export const BASE_URL = isProduction
+  ? (process.env.REACT_APP_API_URL || "https://decisionsupportsystemforstudent.onrender.com")
+  : (process.env.REACT_APP_API_URL || "http://localhost:5001");
 
 // Create axios instance
 const api = axios.create({
