@@ -2,9 +2,16 @@ import axios from 'axios';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-export const BASE_URL = isProduction
+let apiUrl = isProduction
   ? (process.env.REACT_APP_API_URL || "https://decisionsupportsystemforstudent.onrender.com")
   : (process.env.REACT_APP_API_URL || "http://localhost:5001");
+
+// Ensure the base URL correctly points to the /api namespace
+if (!apiUrl.endsWith('/api')) {
+  apiUrl = apiUrl.replace(/\/$/, '') + '/api';
+}
+
+export const BASE_URL = apiUrl;
 
 // Create axios instance
 const api = axios.create({
