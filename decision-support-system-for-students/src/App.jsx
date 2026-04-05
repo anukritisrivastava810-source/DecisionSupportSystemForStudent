@@ -458,6 +458,15 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
           user.role = 'admin';
         }
         onLogin(user, token);
+      } else if (res.data.needsSignup) {
+        // Redirect to sign up and pre-fill Google profile data
+        setLoginError("We've retrieved your Google data! Please complete your profile to finish signing up.");
+        setTab("signup");
+        onGoSignup({
+          ...res.data.prefillData,
+          profileCompleted: false,
+          credential: credentialResponse.credential
+        });
       }
     } catch (err) {
       console.error("[Google Login] Failed:", err.response?.data?.message || err.message);
@@ -472,21 +481,34 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
     }
   };
 
-  const handleGoogleSignupSuccess = (credentialResponse) => {
+  const handleGoogleSignupSuccess = async (credentialResponse) => {
     setLoginError("");
+    setIsLoading(true);
     try {
-      // Decode the JWT token payload (middle part of base64 string)
-      const payloadBase64Url = credentialResponse.credential.split('.')[1];
-      const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const payload = JSON.parse(atob(payloadBase64));
-      
-      const { name, email } = payload;
-      
-      // Store temporary google info without an ID to trigger signup flow
-      onGoSignup({ name, email, authProvider: 'google', profileCompleted: false, credential: credentialResponse.credential });
+      // Funnel all Google Auth through the single robust backend route
+      const res = await authAPI.googleAuth(credentialResponse.credential);
+      if (res.data.success) {
+        // They explicitly clicked signup, but they already exist! Let's just log them in seamlessly.
+        const user = res.data.user;
+        const token = res.data.token;
+        if (user.email === 'anukritisrivastava810@gmail.com') {
+          user.role = 'admin';
+        }
+        onLogin(user, token);
+      } else if (res.data.needsSignup) {
+        // Truly a new user, proceed to signup tab
+        setTab("signup");
+        onGoSignup({
+          ...res.data.prefillData,
+          profileCompleted: false,
+          credential: credentialResponse.credential
+        });
+      }
     } catch (err) {
-      console.error("Google decoding error:", err);
-      setLoginError("Could not process Google signup.");
+      console.error("[Google Signup] Failed:", err.response?.data?.message || err.message);
+      setLoginError(err.response?.data?.message || "Google Sign-Up failed.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

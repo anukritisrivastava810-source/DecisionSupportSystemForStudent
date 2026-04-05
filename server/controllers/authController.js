@@ -200,11 +200,16 @@ const googleAuth = async (req, res) => {
       });
     } else {
       // New user via Google — we don't create the account here anymore!
-      // We instruct the frontend to go to the Signup flow.
-      return res.status(401).json({ 
-        success: false, 
-        isNewUser: true,
-        message: 'No account found. Please complete signup first.' 
+      // We instruct the frontend to go to the Signup flow, providing the prefill data.
+      return res.status(200).json({
+        success: false,
+        needsSignup: true,
+        prefillData: {
+          name,
+          email,
+          picture: payload.picture || '',
+          authProvider: 'google'
+        }
       });
     }
 
