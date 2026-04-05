@@ -26,20 +26,27 @@ const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.spl
 const defaultOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
   'https://anukritisrivastava810-source.github.io',
+  'https://anukritisrivastava810-source.github.io/DecisionSupportSystemForStudent'
 ];
 const allowedOrigins = [...new Set([...envOrigins, ...defaultOrigins])];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (Postman, mobile apps, etc.)
     if (!origin) return callback(null, true);
 
-    const isAllowed = allowedOrigins.some(allowed => {
-      const strippedOrigin = origin.replace(/\/$/, "");
-      const strippedAllowed = allowed.replace(/\/$/, "");
-      return strippedOrigin === strippedAllowed;
-    });
+    const allowedBaseOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'https://anukritisrivastava810-source.github.io'
+    ];
+
+    const strippedOrigin = origin.replace(/\/$/, "");
+    const isAllowed = allowedBaseOrigins.includes(strippedOrigin);
 
     if (isAllowed) {
       callback(null, true);
@@ -50,6 +57,7 @@ app.use(cors({
   },
   credentials: true,
 }));
+
 
 app.use(express.json());
 

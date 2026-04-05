@@ -199,27 +199,13 @@ const googleAuth = async (req, res) => {
         details: `User ${user.name} authenticated via Google.`,
       });
     } else {
-      // New user via Google — create account
-      const role = (email.toLowerCase() === 'anukritisrivastava810@gmail.com') ? 'admin' : 'user';
-
-      user = await User.create({
-        name,
-        email: email.toLowerCase(),
-        password: '',  // No password for Google users
-        authProvider: 'google',
-        role,
-        profileCompleted: false, // New Google users need onboarding
+      // New user via Google — we don't create the account here anymore!
+      // We instruct the frontend to go to the Signup flow.
+      return res.status(401).json({ 
+        success: false, 
+        isNewUser: true,
+        message: 'No account found. Please complete signup first.' 
       });
-
-      await History.create({ userId: user._id });
-      await ActivityLog.create({
-        userId: user._id,
-        action: 'Google Signup',
-        page: 'SignUp',
-        details: `New account created via Google for ${name} (${role})`,
-      });
-
-      console.log(`[Auth] ✅ Google Signup: new user ${email} (uid: ${user._id})`);
     }
 
     const token = generateToken(user._id);
