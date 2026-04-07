@@ -5,6 +5,11 @@ import { GoogleLogin } from '@react-oauth/google';
 import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw, Trash2 } from 'lucide-react';
 import './App.css';
 import { authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI, healthAPI, profileAPI } from './services/api';
+import { findCareerMatch, CAREER_GOAL_MAP } from './utils/careerGoalMatcher';
+import Footer from './Components/Footer';
+import Modal from './Components/Modal';
+import CareerOther from './Components/CareerOther';
+import CareerSearch from './Components/CareerSearch';
 // ==================== STYLES ====================
 
 
@@ -300,44 +305,6 @@ const MOCK_ACTIVITY = [
 
 
 // ==================== COMPONENTS ====================
-
-function Modal({ icon, title, msg, children, onClose }) {
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-icon">{icon}</div>
-        <div className="modal-title">{title}</div>
-        <div className="modal-msg">{msg}</div>
-        <div className="modal-actions">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function Footer() {
-  return (
-    <footer>
-      <div className="container">
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <h3>DSS for Students</h3>
-            <p>Empowering students to make structured, informed decisions about their academic and career future.</p>
-          </div>
-          <div className="footer-links">
-            <h4>Contact</h4>
-            <div className="footer-contact">
-              <a href="tel:+919876543210">📞 +91 98765 43210</a>
-              <a href="https://instagram.com/dss_students" target="_blank" rel="noreferrer"><Camera size={18} style={{ marginRight: "6px" }} /> @dss_students</a>
-              <a href="https://twitter.com/dss_students" target="_blank" rel="noreferrer">🐦 @dss_students</a>
-              <a href="mailto:support@dssstudents.in"><Mail size={18} style={{ marginRight: "6px" }} /> support@dssstudents.in</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">© 2026 Decision Support System for Students. All rights reserved.</div>
-      </div>
-    </footer>
-  );
-}
 
 function Navbar({ page, setPage, isLoggedIn, onLogout, user }) {
   const [open, setOpen] = useState(false);
@@ -654,142 +621,7 @@ function SignUpField({ label, name, type = "text", placeholder = "", opts = null
   );
 }
 
-// ==================== CAREER OTHER PAGE ====================
-const PREDEFINED_CAREER_GOALS = [
-  "Learn a new technical skill", "Build strong project portfolio", "Get internship",
-  "Win hackathon / competition", "Improve coding skills", "Learn web development",
-  "Learn app development", "Start freelancing", "Prepare for placements",
-  "Build resume", "Explore AI / ML field", "Learn data science",
-  "Strengthen problem solving", "Improve design skills", "Prepare for higher studies",
-  "Build personal brand", "Start open source contributions", "Gain practical industry exposure",
-  "Improve technical consistency", "Become job-ready"
-];
 
-function CareerOtherPage({ onSearch, onSelectGoal, onBack }) {
-  const [query, setQuery] = useState("");
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const q = query.trim();
-    if (!q) return;
-    onSearch(q);
-  };
-
-  return (
-    <div className="page">
-      <div className="container section">
-        <button
-          className="btn btn-outline mb-6"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-          onClick={onBack}
-        >
-          ← Back
-        </button>
-
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
-          <div className="text-center mb-6">
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.8rem", marginBottom: 8 }}>
-              <Search size={24} style={{ marginRight: 10, verticalAlign: "middle", color: "var(--primary)" }} />
-              Find Your Career Goal
-            </h1>
-            <p className="text-muted">Search for any career path or pick from the list below.</p>
-          </div>
-
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} style={{ display: "flex", gap: 10, marginBottom: 36 }}>
-            <input
-              id="career-other-search-input"
-              className="form-input"
-              type="text"
-              placeholder="e.g. DevOps Engineer, Data Analyst, Blockchain…"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button
-              id="career-other-search-btn"
-              type="submit"
-              className="btn btn-primary"
-              style={{ whiteSpace: "nowrap" }}
-            >
-              <Search size={16} style={{ marginRight: 6 }} />
-              Search
-            </button>
-          </form>
-
-          {/* Predefined Goals List */}
-          <div className="card">
-            <div className="card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: "1rem" }}>
-                <Target size={16} style={{ marginRight: 8, verticalAlign: "middle", color: "var(--primary)" }} />
-                Choose a Predefined Goal
-              </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                {PREDEFINED_CAREER_GOALS.map((goal, i) => (
-                  <button
-                    key={goal}
-                    id={`career-goal-option-${i}`}
-                    onClick={() => onSelectGoal(goal)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      borderBottom: "1px solid var(--border)",
-                      padding: "12px 8px",
-                      textAlign: "left",
-                      cursor: "pointer",
-                      color: "var(--text)",
-                      fontSize: "0.9rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      transition: "background 0.15s"
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-section)"}
-                    onMouseLeave={e => e.currentTarget.style.background = "none"}
-                  >
-                    <ChevronRight size={14} style={{ color: "var(--primary)", flexShrink: 0 }} />
-                    {goal}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <Footer />
-    </div>
-  );
-}
-
-// ==================== CAREER SEARCH PAGE ====================
-function CareerSearchPage({ query, onBack }) {
-  return (
-    <div className="page">
-      <div className="container section">
-        <button
-          className="btn btn-outline mb-6"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-          onClick={onBack}
-        >
-          ← Back
-        </button>
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
-          <div className="card text-center" style={{ padding: "60px 24px" }}>
-            <div style={{ fontSize: "3rem", marginBottom: 16 }}><Search size={56} style={{ color: "var(--primary)" }} /></div>
-            <h2 style={{ fontFamily: "var(--font-display)", marginBottom: 8 }}>Results for "{query}"</h2>
-            <p className="text-muted" style={{ marginBottom: 24 }}>
-              Smart matching coming soon. For now, browse predefined goals or update your profile.
-            </p>
-            <button className="btn btn-primary" onClick={onBack}>
-              ← Search Again
-            </button>
-          </div>
-        </div>
-      </div>
-      <Footer />
-    </div>
-  );
-}
 
 // ==================== SIGNUP PAGE ====================
 function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
@@ -926,7 +758,7 @@ function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
                   label="Career Goal"
                   name="careerGoal"
                   opts={[
-                    ...PREDEFINED_CAREER_GOALS,
+                    ...CAREER_GOAL_MAP.map(goal => goal.title),
                     "Other"
                   ]}
                   form={form} errors={errors} set={set}
@@ -3639,14 +3471,22 @@ export default function App() {
         />
       )}
       {page === "career-other" && (
-        <CareerOtherPage
-          onSearch={(q) => { setPage("career-search:" + q); }}
-          onSelectGoal={(goal) => setPage("career-guide")}
+        <CareerOther
+          onSearch={(q) => {
+            const match = findCareerMatch(q);
+            if (match) setPage(match.route);
+            else setPage("career-search:" + q);
+          }}
+          onSelectGoal={(goal) => {
+            const match = findCareerMatch(goal);
+            if (match) setPage(match.route);
+            else setPage("career-guide");
+          }}
           onBack={() => setPage("profile")}
         />
       )}
       {page?.startsWith("career-search:") && (
-        <CareerSearchPage
+        <CareerSearch
           query={page.replace("career-search:", "")}
           onBack={() => setPage("career-other")}
         />
