@@ -16,7 +16,11 @@ const protect = async (req, res, next) => {
 
     // 2. Fallback: custom userid header (legacy — kept for backward compat)
     if (!token && req.headers['userid']) {
-      req.legacyUserId = req.headers['userid'];
+      const legacyId = req.headers['userid'];
+      req.user = await User.findById(legacyId).select('-password');
+      if (!req.user) {
+        return res.status(401).json({ success: false, message: 'User not found for legacy session.' });
+      }
       return next();
     }
 

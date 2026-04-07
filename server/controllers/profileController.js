@@ -3,11 +3,16 @@ const User = require('../models/User');
 // GET /api/profile
 const getProfile = async (req, res) => {
   try {
-    const userId = req.headers['userid'];
+    const userId = req.user?._id || req.headers['userid'];
     if (!userId) return res.status(401).json({ success: false, message: 'Not authenticated.' });
+
     const user = await User.findById(userId).select('-password');
-    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
-    console.log(`[Profile GET] userId=${userId} name=${user.name}`);
+    if (!user) {
+      console.warn(`[Profile GET] User not found for ID: ${userId}`);
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    console.log(`[Profile GET] OK: userId=${userId} name=${user.name}`);
     res.json({ success: true, user });
   } catch (err) {
     console.error('[Profile GET] Error:', err);
@@ -18,8 +23,16 @@ const getProfile = async (req, res) => {
 // PUT /api/profile
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.headers['userid'];
-    if (!userId) return res.status(401).json({ success: false, message: 'Not authenticated.' });
+    const userId = req.user?._id || req.headers['userid'];
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Not authenticated.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      console.warn(`[Profile PUT] FAILED - User not found for ID: ${userId}`);
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
 
     const allowed = [
       'name', 'phone', 'domainOfInterest', 'educationLevel', 'skills',
@@ -34,16 +47,18 @@ const updateProfile = async (req, res) => {
 
     console.log(`[Profile PUT] userId=${userId} updating fields:`, Object.keys(updates));
 
-    const user = await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
       userId,
       updates,
       { new: true, runValidators: true }
     ).select('-password');
 
-    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: 'User not found after update.' });
+    }
 
-    console.log(`[Profile PUT] Updated ${user.name} successfully`);
-    res.json({ success: true, user });
+    console.log(`[Profile PUT] OK: Updated ${updatedUser.name} successfully`);
+    res.json({ success: true, user: updatedUser });
   } catch (err) {
     console.error('[Profile PUT] Error:', err);
     res.status(500).json({ success: false, message: err.message });

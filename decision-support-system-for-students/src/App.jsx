@@ -1,4 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { GoogleLogin } from '@react-oauth/google';
+
 
 import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckCircle2, XCircle, Phone, Camera, Mail, Activity, BookOpen, Shield, Star, Settings, Scale, PartyPopper, TrendingUp, Trophy, Award, Globe, Clock, DollarSign, Building, Users, MapPin, Hammer, Monitor, Bot, Palette, Code, Database, ShoppingCart, Cloud, CreditCard, Stethoscope, Car, MessageSquare, ShieldAlert, Cpu, HardDrive, Smartphone, Gamepad2, Layers, PenTool, ChevronRight, ArrowRight, BarChart3, ClipboardList, RefreshCcw, Trash2 } from 'lucide-react';
 import './App.css';
@@ -272,8 +274,8 @@ const MOCK_INTERNSHIPS = [
   { id: 187, org: "Indeed", title: "Talent Acquisition Intern", domain: "HR Tech", desc: "Support the global hiring team in sourcing and initial screening of candidates.", duration: "2 months", stipend: "₹20,000/mo", tags: ["hr", "recruitment", "talent"], location: "Hyderabad", workType: "Work from Home", role: "HR", datePosted: "2024-03-12" },
 ];
 
-const COMP_STATUSES = ["Interested", "Registered", "Ongoing", "Completed", "Won"];
-const INTERN_STATUSES = ["Interested", "Applied", "Ongoing", "Completed"];
+const COMP_STATUSES = ["Interested", "Registered", "Ongoing", "Completed", "Won", "Not Selected"];
+const INTERN_STATUSES = ["Interested", "Applied", "Ongoing", "Completed", "Not Selected"];
 
 // Competition category aliases for smart search
 const COMP_ALIASES = {
@@ -325,9 +327,9 @@ function Footer() {
             <h4>Contact</h4>
             <div className="footer-contact">
               <a href="tel:+919876543210">📞 +91 98765 43210</a>
-              <a href="https://instagram.com/dss_students" target="_blank" rel="noreferrer"><Camera size={18} style={{marginRight: "6px"}} /> @dss_students</a>
+              <a href="https://instagram.com/dss_students" target="_blank" rel="noreferrer"><Camera size={18} style={{ marginRight: "6px" }} /> @dss_students</a>
               <a href="https://twitter.com/dss_students" target="_blank" rel="noreferrer">🐦 @dss_students</a>
-              <a href="mailto:support@dssstudents.in"><Mail size={18} style={{marginRight: "6px"}} /> support@dssstudents.in</a>
+              <a href="mailto:support@dssstudents.in"><Mail size={18} style={{ marginRight: "6px" }} /> support@dssstudents.in</a>
             </div>
           </div>
         </div>
@@ -343,14 +345,14 @@ function Navbar({ page, setPage, isLoggedIn, onLogout, user }) {
   if (page === 'onboarding') return null;
   const links = isLoggedIn
     ? [
-        [<><Home size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Home</>, "home"],
-        isAdmin ? [<><Settings size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Admin</>, "admin"] : null,
-        [<><LayoutDashboard size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Dashboard</>, "dashboard"],
-        [<><Target size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Decision</>, "decision"],
-        [<><Activity size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Opportunities</>, "opportunities"],
-        [<><History size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> History</>, "history"],
-        [<><User size={18} style={{marginRight: "6px", marginBottom: "-4px"}} /> Profile</>, "profile"]
-      ].filter(Boolean)
+      [<><Home size={18} style={{ marginRight: "6px", marginBottom: "-4px" }} /> Home</>, "home"],
+      isAdmin ? [<><Settings size={18} style={{ marginRight: "6px", marginBottom: "-4px" }} /> Admin</>, "admin"] : null,
+      [<><LayoutDashboard size={18} style={{ marginRight: "6px", marginBottom: "-4px" }} /> Dashboard</>, "dashboard"],
+      [<><Target size={18} style={{ marginRight: "6px", marginBottom: "-4px" }} /> Decision</>, "decision"],
+      [<><Activity size={18} style={{ marginRight: "6px", marginBottom: "-4px" }} /> Opportunities</>, "opportunities"],
+      [<><History size={18} style={{ marginRight: "6px", marginBottom: "-4px" }} /> History</>, "history"],
+      [<><User size={18} style={{ marginRight: "6px", marginBottom: "-4px" }} /> Profile</>, "profile"]
+    ].filter(Boolean)
     : [];
 
   return (
@@ -412,7 +414,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
         const token = res.data.token;
         // Forced override for the specified admin account
         if (user.email === 'anukritisrivastava810@gmail.com') {
-          user.role = 'admin'; 
+          user.role = 'admin';
         }
         onLogin(user, token);
         return;
@@ -432,10 +434,10 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
     }
 
     // Fallback: match against locally stored user
-    if (!storedUser) { 
+    if (!storedUser) {
       setLoginError("Offline: No account found on this device.");
-      setModal("nouser"); 
-      return; 
+      setModal("nouser");
+      return;
     }
     const ok = form.email === storedUser.email && form.password === storedUser.password;
     if (ok) {
@@ -516,12 +518,12 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
     setLoginError("Google Sign-In was cancelled or failed.");
   };
 
-  // Dynamically import GoogleLogin to avoid SSR issues
-  const { GoogleLogin } = require('@react-oauth/google');
+  // Move GoogleLogin to top-level import
+
 
   return (
     <>
-      
+
       <div className="welcome-wrap">
         <div className="welcome-left">
           <div className="welcome-brand">
@@ -544,7 +546,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
                 <input className="form-input" type="password" placeholder="••••••••" value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))} onKeyDown={e => e.key === "Enter" && handleLogin()} />
               </div>
-              {loginError && <p style={{ color: "var(--error)", fontSize: "0.85rem", margin: 0 }}><XCircle size={18} style={{marginRight: "6px"}} /> {loginError}</p>}
+              {loginError && <p style={{ color: "var(--error)", fontSize: "0.85rem", margin: 0 }}><XCircle size={18} style={{ marginRight: "6px" }} /> {loginError}</p>}
               <button className="btn btn-primary btn-lg btn-full" style={{ marginTop: 8 }} onClick={handleLogin} disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login →"}
               </button>
@@ -578,7 +580,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
           )}
           {tab === "signup" && (
             <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ fontSize: "3rem", marginBottom: 12 }}><Star size={18} style={{marginRight: "6px"}} /></div>
+              <div style={{ fontSize: "3rem", marginBottom: 12 }}><Star size={18} style={{ marginRight: "6px" }} /></div>
               <p style={{ color: "var(--text-muted)", marginBottom: 20, fontSize: "0.9rem" }}>Create your profile to get started with personalized decision support.</p>
               <button className="btn btn-primary btn-lg btn-full" onClick={onGoSignup}>Create Your Profile →</button>
 
@@ -611,20 +613,20 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
             <h2>Make Smarter Academic &amp; Career Decisions</h2>
             <p>A structured system to help students evaluate choices, track skills, and build their professional future with clarity.</p>
             <div className="feature-list">
-              <div className="feature-item"><span className="feature-icon"><Target size={18} style={{marginRight: "6px"}} /></span><span>Multi-Criteria Evaluation Framework</span></div>
-              <div className="feature-item"><span className="feature-icon"><Scale size={18} style={{marginRight: "6px"}} /></span><span>Personalized Weight Assignment</span></div>
-              <div className="feature-item"><span className="feature-icon"><Search size={18} style={{marginRight: "6px"}} /></span><span>Transparent &amp; Explainable Results</span></div>
+              <div className="feature-item"><span className="feature-icon"><Target size={18} style={{ marginRight: "6px" }} /></span><span>Multi-Criteria Evaluation Framework</span></div>
+              <div className="feature-item"><span className="feature-icon"><Scale size={18} style={{ marginRight: "6px" }} /></span><span>Personalized Weight Assignment</span></div>
+              <div className="feature-item"><span className="feature-icon"><Search size={18} style={{ marginRight: "6px" }} /></span><span>Transparent &amp; Explainable Results</span></div>
             </div>
           </div>
         </div>
       </div>
       {modal === "error" && (
-        <Modal icon={<XCircle size={18} style={{marginRight: "6px"}} />} title="Wrong Credentials" msg="Please check your email and password and try again.">
+        <Modal icon={<XCircle size={18} style={{ marginRight: "6px" }} />} title="Wrong Credentials" msg="Please check your email and password and try again.">
           <button className="btn btn-primary" onClick={() => setModal(null)}>Try Again</button>
         </Modal>
       )}
       {modal === "nouser" && (
-        <Modal icon={<User size={18} style={{marginRight: "6px"}} />} title="No Account Found" msg="Please sign up first to create your profile.">
+        <Modal icon={<User size={18} style={{ marginRight: "6px" }} />} title="No Account Found" msg="Please sign up first to create your profile.">
           <button className="btn btn-primary" onClick={() => { setModal(null); setTab("signup"); onGoSignup(); }}>Sign Up Now</button>
           <button className="btn btn-outline" onClick={() => setModal(null)}>Close</button>
         </Modal>
@@ -652,8 +654,145 @@ function SignUpField({ label, name, type = "text", placeholder = "", opts = null
   );
 }
 
+// ==================== CAREER OTHER PAGE ====================
+const PREDEFINED_CAREER_GOALS = [
+  "Learn a new technical skill", "Build strong project portfolio", "Get internship",
+  "Win hackathon / competition", "Improve coding skills", "Learn web development",
+  "Learn app development", "Start freelancing", "Prepare for placements",
+  "Build resume", "Explore AI / ML field", "Learn data science",
+  "Strengthen problem solving", "Improve design skills", "Prepare for higher studies",
+  "Build personal brand", "Start open source contributions", "Gain practical industry exposure",
+  "Improve technical consistency", "Become job-ready"
+];
+
+function CareerOtherPage({ onSearch, onSelectGoal, onBack }) {
+  const [query, setQuery] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    onSearch(q);
+  };
+
+  return (
+    <div className="page">
+      <div className="container section">
+        <button
+          className="btn btn-outline mb-6"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <div style={{ maxWidth: 680, margin: "0 auto" }}>
+          <div className="text-center mb-6">
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.8rem", marginBottom: 8 }}>
+              <Search size={24} style={{ marginRight: 10, verticalAlign: "middle", color: "var(--primary)" }} />
+              Find Your Career Goal
+            </h1>
+            <p className="text-muted">Search for any career path or pick from the list below.</p>
+          </div>
+
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} style={{ display: "flex", gap: 10, marginBottom: 36 }}>
+            <input
+              id="career-other-search-input"
+              className="form-input"
+              type="text"
+              placeholder="e.g. DevOps Engineer, Data Analyst, Blockchain…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <button
+              id="career-other-search-btn"
+              type="submit"
+              className="btn btn-primary"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              <Search size={16} style={{ marginRight: 6 }} />
+              Search
+            </button>
+          </form>
+
+          {/* Predefined Goals List */}
+          <div className="card">
+            <div className="card-body">
+              <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: "1rem" }}>
+                <Target size={16} style={{ marginRight: 8, verticalAlign: "middle", color: "var(--primary)" }} />
+                Choose a Predefined Goal
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                {PREDEFINED_CAREER_GOALS.map((goal, i) => (
+                  <button
+                    key={goal}
+                    id={`career-goal-option-${i}`}
+                    onClick={() => onSelectGoal(goal)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      borderBottom: "1px solid var(--border)",
+                      padding: "12px 8px",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      color: "var(--text)",
+                      fontSize: "0.9rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      transition: "background 0.15s"
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-section)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "none"}
+                  >
+                    <ChevronRight size={14} style={{ color: "var(--primary)", flexShrink: 0 }} />
+                    {goal}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+// ==================== CAREER SEARCH PAGE ====================
+function CareerSearchPage({ query, onBack }) {
+  return (
+    <div className="page">
+      <div className="container section">
+        <button
+          className="btn btn-outline mb-6"
+          style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+        <div style={{ maxWidth: 680, margin: "0 auto" }}>
+          <div className="card text-center" style={{ padding: "60px 24px" }}>
+            <div style={{ fontSize: "3rem", marginBottom: 16 }}><Search size={56} style={{ color: "var(--primary)" }} /></div>
+            <h2 style={{ fontFamily: "var(--font-display)", marginBottom: 8 }}>Results for "{query}"</h2>
+            <p className="text-muted" style={{ marginBottom: 24 }}>
+              Smart matching coming soon. For now, browse predefined goals or update your profile.
+            </p>
+            <button className="btn btn-primary" onClick={onBack}>
+              ← Search Again
+            </button>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
 // ==================== SIGNUP PAGE ====================
-function SignUpPage({ existing, onSave, onCancel }) {
+function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
   const isGoogleUser = existing?.authProvider === 'google';
 
   const blank = {
@@ -676,7 +815,13 @@ function SignUpPage({ existing, onSave, onCancel }) {
   const [errors, setErrors] = useState({});
   const [modal, setModal] = useState(false);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const set = (k, v) => {
+    if (k === "careerGoal" && v === "Other" && onGoCareerOther) {
+      onGoCareerOther();
+      return;
+    }
+    setForm(f => ({ ...f, [k]: v }));
+  };
 
   const validate = () => {
     const e = {};
@@ -727,123 +872,120 @@ function SignUpPage({ existing, onSave, onCancel }) {
             <p className="text-muted">{subtitle}</p>
           </div>
           <div className="card">
-            <div className="card-body" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div className="card-body">
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-              {/* Row 1: Name + Email */}
-              <div className="grid-2">
-                <SignUpField label="Full Name *" name="name" placeholder="Anukriti Srivastava" form={form} errors={errors} set={set} />
-                <div className="form-group">
-                  <label className="form-label">Email Address *</label>
-                  <input
-                    className="form-input"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={form.email || ""}
-                    onChange={e => !isGoogleUser && set("email", e.target.value)}
-                    disabled={isGoogleUser}
-                    style={isGoogleUser ? { background: "var(--bg-section)", cursor: "not-allowed", opacity: 0.7 } : {}}
-                  />
-                  {errors.email && <span style={{ color: "var(--error)", fontSize: "0.8rem" }}>{errors.email}</span>}
-                </div>
-              </div>
-
-              {/* Row 2: Phone + Password (manual only) OR Phone alone (Google) */}
-              {!isGoogleUser ? (
+                {/* Row 1: Name + Email */}
                 <div className="grid-2">
-                  <SignUpField label="Phone Number *" name="phone" type="tel" placeholder="9876543210" form={form} errors={errors} set={set} />
-                  <SignUpField label="Password *" name="password" type="password" placeholder="Min 6 characters" form={form} errors={errors} set={set} />
+                  <SignUpField label="Full Name *" name="name" placeholder="Anukriti Srivastava" form={form} errors={errors} set={set} />
+                  <div className="form-group">
+                    <label className="form-label">Email Address *</label>
+                    <input
+                      className="form-input"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={form.email || ""}
+                      onChange={e => !isGoogleUser && set("email", e.target.value)}
+                      disabled={isGoogleUser}
+                      style={isGoogleUser ? { background: "var(--bg-section)", cursor: "not-allowed", opacity: 0.7 } : {}}
+                    />
+                    {errors.email && <span style={{ color: "var(--error)", fontSize: "0.8rem" }}>{errors.email}</span>}
+                  </div>
                 </div>
-              ) : (
+
+                {/* Row 2: Phone + Password (manual only) OR Phone alone (Google) */}
+                {!isGoogleUser ? (
+                  <div className="grid-2">
+                    <SignUpField label="Phone Number *" name="phone" type="tel" placeholder="9876543210" form={form} errors={errors} set={set} />
+                    <SignUpField label="Password *" name="password" type="password" placeholder="Min 6 characters" form={form} errors={errors} set={set} />
+                  </div>
+                ) : (
+                  <div className="grid-2">
+                    <SignUpField label="Phone Number" name="phone" type="tel" placeholder="9876543210" form={form} errors={errors} set={set} />
+                    <div /> {/* spacer to preserve grid layout */}
+                  </div>
+                )}
+
+                {/* Row 3: Domain of Interest + Education Level */}
                 <div className="grid-2">
-                  <SignUpField label="Phone Number" name="phone" type="tel" placeholder="9876543210" form={form} errors={errors} set={set} />
-                  <div /> {/* spacer to preserve grid layout */}
+                  <SignUpField label="Domain of Interest *" name="domainOfInterest" placeholder="e.g. Web Development, AI" form={form} errors={errors} set={set} />
+                  <SignUpField label="Education Level *" name="educationLevel" opts={["High School", "Diploma", "B.Tech/B.E", "B.Sc", "BCA", "MCA", "M.Tech", "MBA", "Other"]} form={form} errors={errors} set={set} />
                 </div>
-              )}
 
-              {/* Row 3: Domain of Interest + Education Level */}
-              <div className="grid-2">
-                <SignUpField label="Domain of Interest *" name="domainOfInterest" placeholder="e.g. Web Development, AI" form={form} errors={errors} set={set} />
-                <SignUpField label="Education Level *" name="educationLevel" opts={["High School", "Diploma", "B.Tech/B.E", "B.Sc", "BCA", "MCA", "M.Tech", "MBA", "Other"]} form={form} errors={errors} set={set} />
+                {/* Skills */}
+                <SignUpField label="Skills (comma-separated)" name="skills" placeholder="JavaScript, Python, React" form={form} errors={errors} set={set} />
+
+                {/* Row 4: Primary Domain + Skill Level */}
+                <div className="grid-2">
+                  <SignUpField label="Primary Domain" name="primaryDomain" opts={["Web Development", "Artificial Intelligence", "Data Science", "Cybersecurity", "Cloud Computing", "Mobile Development", "Game Development", "Other"]} form={form} errors={errors} set={set} />
+                  <SignUpField label="Current Skill Level" name="skillLevel" opts={["Beginner", "Intermediate", "Advanced"]} form={form} errors={errors} set={set} />
+                </div>
+
+                {/* Career Goal */}
+                <SignUpField
+                  label="Career Goal"
+                  name="careerGoal"
+                  opts={[
+                    ...PREDEFINED_CAREER_GOALS,
+                    "Other"
+                  ]}
+                  form={form} errors={errors} set={set}
+                />
+
+                {/* Career Aspiration */}
+                <SignUpField
+                  label="Career Aspiration"
+                  name="careerAspiration"
+                  opts={[
+                    "Software Engineer", "Full Stack Developer", "Frontend Developer",
+                    "Backend Developer", "Web Developer", "App Developer",
+                    "AI Engineer", "Machine Learning Engineer", "Data Scientist",
+                    "Cybersecurity Analyst", "Cloud Engineer", "UI/UX Designer",
+                    "Product Manager", "Business Analyst", "Researcher",
+                    "Entrepreneur", "DevOps Engineer", "Blockchain Developer",
+                    "Game Developer", "Data Analyst"
+                  ]}
+                  form={form} errors={errors} set={set}
+                />
+
+                {/* Learning Hours */}
+                <div className="grid-2">
+                  <SignUpField label="Learning Hours Per Week" name="learningHoursPerWeek" type="number" placeholder="15" form={form} errors={errors} set={set} />
+                  <div />
+                </div>
+
+                {/* Submit */}
+                <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                  <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={submit}>
+                    {btnLabel}
+                  </button>
+                  {onCancel && <button className="btn btn-outline" onClick={onCancel}>Cancel</button>}
+                </div>
+
               </div>
-
-              {/* Skills */}
-              <SignUpField label="Skills (comma-separated)" name="skills" placeholder="JavaScript, Python, React" form={form} errors={errors} set={set} />
-
-              {/* Row 4: Primary Domain + Skill Level */}
-              <div className="grid-2">
-                <SignUpField label="Primary Domain" name="primaryDomain" opts={["Web Development", "Artificial Intelligence", "Data Science", "Cybersecurity", "Cloud Computing", "Mobile Development", "Game Development", "Other"]} form={form} errors={errors} set={set} />
-                <SignUpField label="Current Skill Level" name="skillLevel" opts={["Beginner", "Intermediate", "Advanced"]} form={form} errors={errors} set={set} />
-              </div>
-
-              {/* Career Goal */}
-              <SignUpField
-                label="Career Goal"
-                name="careerGoal"
-                opts={[
-                  "Learn a new technical skill", "Build strong project portfolio", "Get internship",
-                  "Win hackathon / competition", "Improve coding skills", "Learn web development",
-                  "Learn app development", "Start freelancing", "Prepare for placements",
-                  "Build resume", "Explore AI / ML field", "Learn data science",
-                  "Strengthen problem solving", "Improve design skills", "Prepare for higher studies",
-                  "Build personal brand", "Start open source contributions", "Gain practical industry exposure",
-                  "Improve technical consistency", "Become job-ready"
-                ]}
-                form={form} errors={errors} set={set}
-              />
-
-              {/* Career Aspiration */}
-              <SignUpField
-                label="Career Aspiration"
-                name="careerAspiration"
-                opts={[
-                  "Software Engineer", "Full Stack Developer", "Frontend Developer",
-                  "Backend Developer", "Web Developer", "App Developer",
-                  "AI Engineer", "Machine Learning Engineer", "Data Scientist",
-                  "Cybersecurity Analyst", "Cloud Engineer", "UI/UX Designer",
-                  "Product Manager", "Business Analyst", "Researcher",
-                  "Entrepreneur", "DevOps Engineer", "Blockchain Developer",
-                  "Game Developer", "Data Analyst"
-                ]}
-                form={form} errors={errors} set={set}
-              />
-
-              {/* Learning Hours */}
-              <div className="grid-2">
-                <SignUpField label="Learning Hours Per Week" name="learningHoursPerWeek" type="number" placeholder="15" form={form} errors={errors} set={set} />
-                <div />
-              </div>
-
-              {/* Submit */}
-              <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-                <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={submit}>
-                  {btnLabel}
-                </button>
-                {onCancel && <button className="btn btn-outline" onClick={onCancel}>Cancel</button>}
-              </div>
-
             </div>
           </div>
         </div>
-      </div>
 
-      {modal && (
-        <Modal
-          icon={existing ? <CheckCircle2 size={18} style={{ marginRight: "6px" }} /> : <PartyPopper size={18} style={{ marginRight: "6px" }} />}
-          title={existing ? "Profile Updated!" : "Registration Successful!"}
-          msg={existing ? "Your profile has been updated successfully." : "Your profile has been created. Welcome to DSS!"}
-        >
-          <button className="btn btn-primary" onClick={confirm}>
-            {existing ? "Back to Profile" : "Go to Dashboard →"}
-          </button>
-        </Modal>
-      )}
+        {modal && (
+          <Modal
+            icon={existing ? <CheckCircle2 size={18} style={{ marginRight: "6px" }} /> : <PartyPopper size={18} style={{ marginRight: "6px" }} />}
+            title={existing ? "Profile Updated!" : "Registration Successful!"}
+            msg={existing ? "Your profile has been updated successfully." : "Your profile has been created. Welcome to DSS!"}
+          >
+            <button className="btn btn-primary" onClick={confirm}>
+              {existing ? "Back to Profile" : "Go to Dashboard →"}
+            </button>
+          </Modal>
+        )}
+      </div>
     </div>
   );
 }
 
-
 function HomePage({ user }) {
   return (
+
     <div className="page">
       <div className="hero">
         <div className="container hero-content">
@@ -866,7 +1008,7 @@ function HomePage({ user }) {
             By tracking your learning progress, monitoring opportunities, and maintaining a clear history of your growth, DSS helps you see the bigger picture and make decisions that align with your long-term career aspirations.
           </p>
           <div className="card-grid" style={{ marginTop: 32 }}>
-            {[[<Target size={18} style={{marginRight: "6px"}} />, "Goal Setting", "Define and track your learning goals with precision"], [<TrendingUp size={18} style={{marginRight: "6px"}} />, "Analytics", "Monitor your growth with detailed performance metrics"], [<Activity size={18} style={{marginRight: "6px"}} />, "Opportunities", "Discover internships and competitions relevant to your domain"], [<History size={18} style={{marginRight: "6px"}} />, "History", "Maintain a transparent record of all your activities"]].map(([icon, title, desc]) => (
+            {[[<Target size={18} style={{ marginRight: "6px" }} />, "Goal Setting", "Define and track your learning goals with precision"], [<TrendingUp size={18} style={{ marginRight: "6px" }} />, "Analytics", "Monitor your growth with detailed performance metrics"], [<Activity size={18} style={{ marginRight: "6px" }} />, "Opportunities", "Discover internships and competitions relevant to your domain"], [<History size={18} style={{ marginRight: "6px" }} />, "History", "Maintain a transparent record of all your activities"]].map(([icon, title, desc]) => (
               <div key={title} style={{ background: "var(--bg-section)", borderRadius: "var(--radius-sm)", padding: 20 }}>
                 <div style={{ fontSize: "1.8rem", marginBottom: 10 }}>{icon}</div>
                 <div style={{ fontWeight: 700, marginBottom: 6 }}>{title}</div>
@@ -911,7 +1053,7 @@ function getPersonalizedGuide(user) {
   };
 
   const base = guides[domain] || guides["Web Development"];
-  
+
   // Refine advice based on level and goal
   let specificAdvice = base.advice;
   if (level === 'Beginner') specificAdvice = "Start with the absolute foundations. Don't skip the basics; they are your support for everything else.";
@@ -936,12 +1078,12 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
   const competitions = opportunities.filter(o => o.type === "competition");
   const internships = opportunities.filter(o => o.type === "internship");
   const userHours = parseInt(user?.learningHoursPerWeek || 0);
-  
+
   // eslint-disable-next-line no-unused-vars
   const regularStats = [
-    [<BookOpen size={18} style={{marginRight: "6px"}} />, "#EFF6FF", learningSkills.length, "Skills Learning", "var(--primary)"],
-    [<CheckCircle2 size={18} style={{marginRight: "6px"}} />, "#F0FDF4", completedSkills.length, "Skills Completed", "var(--success)"],
-    [<TrendingUp size={18} style={{marginRight: "6px"}} />, "#FDF2F8", userHours >= 15 ? 95 : 75, "Study Consistency", "#DB2777"],
+    [<BookOpen size={18} style={{ marginRight: "6px" }} />, "#EFF6FF", learningSkills.length, "Skills Learning", "var(--primary)"],
+    [<CheckCircle2 size={18} style={{ marginRight: "6px" }} />, "#F0FDF4", completedSkills.length, "Skills Completed", "var(--success)"],
+    [<TrendingUp size={18} style={{ marginRight: "6px" }} />, "#FDF2F8", userHours >= 15 ? 95 : 75, "Study Consistency", "#DB2777"],
   ];
 
   const careerGoalTitle = user?.careerAspiration || user?.careerGoal || "Product Manager";
@@ -954,17 +1096,17 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
           <p>Track your progress and continue building your future.</p>
         </div>
 
-        <div className="section-header"><h2 className="section-title"><TrendingUp size={18} style={{marginRight: "6px"}} /> Learning Analytics</h2></div>
+        <div className="section-header"><h2 className="section-title"><TrendingUp size={18} style={{ marginRight: "6px" }} /> Learning Analytics</h2></div>
         <div className="card-grid">
           {/* Domain Focus Card */}
           {user?.primaryDomain && (
             <div className="stat-card domain-focus-card">
-              <div className="stat-icon" style={{ background: "rgba(59, 130, 246, 0.1)" }}><Target size={18} style={{marginRight: "6px", color: "var(--primary)"}} /></div>
+              <div className="stat-icon" style={{ background: "rgba(59, 130, 246, 0.1)" }}><Target size={18} style={{ marginRight: "6px", color: "var(--primary)" }} /></div>
               <div className="stat-value" style={{ color: "var(--primary)", fontSize: "1.2rem" }}>{user.primaryDomain}</div>
               <div className="stat-label">Primary Domain</div>
-              <button 
-                className="know-more-link" 
-                onClick={() => { setPage("domain-detail"); }} 
+              <button
+                className="know-more-link"
+                onClick={() => { setPage("domain-detail"); }}
                 style={{ backgroundColor: "rgba(59, 130, 246, 0.08)", borderColor: "rgba(59, 130, 246, 0.25)", color: "var(--primary)" }}
               >
                 Know More →
@@ -974,7 +1116,7 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
 
           {/* Career Goal Card */}
           <div className="stat-card career-goal-card">
-            <div className="stat-icon" style={{ background: "#FFFBEB" }}><Briefcase size={18} style={{marginRight: "6px", color: "#D97706"}} /></div>
+            <div className="stat-icon" style={{ background: "#FFFBEB" }}><Briefcase size={18} style={{ marginRight: "6px", color: "#D97706" }} /></div>
             <div className="stat-value" style={{ color: "#D97706", fontSize: "1.1rem" }}>
               {careerGoalTitle.length > 20 ? careerGoalTitle.substring(0, 18) + "..." : careerGoalTitle}
             </div>
@@ -986,12 +1128,12 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
 
           {/* Overall Progress Card */}
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: "rgba(16, 185, 129, 0.1)" }}><Star size={18} style={{marginRight: "6px", color: "var(--green)"}} /></div>
+            <div className="stat-icon" style={{ background: "rgba(16, 185, 129, 0.1)" }}><Star size={18} style={{ marginRight: "6px", color: "var(--green)" }} /></div>
             <div className="stat-value" style={{ color: "var(--green)" }}>{learningSkills.length > 0 ? Math.round(learningSkills.reduce((acc, s) => acc + s.progress, 0) / learningSkills.length) : 0}%</div>
             <div className="stat-label">Overall Progress</div>
           </div>
         </div>
-        
+
 
         <div className="section-header mt-8"><h2 className="section-title">🧠 Skills Overview</h2></div>
         <div className="card-grid">
@@ -1024,7 +1166,7 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
           </div>
         </div>
 
-        <div className="section-header mt-8"><h2 className="section-title"><Trophy size={18} style={{marginRight: "6px"}} /> Participation Summary</h2></div>
+        <div className="section-header mt-8"><h2 className="section-title"><Trophy size={18} style={{ marginRight: "6px" }} /> Participation Summary</h2></div>
         <div className="card-grid">
           <div className="card">
             <div className="card-body">
@@ -1044,7 +1186,7 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
           </div>
           <div className="card">
             <div className="card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Briefcase size={18} style={{marginRight: "6px"}} /> Internships</h3>
+              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Briefcase size={18} style={{ marginRight: "6px" }} /> Internships</h3>
               {[
                 ["Applied", internships.filter(i => i.status === "Applied").length],
                 ["Ongoing", internships.filter(i => i.status === "Ongoing").length],
@@ -1251,7 +1393,7 @@ function DomainDetailPage({ domain, onBack, backendOnline }) {
 // eslint-disable-next-line no-unused-vars
 function Flowchart({ data }) {
   if (!data || data.length === 0) return null;
-  
+
   return (
     <div className="flowchart-container mt-8">
       <h3 className="section-title mb-10" style={{ textAlign: "center", width: "100%" }}>
@@ -1313,9 +1455,9 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
       const selectedAspiration = user?.careerAspiration;
 
       const backendCareerGoal = (
-        selectedAspiration || 
-        goalToAspirationMap[selectedGoal] || 
-        domainToDefaultCareerGoal[user?.primaryDomain] || 
+        selectedAspiration ||
+        goalToAspirationMap[selectedGoal] ||
+        domainToDefaultCareerGoal[user?.primaryDomain] ||
         selectedGoal ||
         "Software Engineer"
       ).trim();
@@ -1331,7 +1473,7 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
 
       setLoading(true);
       setError(null);
-      
+
       try {
         const res = await careerGuideAPI.getByGoal(backendCareerGoal);
         if (!cancelled) {
@@ -1351,14 +1493,14 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
         if (!cancelled) setLoading(false);
       }
     }
-    
+
     if (backendOnline === true) {
       fetchGuide();
     } else if (backendOnline === false) {
       setLoading(false);
       setError("Backend is currently offline. Persistence and guides are unavailable.");
     }
-    
+
     return () => { cancelled = true; };
   }, [user, backendOnline]);
 
@@ -1385,10 +1527,10 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
           </div>
         ) : error && !guide ? (
           <div className="card text-center" style={{ padding: "60px 24px" }}>
-             <ShieldAlert size={48} style={{ color: "var(--amber)", margin: "0 auto 16px" }} />
-             <h2 className="mb-2">Goal Not Found</h2>
-             <p className="text-muted mb-6">{error}</p>
-             <button className="btn btn-primary" onClick={onBack}>Update Career Goal</button>
+            <ShieldAlert size={48} style={{ color: "var(--amber)", margin: "0 auto 16px" }} />
+            <h2 className="mb-2">Goal Not Found</h2>
+            <p className="text-muted mb-6">{error}</p>
+            <button className="btn btn-primary" onClick={onBack}>Update Career Goal</button>
           </div>
         ) : (
           <>
@@ -1419,7 +1561,7 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
               <div className="card">
                 <div className="card-body">
                   <h2 className="guide-section-title"><Shield size={20} /> Skills Gap Analysis</h2>
-                  <div className="skills-gap-container">
+                  <div className="skills-gap-container mt-4">
                     <div className="skills-column">
                       <div className="skills-column-label">Already Known</div>
                       {skillsKnown.length > 0 ? (
@@ -1449,25 +1591,25 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
                 <div className="card-body">
                   <h2 className="guide-section-title"><Clock size={20} /> Learning Commitment</h2>
                   <p className="text-sm text-muted mb-6">Comparison of your current commitment vs. industry benchmark.</p>
-                  
+
                   <div className="hours-comparison">
                     <div className="flex-between mb-2">
-                       <span className="text-sm font-600">Your Current Commitment</span>
-                       <span className="text-sm font-700">{userHours} hrs/week</span>
+                      <span className="text-sm font-600">Your Current Commitment</span>
+                      <span className="text-sm font-700">{userHours} hrs/week</span>
                     </div>
                     <div className="hour-track">
                       <div className="hour-bar" style={{ width: `${hourProgress}%` }}></div>
                     </div>
                     <div className="flex-between mt-4">
-                       <span className="text-sm text-muted">Goal Benchmark</span>
-                       <span className="badge badge-blue">{requiredHours} hrs/week</span>
+                      <span className="text-sm text-muted">Goal Benchmark</span>
+                      <span className="badge badge-blue">{requiredHours} hrs/week</span>
                     </div>
                   </div>
 
                   <div className="info-box mt-8">
                     <TrendingUp size={16} />
                     <p className="text-sm">
-                      {userHours >= requiredHours 
+                      {userHours >= requiredHours
                         ? "Excellent! You are maintaining an optimal learning pace for this career goal."
                         : `Increasing your weekly commitment by ${requiredHours - userHours} hours will significantly accelerate your progress.`}
                     </p>
@@ -1545,7 +1687,7 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
 
     // 4. Fallback search (only if no results so far)
     let ordered = [...new Set([...aliasHits, ...nameMatches, ...topicMatches])];
-    
+
     if (ordered.length === 0) {
       // Loose name match
       ordered = allSkills.filter(k => k.toLowerCase().includes(q));
@@ -1570,7 +1712,7 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
     if (learningSkills.find(s => s.name === skillName)) return;
     const topics = MOCK_SKILLS[skillName].map(t => ({ name: t, completed: false }));
     const newSkill = { name: skillName, topics, progress: 0 };
-    
+
     // Optimistic UI update
     setLearningSkills(prev => [...prev, newSkill]);
     addActivity(`Added ${skillName} as learning goal`);
@@ -1579,10 +1721,18 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
       try {
         const res = await skillsAPI.add({ skillName, topics });
         if (res.data?.skill) {
-          setLearningSkills(prev => prev.map(s => s.name === skillName ? { ...s, _id: res.data.skill._id } : s));
+          const syncedSkill = {
+            _id: res.data.skill._id,
+            name: res.data.skill.skillName,
+            progress: res.data.skill.progress,
+            topics: res.data.skill.topics.map(t => ({ name: t.name, done: t.completed, completed: t.completed })),
+          };
+          setLearningSkills(prev => prev.map(s => s.name === skillName ? syncedSkill : s));
+          console.log(`[Decision] Skill ${skillName} persisted with ID: ${res.data.skill._id}`);
         }
       } catch (err) {
-        console.error("Failed to add skill:", err);
+        console.error("Failed to add skill to backend:", err);
+        // Error handling: if backend fails, maybe revert or mark as unsynced
       }
     }
   };
@@ -1593,18 +1743,18 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
     setLearningSkills(prev => prev.map(s => {
       if (s.name !== skillName) return s;
       const topics = s.topics.map(t => {
-        // Handle backend naming mapping (done vs completed)
         const isDone = t.done !== undefined ? t.done : t.completed;
-        return t.name === topicName ? { ...t, done: !isDone, completed: !isDone } : t;
+        const newDone = t.name === topicName ? !isDone : isDone;
+        return { ...t, done: newDone, completed: newDone };
       });
       const doneCount = topics.filter(t => t.done || t.completed).length;
       const progress = Math.round((doneCount / topics.length) * 100);
-      
+
       updatedSkill = { ...s, topics, progress };
-      
+
       if (progress === 100 && s.progress < 100) addActivity(`Completed all topics in ${skillName}!`);
       else if (topics.find(t => t.name === topicName)?.done) addActivity(`Completed "${topicName}" in ${skillName}`);
-      
+
       return updatedSkill;
     }));
 
@@ -1612,15 +1762,24 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
       try {
         const existing = learningSkills.find(s => s.name === skillName);
         if (existing && existing._id) {
-          // Flatten topics to match backend schema format { name, completed }
           const apiTopics = updatedSkill.topics.map(t => ({
             name: t.name,
             completed: t.done !== undefined ? t.done : t.completed
           }));
-          await skillsAPI.update(existing._id, { topics: apiTopics, progress: updatedSkill.progress });
+          const res = await skillsAPI.update(existing._id, { topics: apiTopics });
+          if (res.data?.skill) {
+            const syncedSkill = {
+              _id: res.data.skill._id,
+              name: res.data.skill.skillName,
+              progress: res.data.skill.progress,
+              topics: res.data.skill.topics.map(t => ({ name: t.name, done: t.completed, completed: t.completed })),
+            };
+            setLearningSkills(prev => prev.map(s => s._id === existing._id ? syncedSkill : s));
+            console.log(`[Decision] Skill ${skillName} progress synced: ${res.data.skill.progress}%`);
+          }
         }
       } catch (err) {
-        console.error("Failed to update skill:", err);
+        console.error("Failed to update skill on backend:", err);
       }
     }
   };
@@ -1629,13 +1788,13 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
     <div className="page">
       <div className="container section">
         <div className="section-header">
-          <h1 className="section-title" style={{ fontSize: "1.6rem" }}><Target size={18} style={{marginRight: "6px"}} /> Decision — Skill Planning</h1>
+          <h1 className="section-title" style={{ fontSize: "1.6rem" }}><Target size={18} style={{ marginRight: "6px" }} /> Decision — Skill Planning</h1>
           <p className="section-sub">Search skills, set learning goals, and track your progress.</p>
         </div>
 
-        <div className="card mb-6">
+        <div className="card mb-8">
           <div className="card-body">
-            <h3 style={{ fontWeight: 700, marginBottom: 14 }}><Search size={18} style={{marginRight: "6px"}} /> Search Skills</h3>
+            <h3 style={{ fontWeight: 700, marginBottom: 14 }}><Search size={18} style={{ marginRight: "6px" }} /> Search Skills</h3>
             <div className="search-bar">
               <input className="form-input" placeholder="Search skills (e.g. JavaScript, AI, Web Development...)" value={query}
                 onChange={e => handleQueryChange(e.target.value)} onKeyDown={e => e.key === "Enter" && doSearch()} />
@@ -1656,7 +1815,7 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
 
             {searched && results.length === 0 && (
               <div className="card text-center" style={{ marginTop: 20, padding: 24, background: "var(--bg-section)" }}>
-                <div style={{ fontSize: "2rem", marginBottom: 8 }}><Search size={18} style={{marginRight: "6px"}} /></div>
+                <div style={{ fontSize: "2rem", marginBottom: 8 }}><Search size={18} style={{ marginRight: "6px" }} /></div>
                 <p className="text-muted">No matching skills found. Try a different term or check spelling.</p>
               </div>
             )}
@@ -1670,7 +1829,7 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
 
         {learningSkills.length > 0 && (
           <>
-            <div className="section-header"><h2 className="section-title"><BookOpen size={18} style={{marginRight: "6px"}} /> My Learning Goals</h2></div>
+            <div className="section-header"><h2 className="section-title"><BookOpen size={18} style={{ marginRight: "6px" }} /> My Learning Goals</h2></div>
             <div className="card-grid">
               {learningSkills.map(skill => (
                 <div key={skill.name} className="skill-card">
@@ -1685,8 +1844,8 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
                   <div>
                     {skill.topics.map(t => (
                       <div key={t.name} className="subtopic-item">
-                        <input type="checkbox" checked={t.completed} onChange={() => toggleTopic(skill.name, t.name)} />
-                        <span className={`subtopic-label${t.completed ? " done" : ""}`}>{t.name}</span>
+                        <input type="checkbox" checked={t.done || t.completed} onChange={() => toggleTopic(skill.name, t.name)} />
+                        <span className={`subtopic-label${(t.done || t.completed) ? " done" : ""}`}>{t.name}</span>
                       </div>
                     ))}
                   </div>
@@ -1717,12 +1876,12 @@ const ROLES = ["AI Research", "Backend", "Blockchain", "Business Development", "
 const SORT_OPTIONS = ["Latest", "Relevant", "Alphabetical"];
 
 const CATEGORY_ITEMS = [
-  { name: "Software Development", icon: <Code size={18} style={{marginRight: "6px"}} /> },
-  { name: "Web Development", icon: <Globe size={18} style={{marginRight: "6px"}} /> },
-  { name: "Data Science", icon: <Database size={18} style={{marginRight: "6px"}} /> },
-  { name: "Cybersecurity", icon: <Shield size={18} style={{marginRight: "6px"}} /> },
-  { name: "UI/UX Design", icon: <Palette size={18} style={{marginRight: "6px"}} /> },
-  { name: "Mobile Development", icon: <Phone size={18} style={{marginRight: "6px"}} /> },
+  { name: "Software Development", icon: <Code size={18} style={{ marginRight: "6px" }} /> },
+  { name: "Web Development", icon: <Globe size={18} style={{ marginRight: "6px" }} /> },
+  { name: "Data Science", icon: <Database size={18} style={{ marginRight: "6px" }} /> },
+  { name: "Cybersecurity", icon: <Shield size={18} style={{ marginRight: "6px" }} /> },
+  { name: "UI/UX Design", icon: <Palette size={18} style={{ marginRight: "6px" }} /> },
+  { name: "Mobile Development", icon: <Phone size={18} style={{ marginRight: "6px" }} /> },
   { name: "Research", icon: "🔬" },
   { name: "Product Management", icon: "📋" },
   { name: "Finance", icon: "💳" },
@@ -1761,7 +1920,7 @@ function FilterDropdown({ label, options, selected, onSelect, searchable = false
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const filtered = searchable 
+  const filtered = searchable
     ? options.filter(o => o.toLowerCase().includes(search.toLowerCase()))
     : options;
 
@@ -2027,24 +2186,24 @@ function AllFiltersModal({ onClose, filters, setFilters, apply, currentSort, set
         <div className="filters-modal-layout">
           <div className="filters-sidebar">
             {tabs.map(tab => (
-              <div 
-                key={tab} 
+              <div
+                key={tab}
                 className={`sidebar-item${activeTab === tab ? " active" : ""}`}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
-                {(tab === "Work Type" && tempFilters.type) || 
-                 (tab === "Location" && tempFilters.location) || 
-                 (tab === "Roles" && tempFilters.roles.length > 0) ||
-                 (tab === "Status" && tempFilters.status) ||
-                 (tab === "Event Type" && tempFilters.eventType) ||
-                 (tab === "Payment" && tempFilters.payment) ||
-                 (tab === "Team Size" && tempFilters.teamSize) ||
-                 (tab === "Locations" && tempFilters.compLocation) ||
-                 (tab === "Categories" && tempFilters.compCategories?.length > 0) ||
-                 (tab === "User Type" && tempFilters.userType) ||
-                 (tab === "Skills" && tempFilters.compSkills?.length > 0)
-                 ? <span className="dot" /> : null}
+                {(tab === "Work Type" && tempFilters.type) ||
+                  (tab === "Location" && tempFilters.location) ||
+                  (tab === "Roles" && tempFilters.roles.length > 0) ||
+                  (tab === "Status" && tempFilters.status) ||
+                  (tab === "Event Type" && tempFilters.eventType) ||
+                  (tab === "Payment" && tempFilters.payment) ||
+                  (tab === "Team Size" && tempFilters.teamSize) ||
+                  (tab === "Locations" && tempFilters.compLocation) ||
+                  (tab === "Categories" && tempFilters.compCategories?.length > 0) ||
+                  (tab === "User Type" && tempFilters.userType) ||
+                  (tab === "Skills" && tempFilters.compSkills?.length > 0)
+                  ? <span className="dot" /> : null}
               </div>
             ))}
           </div>
@@ -2072,8 +2231,8 @@ const CategoryBar = ({ selected, onSelect }) => {
   return (
     <div className="category-bar">
       {CATEGORY_ITEMS.map((cat) => (
-        <div 
-          key={cat.name} 
+        <div
+          key={cat.name}
           className={`category-card${selected === cat.name ? " active" : ""}`}
           onClick={() => onSelect(cat.name === selected ? null : cat.name)}
         >
@@ -2091,10 +2250,10 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
   const [results, setResults] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [searched, setSearched] = useState(false);
-  
-  const [filters, setFilters] = useState({ 
-    type: null, 
-    location: null, 
+
+  const [filters, setFilters] = useState({
+    type: null,
+    location: null,
     roles: [],
     status: null,
     eventType: null,
@@ -2243,9 +2402,9 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
   const switchType = (t) => {
     setType(t);
     setQuery("");
-    setFilters({ 
-      type: null, 
-      location: null, 
+    setFilters({
+      type: null,
+      location: null,
       roles: [],
       status: null,
       eventType: null,
@@ -2265,9 +2424,9 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
   const setStatus = async (id, status) => {
     const item = pool.find(p => p.id === id);
     if (!item) return;
-    
+
     const newStatusData = { type, title: item.title, domain: item.domain || "General", status };
-    
+
     // Update local state first to feel instantaneous
     setOpportunities(prev => {
       const existing = prev.find(o => o.title === item.title && o.type === type);
@@ -2278,19 +2437,36 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
 
     if (backendOnline) {
       try {
-        const existing = opportunities.find(o => o.title === item.title && o.type === type);
-        if (existing && existing._id) {
-           await opportunitiesAPI.update(existing._id, { status });
+        const existingFromServer = opportunities.find(o => o.title === item.title && o.type === type);
+        if (existingFromServer && existingFromServer._id) {
+          const res = await opportunitiesAPI.update(existingFromServer._id, { status });
+          if (res.data?.opportunity) {
+            setOpportunities(prev => prev.map(o =>
+              (o._id === existingFromServer._id) ? { ...o, status: res.data.opportunity.status } : o
+            ));
+            console.log(`[Opportunities] Updated ${item.title} status to ${status} on server`);
+          }
         } else {
-           const res = await opportunitiesAPI.save(newStatusData);
-           if (res.data?.opportunity) {
-              setOpportunities(prev => prev.map(o => 
-                (o.title === item.title && o.type === type) ? { ...o, _id: res.data.opportunity._id } : o
-              ));
-           }
+          const res = await opportunitiesAPI.save(newStatusData);
+          if (res.data?.opportunity) {
+            setOpportunities(prev => {
+              const updatedOpp = {
+                _id: res.data.opportunity._id,
+                id: res.data.opportunity._id,
+                type: res.data.opportunity.type,
+                title: res.data.opportunity.title,
+                domain: res.data.opportunity.domain,
+                status: res.data.opportunity.status
+              };
+              // Remove the optimistic mock-id version and add the real one
+              const filtered = prev.filter(o => !(o.title === item.title && o.type === type && !o._id));
+              return [...filtered, updatedOpp];
+            });
+            console.log(`[Opportunities] Saved ${item.title} to server with ID: ${res.data.opportunity._id}`);
+          }
         }
       } catch (err) {
-        console.error("Failed to sync status for", item.title, err);
+        console.error("Failed to sync opportunity status with server:", err);
       }
     }
   };
@@ -2303,17 +2479,17 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
   const statuses = type === "competition" ? COMP_STATUSES : INTERN_STATUSES;
 
   const categoryColors = { hackathon: "badge-blue", coding: "badge-yellow", olympiad: "badge-green", data: "badge-blue", ai: "badge-blue", design: "badge-gray", business: "badge-gray" };
-  const categoryLabels = { 
-    hackathon: <><Hammer size={12} /> Hackathon</>, 
-    coding: <><Code size={12} /> Coding</>, 
-    olympiad: <><Trophy size={12} /> Olympiad</>, 
-    data: <><Database size={12} /> Data Science</>, 
-    ai: <><Bot size={12} /> AI/ML</>, 
-    design: <><Palette size={12} /> Design</>, 
-    business: <><Briefcase size={12} /> Business</> 
+  const categoryLabels = {
+    hackathon: <><Hammer size={12} /> Hackathon</>,
+    coding: <><Code size={12} /> Coding</>,
+    olympiad: <><Trophy size={12} /> Olympiad</>,
+    data: <><Database size={12} /> Data Science</>,
+    ai: <><Bot size={12} /> AI/ML</>,
+    design: <><Palette size={12} /> Design</>,
+    business: <><Briefcase size={12} /> Business</>
   };
 
-  const activeFilterCount = type === "internship" 
+  const activeFilterCount = type === "internship"
     ? (filters.type ? 1 : 0) + (filters.location ? 1 : 0) + (filters.roles.length > 0 ? 1 : 0)
     : (filters.status ? 1 : 0) + (filters.eventType ? 1 : 0) + (filters.payment ? 1 : 0) + (filters.teamSize ? 1 : 0) + (filters.openToAll ? 1 : 0) + (filters.compLocation ? 1 : 0) + (filters.compCategories?.length > 0 ? 1 : 0) + (filters.userType ? 1 : 0) + (filters.compSkills?.length > 0 ? 1 : 0);
 
@@ -2321,14 +2497,14 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
     <div className="page" style={{ background: "#F8FAFC" }}>
       <div className="container section">
         <div className="section-header">
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2.2rem", fontWeight: 800, color: "#0F172A", marginBottom: 8 }}><Activity size={18} style={{marginRight: "6px"}} /> Opportunities</h1>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2.2rem", fontWeight: 800, color: "#0F172A", marginBottom: 8 }}><Activity size={18} style={{ marginRight: "6px" }} /> Opportunities</h1>
           <p className="text-muted" style={{ fontSize: "1rem" }}>Discover premium internships and competitions tailored for your career growth.</p>
         </div>
 
         <div className="flex-between mb-8" style={{ background: "white", padding: "12px 24px", borderRadius: "16px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)", border: "1px solid var(--border)" }}>
           <div className="type-toggle" style={{ border: "none", background: "var(--bg-section)", padding: 4, borderRadius: 12 }}>
             <button className={`type-btn${type === "competition" ? " active" : ""}`} onClick={() => switchType("competition")} style={{ borderRadius: 10 }}>🏅 Competitions</button>
-            <button className={`type-btn${type === "internship" ? " active" : ""}`} onClick={() => switchType("internship")} style={{ borderRadius: 10 }}><Briefcase size={18} style={{marginRight: "6px"}} /> Internships</button>
+            <button className={`type-btn${type === "internship" ? " active" : ""}`} onClick={() => switchType("internship")} style={{ borderRadius: 10 }}><Briefcase size={18} style={{ marginRight: "6px" }} /> Internships</button>
           </div>
           <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-muted)" }}>{results.length} results found</span>
         </div>
@@ -2341,7 +2517,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
                   placeholder={`Search for ${type}s (e.g. Google, AI, Web Dev...)`}
                   value={query} onChange={e => handleQueryChange(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && doSearch()} />
-                <span style={{ position: "absolute", left: 16, top: 13, fontSize: "1.2rem", opacity: 0.5 }}><Search size={18} style={{marginRight: "6px"}} /></span>
+                <span style={{ position: "absolute", left: 16, top: 13, fontSize: "1.2rem", opacity: 0.5 }}><Search size={18} style={{ marginRight: "6px" }} /></span>
               </div>
               <button className="btn btn-primary" style={{ padding: "0 32px", height: 48, borderRadius: 12 }} onClick={() => doSearch()}>Search</button>
             </div>
@@ -2349,27 +2525,18 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
             {type === "internship" && (
               <CategoryBar selected={selectedCategory} onSelect={setSelectedCategory} />
             )}
-            
+
             <div className="filter-bar" style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16 }}>
               <button className={`btn btn-outline filter-main-btn${activeFilterCount > 0 ? " active" : ""}`} onClick={() => setShowAllFilters(true)} style={{ borderRadius: 12, padding: "0 20px", height: 44, display: "flex", alignItems: "center", gap: 8, fontWeight: 600, borderColor: "#E2E8F0" }}>
-                <span><Settings size={18} style={{marginRight: "6px"}} /></span> Filters {activeFilterCount > 0 && <span className="filter-count-pill">{activeFilterCount}</span>}
+                <span><Settings size={18} style={{ marginRight: "6px" }} /></span> Filters {activeFilterCount > 0 && <span className="filter-count-pill">{activeFilterCount}</span>}
               </button>
               <div style={{ marginLeft: "auto", color: "#64748B", fontSize: "0.85rem", fontWeight: 500 }}>
                 Sorted by: <span style={{ color: "var(--primary)", fontWeight: 700 }}>{sortBy}</span>
               </div>
             </div>
-
-            {suggestions.length > 0 && (
-              <div className="search-results" style={{ marginTop: 20 }}>
-                {suggestions.map(s => (
-                  <div key={s} className="result-chip" onClick={() => { setQuery(s); setSuggestions([]); }}>
-                    {s}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
+
 
         <div className="card-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: 24 }}>
           {results.length === 0 && (
@@ -2404,10 +2571,10 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
                 <div className="opp-meta">
                   {type === "internship" ? (
                     <>
-                      {opp.location && <div className="opp-meta-item"><MapPin size={14} style={{marginRight: "4px"}} /> {opp.location}</div>}
-                      {opp.workType && <div className="opp-meta-item"><Home size={14} style={{marginRight: "4px"}} /> {opp.workType}</div>}
-                      {opp.duration && <div className="opp-meta-item"><Clock size={14} style={{marginRight: "4px"}} /> {opp.duration}</div>}
-                      {opp.stipend && <div className="opp-meta-item" style={{ color: "var(--success)" }}><DollarSign size={14} style={{marginRight: "4px"}} /> {opp.stipend}</div>}
+                      {opp.location && <div className="opp-meta-item"><MapPin size={14} style={{ marginRight: "4px" }} /> {opp.location}</div>}
+                      {opp.workType && <div className="opp-meta-item"><Home size={14} style={{ marginRight: "4px" }} /> {opp.workType}</div>}
+                      {opp.duration && <div className="opp-meta-item"><Clock size={14} style={{ marginRight: "4px" }} /> {opp.duration}</div>}
+                      {opp.stipend && <div className="opp-meta-item" style={{ color: "var(--success)" }}><DollarSign size={14} style={{ marginRight: "4px" }} /> {opp.stipend}</div>}
                     </>
                   ) : (
                     <>
@@ -2430,12 +2597,12 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
         </div>
       </div>
       {showAllFilters && (
-        <AllFiltersModal 
+        <AllFiltersModal
           type={type}
-          onClose={() => setShowAllFilters(false)} 
-          filters={filters} 
-          setFilters={setFilters} 
-          apply={setFilters} 
+          onClose={() => setShowAllFilters(false)}
+          filters={filters}
+          setFilters={setFilters}
+          apply={setFilters}
           currentSort={sortBy}
           setSort={setSortBy}
         />
@@ -2457,7 +2624,7 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           <p className="text-muted">Track your learning journey and participation records.</p>
         </div>
 
-        <div className="section-header"><h2 className="section-title"><CheckCircle2 size={18} style={{marginRight: "6px"}} /> Completed Skills</h2></div>
+        <div className="section-header"><h2 className="section-title"><CheckCircle2 size={18} style={{ marginRight: "6px" }} /> Completed Skills</h2></div>
         <div className="card mb-6">
           <div className="card-body">
             {completedSkills.length === 0 && <p className="text-muted text-sm">No completed skills yet. Keep going!</p>}
@@ -2475,11 +2642,11 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           </div>
         </div>
 
-        <div className="section-header"><h2 className="section-title"><Trophy size={18} style={{marginRight: "6px"}} /> Participation History</h2></div>
+        <div className="section-header"><h2 className="section-title"><Trophy size={18} style={{ marginRight: "6px" }} /> Participation History</h2></div>
         <div className="card-grid mb-6">
           <div className="card">
             <div className="card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Award size={18} style={{marginRight: "6px"}} /> Competitions</h3>
+              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Award size={18} style={{ marginRight: "6px" }} /> Competitions</h3>
               {opportunities.filter(o => o.type === "competition" && o.status).length === 0 && <p className="text-muted text-sm">No competition history yet.</p>}
               {opportunities.filter(o => o.type === "competition" && o.status).map(o => (
                 <div key={o.id} className="flex-between" style={{ padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
@@ -2494,7 +2661,7 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           </div>
           <div className="card">
             <div className="card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Briefcase size={18} style={{marginRight: "6px"}} /> Internships</h3>
+              <h3 style={{ fontWeight: 700, marginBottom: 16 }}><Briefcase size={18} style={{ marginRight: "6px" }} /> Internships</h3>
               {opportunities.filter(o => o.type === "internship" && o.status).length === 0 && <p className="text-muted text-sm">No internship history yet.</p>}
               {opportunities.filter(o => o.type === "internship" && o.status).map(o => (
                 <div key={o.id} className="flex-between" style={{ padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
@@ -2509,13 +2676,13 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           </div>
         </div>
 
-        <div className="section-header"><h2 className="section-title"><Search size={18} style={{marginRight: "6px"}} /> Search History</h2></div>
+        <div className="section-header"><h2 className="section-title"><Search size={18} style={{ marginRight: "6px" }} /> Search History</h2></div>
         <div className="card mb-6">
           <div className="card-body">
             {searchHistory.length === 0 && <p className="text-muted text-sm">No searches yet.</p>}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {[...searchHistory].reverse().map((s, i) => (
-                <span key={i} className="badge badge-gray" style={{ padding: "5px 12px" }}><Search size={18} style={{marginRight: "6px"}} /> {s}</span>
+                <span key={i} className="badge badge-gray" style={{ padding: "5px 12px" }}><Search size={18} style={{ marginRight: "6px" }} /> {s}</span>
               ))}
             </div>
           </div>
@@ -2601,9 +2768,9 @@ function AdminDashboard({ user, onBack, backendOnline }) {
       if (res.data.success) {
         setData(prev => ({ ...prev, users: prev.users.filter(u => u._id !== userId) }));
         // Also update overview count
-        setData(prev => ({ 
-          ...prev, 
-          overview: { ...prev.overview, totalUsers: (prev.overview.totalUsers || 1) - 1 } 
+        setData(prev => ({
+          ...prev,
+          overview: { ...prev.overview, totalUsers: (prev.overview.totalUsers || 1) - 1 }
         }));
       }
     } catch (err) {
@@ -2647,8 +2814,8 @@ function AdminDashboard({ user, onBack, backendOnline }) {
         <div className="admin-layout">
           <div className="admin-sidebar card">
             {tabs.map(tab => (
-              <button 
-                key={tab.id} 
+              <button
+                key={tab.id}
                 className={`admin-nav-btn${activeTab === tab.id ? " active" : ""}`}
                 onClick={() => setActiveTab(tab.id)}
               >
@@ -2681,8 +2848,8 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                         <div className="stat-val">{data.overview.totalSearches || 0}</div>
                         <div className="stat-label">Total Searches</div>
                         <div className="text-xs text-muted mt-1">
-                          S: {data.overview.searchBreakdown?.skill || 0} | 
-                          C: {data.overview.searchBreakdown?.competition || 0} | 
+                          S: {data.overview.searchBreakdown?.skill || 0} |
+                          C: {data.overview.searchBreakdown?.competition || 0} |
                           I: {data.overview.searchBreakdown?.internship || 0}
                         </div>
                       </div>
@@ -2727,46 +2894,49 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                 {activeTab === 'users' && (
                   <div className="admin-tab-content">
                     <div className="card">
-                      <div className="card-body" style={{ overflowX: "auto" }}>
-                        <table className="admin-table">
-                          <thead>
-                            <tr>
-                              <th>Name</th>
-                              <th>Email</th>
-                              <th>Domain</th>
-                              <th>Skill Level</th>
-                              <th>Hours/Wk</th>
-                              <th>Joined</th>
-                              <th style={{ textAlign: "right" }}>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {data.users.map(u => (
-                              <tr key={u._id}>
-                                <td style={{ fontWeight: 600 }}>{u.name}</td>
-                                <td>{u.email}</td>
-                                <td><span className="badge badge-blue">{u.primaryDomain || u.domainOfInterest}</span></td>
-                                <td>{u.skillLevel}</td>
-                                <td>{u.learningHoursPerWeek}</td>
-                                <td className="text-muted text-sm">{new Date(u.createdAt).toLocaleDateString()}</td>
-                                <td style={{ textAlign: "right" }}>
-                                  <button 
-                                    className="btn btn-sm btn-outline" 
-                                    style={{ color: "#EF4444", borderColor: "#FEE2E2", padding: "4px 8px" }}
-                                    onClick={() => handleDeleteUser(u._id)}
-                                    title="Delete User"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                </td>
+                      <div className="card-body">
+                        <div className="admin-table-container">
+                          <table className="admin-table">
+                            <thead>
+                              <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Domain</th>
+                                <th>Skill Level</th>
+                                <th>Hours/Wk</th>
+                                <th>Joined</th>
+                                <th style={{ textAlign: "right" }}>Actions</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {data.users.map(u => (
+                                <tr key={u._id}>
+                                  <td style={{ fontWeight: 600 }}>{u.name}</td>
+                                  <td>{u.email}</td>
+                                  <td><span className="badge badge-blue">{u.primaryDomain || u.domainOfInterest}</span></td>
+                                  <td>{u.skillLevel}</td>
+                                  <td>{u.learningHoursPerWeek}</td>
+                                  <td className="text-muted text-sm">{new Date(u.createdAt).toLocaleDateString()}</td>
+                                  <td style={{ textAlign: "right" }}>
+                                    <button
+                                      className="btn btn-sm btn-outline"
+                                      style={{ color: "#EF4444", borderColor: "#FEE2E2", padding: "4px 8px" }}
+                                      onClick={() => handleDeleteUser(u._id)}
+                                      title="Delete User"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
+
 
                 {activeTab === 'analytics' && (
                   <div className="admin-tab-content">
@@ -2792,14 +2962,14 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                           <h3>Domain Distribution</h3>
                           <div className="mt-8 admin-chart-container">
                             <div className="pie-chart-mock" style={{
-                              background: data.overview.domainDistribution?.length > 0 
+                              background: data.overview.domainDistribution?.length > 0
                                 ? `conic-gradient(${data.overview.domainDistribution.map((d, i, arr) => {
-                                    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-                                    const total = arr.reduce((sum, curr) => sum + curr.count, 0);
-                                    const startPercent = arr.slice(0, i).reduce((sum, curr) => sum + (curr.count / total) * 100, 0);
-                                    const endPercent = startPercent + (d.count / total) * 100;
-                                    return `${colors[i % colors.length]} ${startPercent}% ${endPercent}%`;
-                                  }).join(', ')})` 
+                                  const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+                                  const total = arr.reduce((sum, curr) => sum + curr.count, 0);
+                                  const startPercent = arr.slice(0, i).reduce((sum, curr) => sum + (curr.count / total) * 100, 0);
+                                  const endPercent = startPercent + (d.count / total) * 100;
+                                  return `${colors[i % colors.length]} ${startPercent}% ${endPercent}%`;
+                                }).join(', ')})`
                                 : 'var(--bg-section)'
                             }}></div>
                           </div>
@@ -2843,98 +3013,100 @@ function AdminDashboard({ user, onBack, backendOnline }) {
                 {activeTab === 'traffic' && (
                   <div className="admin-tab-content">
                     <div className="card mb-8">
-                       <div className="card-body">
-                          <h3 className="mb-6">Daily User Engagement (Time Spent)</h3>
-                          <div style={{ height: 250, padding: '20px 0' }}>
-                            {data.trafficStats?.length > 1 ? (
-                              <svg width="100%" height="100%" viewBox="0 0 800 200" preserveAspectRatio="none">
-                                <defs>
-                                  <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
-                                    <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-                                  </linearGradient>
-                                </defs>
-                                {(() => {
-                                  const stats = data.trafficStats.slice(-7);
-                                  const maxDur = Math.max(...stats.map(s => s.totalDuration || 0), 1);
-                                  const points = stats.map((s, i) => {
-                                    const x = (i / (stats.length - 1)) * 800;
-                                    const y = 200 - ((s.totalDuration || 0) / maxDur) * 180;
-                                    return `${x},${y}`;
-                                  }).join(' ');
-                                  
-                                  return (
-                                    <>
-                                      {/* Area under the line */}
-                                      <polyline
-                                        fill="url(#lineGrad)"
-                                        points={`0,200 ${points} 800,200`}
-                                      />
-                                      {/* The line itself */}
-                                      <polyline
-                                        fill="none"
-                                        stroke="var(--primary)"
-                                        strokeWidth="3"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        points={points}
-                                      />
-                                      {/* Data Dots */}
-                                      {stats.map((s, i) => {
-                                        const x = (i / (stats.length - 1)) * 800;
-                                        const y = 200 - ((s.totalDuration || 0) / maxDur) * 180;
-                                        return (
-                                          <g key={i}>
-                                            <circle cx={x} cy={y} r="5" fill="white" stroke="var(--primary)" strokeWidth="2" />
-                                            <text x={x} y={y - 12} textAnchor="middle" fontSize="12" fontWeight="bold" fill="var(--primary)">
-                                              {Math.round((s.totalDuration || 0) / 60)}m
-                                            </text>
-                                            <text x={x} y={200} textAnchor="middle" fontSize="10" fill="var(--text-muted)" transform={`rotate(-30 ${x},205)`}>
-                                              {s._id.split('-').slice(1).join('/')}
-                                            </text>
-                                          </g>
-                                        );
-                                      })}
-                                    </>
-                                  );
-                                })()}
-                              </svg>
-                            ) : (
-                              <div className="flex-center h-full text-muted">
-                                <TrendingUp size={48} className="opacity-20 mb-4" />
-                                <p>Insufficient data to generate trend line. (Need 2+ days)</p>
-                              </div>
-                            )}
-                          </div>
-                          <div className="mt-8 pt-4 border-t border-dashed flex items-center justify-between text-xs text-muted">
-                            <span>* Graph shows total minutes spent by all users daily.</span>
-                            <span>Last 7 Days</span>
-                          </div>
-                       </div>
+                      <div className="card-body">
+                        <h3 className="mb-6">Daily User Engagement (Time Spent)</h3>
+                        <div style={{ height: 250, padding: '20px 0' }}>
+                          {data.trafficStats?.length > 1 ? (
+                            <svg width="100%" height="100%" viewBox="0 0 800 200" preserveAspectRatio="none">
+                              <defs>
+                                <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
+                                  <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                                </linearGradient>
+                              </defs>
+                              {(() => {
+                                const stats = data.trafficStats.slice(-7);
+                                const maxDur = Math.max(...stats.map(s => s.totalDuration || 0), 1);
+                                const points = stats.map((s, i) => {
+                                  const x = (i / (stats.length - 1)) * 800;
+                                  const y = 200 - ((s.totalDuration || 0) / maxDur) * 180;
+                                  return `${x},${y}`;
+                                }).join(' ');
+
+                                return (
+                                  <>
+                                    {/* Area under the line */}
+                                    <polyline
+                                      fill="url(#lineGrad)"
+                                      points={`0,200 ${points} 800,200`}
+                                    />
+                                    {/* The line itself */}
+                                    <polyline
+                                      fill="none"
+                                      stroke="var(--primary)"
+                                      strokeWidth="3"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      points={points}
+                                    />
+                                    {/* Data Dots */}
+                                    {stats.map((s, i) => {
+                                      const x = (i / (stats.length - 1)) * 800;
+                                      const y = 200 - ((s.totalDuration || 0) / maxDur) * 180;
+                                      return (
+                                        <g key={i}>
+                                          <circle cx={x} cy={y} r="5" fill="white" stroke="var(--primary)" strokeWidth="2" />
+                                          <text x={x} y={y - 12} textAnchor="middle" fontSize="12" fontWeight="bold" fill="var(--primary)">
+                                            {Math.round((s.totalDuration || 0) / 60)}m
+                                          </text>
+                                          <text x={x} y={200} textAnchor="middle" fontSize="10" fill="var(--text-muted)" transform={`rotate(-30 ${x},205)`}>
+                                            {s._id.split('-').slice(1).join('/')}
+                                          </text>
+                                        </g>
+                                      );
+                                    })}
+                                  </>
+                                );
+                              })()}
+                            </svg>
+                          ) : (
+                            <div className="flex-center h-full text-muted">
+                              <TrendingUp size={48} className="opacity-20 mb-4" />
+                              <p>Insufficient data to generate trend line. (Need 2+ days)</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-8 pt-4 border-t border-dashed flex items-center justify-between text-xs text-muted">
+                          <span>* Graph shows total minutes spent by all users daily.</span>
+                          <span>Last 7 Days</span>
+                        </div>
+                      </div>
                     </div>
                     <div className="card">
                       <div className="card-body">
                         <h3 className="mb-4">Real-time Traffic Feed</h3>
-                        <table className="admin-table">
-                          <thead>
-                            <tr>
-                              <th>User</th>
-                              <th>Page</th>
-                              <th>Route</th>
-                              <th>Timestamp</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {data.traffic.map((t, i) => (
-                              <tr key={i}>
-                                <td>{t.userId?.name || 'Guest'}</td>
-                                <td><span className="badge badge-gray">{t.pageVisited}</span></td>
-                                <td className="text-sm code">{t.route}</td>
-                                <td className="text-muted text-sm">{new Date(t.createdAt).toLocaleString()}</td>
+                        <div className="admin-table-container">
+                          <table className="admin-table">
+                            <thead>
+                              <tr>
+                                <th>User</th>
+                                <th>Page</th>
+                                <th>Route</th>
+                                <th>Timestamp</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {data.traffic.map((t, i) => (
+                                <tr key={i}>
+                                  <td>{t.userId?.name || 'Guest'}</td>
+                                  <td><span className="badge badge-gray">{t.pageVisited}</span></td>
+                                  <td className="text-sm code">{t.route}</td>
+                                  <td className="text-muted text-sm">{new Date(t.createdAt).toLocaleString()}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2948,6 +3120,7 @@ function AdminDashboard({ user, onBack, backendOnline }) {
     </div>
   );
 }
+
 
 // ==================== PROFILE PAGE ====================
 function ProfilePage({ user, learningSkills, onEdit, onLogout }) {
@@ -3022,30 +3195,80 @@ function ProfilePage({ user, learningSkills, onEdit, onLogout }) {
 // ==================== APP ROOT ====================
 
 export default function App() {
-  const [page, _setPage] = useState(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) return "welcome";
-    try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      if (user.role === 'admin' || user.email === 'anukritisrivastava810@gmail.com') return "admin";
-      if (user.profileCompleted === false) return "onboarding";
-      return "home";
-    } catch {
-      return "home";
-    }
-  });
-  const [apiError, setApiError] = useState(null);
+  const [page, _setPage] = useState("welcome"); // Default to welcome for fresh startup
 
   const setPage = useCallback((p) => {
-    setApiError(null); 
+    setApiError(null);
     _setPage(p);
     window.scrollTo(0, 0);
   }, []);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem("userId"));
-  const [storedUser, setStoredUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
-  });
+  const handleLogout = useCallback(() => {
+    setIsLoggedIn(false);
+    setStoredUser(null);
+    setLearningSkills([]);
+    setOpportunities([]);
+    setSearchHistory([]);
+    setActivityLogs([]);
+    localStorage.removeItem("userId");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setPage("welcome");
+  }, [setPage]);
+
+  const handleLogin = useCallback((userData, token) => {
+    setIsLoggedIn(true);
+    if (userData) {
+      console.log("Login User Data:", userData);
+      setStoredUser(userData);
+      localStorage.setItem("userId", userData._id);
+      localStorage.setItem("user", JSON.stringify(userData));
+      if (token) localStorage.setItem("token", token);
+
+      if (userData.role === 'admin' || userData.email === 'anukritisrivastava810@gmail.com') {
+        setPage("admin");
+      } else if (userData.profileCompleted === false) {
+        setPage("onboarding");
+      } else {
+        setPage("home");
+      }
+    } else {
+      setPage("home");
+    }
+  }, [setPage]);
+
+  // Initialize page and auth from localStorage on mount
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+
+    if (userId && token) {
+      setIsLoggedIn(true);
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "{ }");
+        setStoredUser(user);
+
+        // Decide initial landing page
+        if (user.role === 'admin' || user.email === 'anukritisrivastava810@gmail.com') {
+          _setPage("admin");
+        } else if (user.profileCompleted === false) {
+          _setPage("onboarding");
+        } else {
+          _setPage("home");
+        }
+      } catch (e) {
+        console.error("Local storage parse error:", e);
+        handleLogout();
+      }
+    } else {
+      setIsLoggedIn(false);
+      _setPage("welcome");
+    }
+  }, [handleLogout]);
+  const [apiError, setApiError] = useState(null);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [storedUser, setStoredUser] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -3070,7 +3293,7 @@ export default function App() {
 
         const res = await healthAPI.check({ signal: controller.signal });
         clearTimeout(timeoutId);
-        
+
         console.log("[App] Health response:", res.data);
 
         if (res.data && res.data.status === "ok") {
@@ -3103,7 +3326,7 @@ export default function App() {
     if (!userId) return;
 
     console.log("[App] Fetching user sync data for:", userId);
-    
+
     // Sync Profile First
     profileAPI.get()
       .then(r => {
@@ -3120,8 +3343,13 @@ export default function App() {
           }
         }
       })
-      .catch((err) => { 
-        console.error("[App] Profile sync failed:", err.response?.data?.message || err.message); 
+      .catch((err) => {
+        console.error("[App] Profile sync failed:", err.response?.data?.message || err.message);
+        // Handle 401 Unauthorised or 404 User Not Found — clear stale session
+        if (err.response && (err.response.status === 401 || err.response.status === 404)) {
+          console.warn("[App] Auth invalid or user deleted. Redirecting to welcome.");
+          handleLogout();
+        }
       });
 
     // Load skills
@@ -3138,8 +3366,8 @@ export default function App() {
           console.log("[App] Skills synced from server");
         }
       })
-      .catch((err) => { 
-        console.error("[App] Skills sync failed:", err.response?.data?.message || err.message); 
+      .catch((err) => {
+        console.error("[App] Skills sync failed:", err.response?.data?.message || err.message);
       });
 
     // Load opportunities
@@ -3157,8 +3385,8 @@ export default function App() {
           console.log("[App] Opportunities synced from server");
         }
       })
-      .catch((err) => { 
-        console.error("[App] Opportunities sync failed:", err.response?.data?.message || err.message); 
+      .catch((err) => {
+        console.error("[App] Opportunities sync failed:", err.response?.data?.message || err.message);
       });
 
     // Load history
@@ -3170,15 +3398,15 @@ export default function App() {
           console.log("[App] History synced from server");
         }
       })
-      .catch((err) => { 
-        console.error("[App] History sync failed:", err.response?.data?.message || err.message); 
+      .catch((err) => {
+        console.error("[App] History sync failed:", err.response?.data?.message || err.message);
       });
-  }, [isLoggedIn, page, setPage]); // Fixed dependencies
+  }, [isLoggedIn, page, setPage, backendOnline]); // Added backendOnline dependency to trigger sync when connection established
 
   // ── Traffic Logging & Heartbeat ────────────────────────────────
   useEffect(() => {
     if (!isLoggedIn || !backendOnline) return;
-    
+
     const logVisit = async () => {
       try {
         const res = await trafficAPI.logVisit({
@@ -3230,44 +3458,9 @@ export default function App() {
   }, [backendOnline]);
 
   // ── Auth ────────────────────────────────────────────────────────
-  const handleLogin = (userData, token) => {
-    setIsLoggedIn(true);
-    if (userData) {
-      console.log("Login User Data:", userData);
-      setStoredUser(userData);
-      localStorage.setItem("userId", userData._id);
-      localStorage.setItem("user", JSON.stringify(userData));
-      // Persist JWT token for future authenticated requests
-      if (token) localStorage.setItem("token", token);
-      
-      // If admin, go to admin dashboard
-      if (userData.role === 'admin' || userData.email === 'anukritisrivastava810@gmail.com') {
-        console.log("Redirecting to Admin Dashboard");
-        setPage("admin");
-      } else if (userData.profileCompleted === false) {
-        console.log("Profile incomplete, redirecting to Onboarding");
-        setPage("onboarding");
-      } else {
-        console.log("Redirecting to Home");
-        setPage("home");
-      }
-    } else {
-      setPage("home");
-    }
-  };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setStoredUser(null);
-    setLearningSkills([]);
-    setOpportunities([]);
-    setSearchHistory([]);
-    setActivityLogs([]);
-    localStorage.removeItem("userId");
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    setPage("welcome");
-  };
+
+
 
   const handleSaveUser = async (data) => {
     let finalUser = data;
@@ -3334,7 +3527,7 @@ export default function App() {
   // ─── Traffic Tracking ───────────────────────────────────────────
   useEffect(() => {
     if (!isLoggedIn) return;
-    
+
     // Internal Traffic Logging
     const logVisit = async () => {
       try {
@@ -3348,7 +3541,7 @@ export default function App() {
         console.error("Traffic log error:", err);
       }
     };
-    
+
     logVisit();
 
     // GA4 Placeholder (Would typically use react-ga4)
@@ -3358,7 +3551,7 @@ export default function App() {
   if (!isLoggedIn && page === "signup") {
     return (
       <>
-        
+
         <SignUpPage
           existing={storedUser}
           onSave={handleSaveUser}
@@ -3386,9 +3579,9 @@ export default function App() {
   if (isEditing) {
     return (
       <>
-        
+
         <Navbar page="profile" setPage={setPage} isLoggedIn={isLoggedIn} user={storedUser} />
-        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} backendOnline={backendOnline} />
+        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} onGoCareerOther={() => { setIsEditing(false); setPage("career-other"); }} backendOnline={backendOnline} />
       </>
     );
   }
@@ -3397,7 +3590,7 @@ export default function App() {
 
   return (
     <>
-      
+
       {backendOnline === null && (
         <div style={{ background: "#DBEAFE", borderBottom: "1px solid #3B82F6", padding: "8px 24px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 8, position: "fixed", top: 68, left: 0, right: 0, zIndex: 1001, color: "#1E40AF" }}>
           🔄 <strong>Connecting to backend...</strong> Render may take a moment to wake up.
@@ -3420,14 +3613,14 @@ export default function App() {
         </div>
       )}
       <Navbar {...navProps} />
-      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} />}
+      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} onGoCareerOther={() => setPage("career-other")} />}
       {page === "home" && <HomePage user={storedUser} />}
       {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} setPage={setPage} />}
       {page === "admin" && (
-        <AdminDashboard 
-          user={storedUser} 
-          onBack={() => setPage("home")} 
-          backendOnline={backendOnline} 
+        <AdminDashboard
+          user={storedUser}
+          onBack={() => setPage("home")}
+          backendOnline={backendOnline}
         />
       )}
       {page === "domain-detail" && (
@@ -3443,6 +3636,19 @@ export default function App() {
           learningSkills={learningSkills}
           onBack={() => setPage("dashboard")}
           backendOnline={backendOnline}
+        />
+      )}
+      {page === "career-other" && (
+        <CareerOtherPage
+          onSearch={(q) => { setPage("career-search:" + q); }}
+          onSelectGoal={(goal) => setPage("career-guide")}
+          onBack={() => setPage("profile")}
+        />
+      )}
+      {page?.startsWith("career-search:") && (
+        <CareerSearchPage
+          query={page.replace("career-search:", "")}
+          onBack={() => setPage("career-other")}
         />
       )}
       {page === "decision" && <DecisionPage learningSkills={learningSkills} setLearningSkills={setLearningSkillsWithSync} addActivity={addActivity} addSearch={addSearch} backendOnline={backendOnline} />}
