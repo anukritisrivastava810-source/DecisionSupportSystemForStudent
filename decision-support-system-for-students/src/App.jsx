@@ -6,301 +6,43 @@ import { Home, LayoutDashboard, Target, Briefcase, History, User, Search, CheckC
 import './App.css';
 import { authAPI, skillsAPI, opportunitiesAPI, historyAPI, domainInfoAPI, careerGuideAPI, adminAPI, trafficAPI, healthAPI, profileAPI } from './services/api';
 import { findCareerMatch, CAREER_GOAL_MAP } from './utils/careerGoalMatcher';
+import { 
+  MOCK_SKILLS, 
+  SKILL_ALIASES, 
+  MOCK_COMPETITIONS, 
+  MOCK_INTERNSHIPS, 
+  COMP_STATUSES, 
+  INTERN_STATUSES, 
+  COMP_ALIASES, 
+  MOCK_ACTIVITY 
+} from './data/careerData';
 import Footer from './Components/Footer';
 import Modal from './Components/Modal';
 import CareerOther from './Components/CareerOther';
-import CareerSearch from './Components/CareerSearch';
+import CareerSearchResult from './Components/CareerSearchResult';
 // ==================== STYLES ====================
 
 
 // ==================== MOCK DATA ====================
-const MOCK_SKILLS = {
-  // ---------- Programming Languages ----------
-  "JavaScript": ["Variables & Data Types", "Functions & Closures", "DOM Manipulation", "ES6+ Concepts", "Async/Await & Promises", "REST APIs & Fetch", "Error Handling", "Modules & Bundling"],
-  "Python": ["Syntax & Basics", "Data Structures", "File Handling", "OOP Concepts", "Libraries (NumPy, Pandas)", "Web Scraping", "Virtual Environments", "Decorators & Generators"],
-  "Java": ["OOP Principles", "Collections Framework", "Multithreading", "Exception Handling", "Java 8 Streams", "JDBC", "Spring Basics", "Maven & Gradle"],
-  "C++": ["Pointers & Memory", "STL (Vectors, Maps)", "OOP in C++", "Templates", "File I/O", "Competitive Programming Tricks", "Dynamic Programming"],
-  "C": ["Pointers & Arrays", "Memory Management (malloc/free)", "Structs & Unions", "File Operations", "Linked Lists in C", "Recursion"],
-  "TypeScript": ["Types & Interfaces", "Generics", "Enums & Tuples", "Type Guards", "Decorators", "TypeScript with React", "tsconfig Setup"],
-  "Go (Golang)": ["Syntax & Types", "Goroutines & Channels", "Interfaces", "Error Handling", "HTTP Servers", "Go Modules", "Testing in Go"],
-  "Rust": ["Ownership & Borrowing", "Lifetimes", "Structs & Enums", "Traits", "Concurrency", "Cargo & Crates", "Error Handling with Result"],
-  "Ruby": ["Syntax & Basics", "Blocks & Procs", "OOP in Ruby", "Gems & Bundler", "Ruby on Rails Intro", "ERB Templates", "Active Record"],
-  "PHP": ["Syntax & Variables", "Functions & Arrays", "OOP in PHP", "PDO & MySQL", "Laravel Basics", "Sessions & Cookies", "REST APIs in PHP"],
-  "Kotlin": ["Syntax & Null Safety", "Data Classes", "Coroutines", "Sealed Classes", "Android with Kotlin", "Kotlin Extensions", "Jetpack Compose Basics"],
-  "Swift": ["Optionals & Safety", "Structs vs Classes", "Protocols", "Error Handling", "UIKit Basics", "SwiftUI Introduction", "Core Data"],
-  "Dart": ["Syntax & Types", "OOP in Dart", "Async & Futures", "Streams", "Flutter with Dart", "Null Safety", "Packages & pub.dev"],
-  "Scala": ["Functional Programming", "Case Classes", "Pattern Matching", "Traits & Mixins", "Akka Actors", "Spark with Scala", "SBT Build Tool"],
-  // ---------- Web Development ----------
-  "Web Development": ["HTML5 Semantics", "CSS3 & Flexbox/Grid", "JavaScript Basics", "Responsive Design", "Version Control (Git)", "REST APIs", "Browser DevTools", "Accessibility (a11y)"],
-  "React": ["JSX Basics", "Components & Props", "State & Hooks", "React Router", "Context API", "Redux Toolkit", "Performance Optimization", "Testing with Jest"],
-  "Vue.js": ["Vue Instance & Directives", "Components & Props", "Vue Router", "Vuex State Management", "Composition API", "Pinia", "Unit Testing"],
-  "Angular": ["Components & Modules", "Directives & Pipes", "Services & DI", "RxJS Observables", "Angular Router", "Forms (Template & Reactive)", "NgRx"],
-  "Next.js": ["File-Based Routing", "Server-Side Rendering", "Static Generation", "API Routes", "Image Optimization", "Middleware", "Deployment on Vercel"],
-  "Node.js": ["Event Loop", "Modules (CommonJS/ESM)", "Express.js", "File System & Streams", "REST API Building", "Authentication (JWT)", "NPM Ecosystem"],
-  "HTML & CSS": ["HTML5 Elements", "Semantic HTML", "CSS Selectors", "Box Model", "Flexbox", "CSS Grid", "Animations & Transitions", "CSS Variables"],
-  // ---------- Data & AI ----------
-  "Machine Learning": ["Math Foundations (Linear Algebra, Calculus)", "Supervised Learning", "Unsupervised Learning", "Model Evaluation & Metrics", "Feature Engineering", "Neural Networks", "Ensemble Methods", "MLflow & Experiment Tracking"],
-  "Deep Learning": ["Neural Network Basics", "CNNs", "RNNs & LSTMs", "Transformers", "Transfer Learning", "GANs", "Keras & TensorFlow", "PyTorch Fundamentals"],
-  "Data Science": ["Python for Data", "Pandas & NumPy", "Data Visualization (Matplotlib, Seaborn)", "Inferential Statistics", "SQL for Data", "Machine Learning Intro", "Storytelling with Data"],
-  "NLP (Natural Language Processing)": ["Text Preprocessing", "Tokenization & Embeddings", "Sentiment Analysis", "Named Entity Recognition", "Transformers & BERT", "Language Model Fine-Tuning", "Chatbot Development"],
-  "Computer Vision": ["Image Preprocessing", "Edge Detection", "Object Detection (YOLO)", "Image Classification", "Semantic Segmentation", "OpenCV Basics", "GANs for Images"],
-  "AI": ["Intro to AI", "Search Algorithms (BFS, DFS, A*)", "Knowledge Representation", "Planning & Reasoning", "Reinforcement Learning", "AI Ethics", "Generative AI"],
-  "Data Analysis": ["Excel & Google Sheets", "Python (Pandas)", "SQL Queries", "Power BI / Tableau", "Statistical Analysis", "A/B Testing", "Data Cleaning & Wrangling"],
-  "Data Structures & Algorithms": ["Arrays & Strings", "Linked Lists", "Stacks & Queues", "Trees & Graphs", "Hashing", "Dynamic Programming", "Greedy Algorithms", "Sorting & Searching"],
-  // ---------- Cloud & DevOps ----------
-  "AWS (Amazon Web Services)": ["IAM & Security", "EC2 & VPC", "S3 & CloudFront", "Lambda & Serverless", "RDS & DynamoDB", "CloudFormation", "AWS CLI", "Cost Optimization"],
-  "Azure": ["Azure Fundamentals", "Virtual Machines", "Azure Functions", "Blob Storage", "Azure DevOps", "Cosmos DB", "Active Directory", "AKS (Kubernetes)"],
-  "Google Cloud Platform": ["GCP Core Services", "Compute Engine", "Cloud Run", "BigQuery", "Firebase", "GKE", "IAM Roles", "Pub/Sub Messaging"],
-  "Docker": ["Container Basics", "Dockerfile", "Docker Compose", "Volumes & Networks", "Container Registries", "Multi-Stage Builds", "Docker Swarm"],
-  "Kubernetes": ["Pods & Deployments", "Services & Ingress", "ConfigMaps & Secrets", "StatefulSets", "Helm Charts", "Autoscaling", "Monitoring with Prometheus"],
-  "DevOps": ["Version Control (Git)", "CI/CD Pipelines", "Docker & Containers", "Infrastructure as Code", "Monitoring & Logging", "Agile & Scrum", "Jenkins / GitHub Actions"],
-  "Linux": ["Shell Commands", "File System Navigation", "User & Permission Management", "Shell Scripting (Bash)", "Process Management", "Networking (SSH, curl)", "Cron Jobs"],
-  "CI/CD": ["Git Fundamentals", "GitHub Actions", "Jenkins Pipelines", "GitLab CI", "Automated Testing in CI", "Deployment Strategies", "Rollback & Monitoring"],
-  // ---------- Databases ----------
-  "SQL": ["SELECT Statements", "Joins (INNER, LEFT, RIGHT)", "Aggregations (GROUP BY)", "Subqueries & CTEs", "Indexes & Query Optimization", "Stored Procedures", "Transactions & ACID"],
-  "MongoDB": ["Documents & Collections", "CRUD Operations", "Aggregation Pipeline", "Indexes", "Schema Design", "Mongoose ORM", "Atlas & Cloud Hosting"],
-  "PostgreSQL": ["Advanced SQL", "JSON Support", "Full-Text Search", "Window Functions", "pg_admin", "Transactions", "Replication"],
-  "Firebase": ["Firestore CRUD", "Realtime Database", "Authentication", "Cloud Functions", "Hosting", "Security Rules", "Firebase Analytics"],
-  "Redis": ["Key-Value Store", "Data Types (Lists, Sets, Hashes)", "Pub/Sub", "Caching Strategies", "TTL & Expiry", "Redis Cluster", "Lua Scripting"],
-  // ---------- Mobile ----------
-  "Android Development": ["Android Studio Setup", "Activities & Intents", "Layouts & Views", "RecyclerView", "Navigation Component", "Retrofit & APIs", "Room Database", "Push Notifications"],
-  "iOS Development": ["Xcode & Swift Basics", "UIKit Views", "Auto Layout", "Navigation Controllers", "URLSession", "Core Data", "SwiftUI Introduction", "App Store Submission"],
-  "Flutter": ["Dart Basics", "Widgets (Stateless & Stateful)", "Navigation & Routing", "State Management (Provider, Riverpod)", "REST API Integration", "Local Storage", "Publishing to Stores"],
-  "React Native": ["JSX in RN", "Core Components (View, Text, FlatList)", "Navigation (React Navigation)", "State with Redux/Context", "Native Modules", "Expo framework", "Animations"],
-  // ---------- Cybersecurity ----------
-  "Cybersecurity": ["Networking Fundamentals", "CIA Triad", "OWASP Top 10", "Cryptography Basics", "Penetration Testing Intro", "Firewalls & IDS", "Incident Response"],
-  "Ethical Hacking": ["Reconnaissance", "Scanning & Enumeration", "Exploitation (Metasploit)", "Web App Testing (Burp Suite)", "Privilege Escalation", "Post Exploitation", "Report Writing"],
-  "Network Security": ["OSI Model", "TCP/IP Stack", "Wireshark Analysis", "VPNs & Firewalls", "IDS/IPS Systems", "SSL/TLS", "Zero Trust Architecture"],
-  // ---------- Other ----------
-  "Git & Version Control": ["Git Basics (init, add, commit)", "Branching & Merging", "Remote Repositories", "Pull Requests & Code Review", "Git Rebase & Cherry Pick", "Git Hooks", "GitFlow Workflow"],
-  "UI/UX Design": ["Design Thinking", "Wireframing", "Prototyping (Figma)", "User Research", "Usability Testing", "Design Systems", "Accessibility Principles"],
-  "Blockchain": ["Blockchain Fundamentals", "Cryptography in Blockchain", "Smart Contracts (Solidity)", "Ethereum & EVM", "DeFi Concepts", "NFTs", "Web3.js / Ethers.js"],
-  "System Design": ["Scalability Concepts", "Load Balancing", "Caching Strategies", "Database Sharding", "Microservices Architecture", "Message Queues", "CAP Theorem"],
-  "Competitive Programming": ["Time & Space Complexity", "Sorting Algorithms", "Graph Algorithms", "Dynamic Programming", "Greedy Techniques", "Segment Trees & BITs", "Contest Strategy"],
-  "Cloud Computing": ["IaaS / PaaS / SaaS", "Virtualisation", "Containers & Serverless", "Cloud Security", "Multi-Cloud Strategy", "Cost Management", "SLA & Availability"],
-};
+// Handled via imports from ./data/careerData
+
 
 // Skill aliases for smart search
-const SKILL_ALIASES = {
-  "js": ["JavaScript", "Node.js", "Next.js", "React", "Vue.js", "Angular"],
-  "ts": ["TypeScript"],
-  "py": ["Python"],
-  "ml": ["Machine Learning", "Deep Learning", "NLP (Natural Language Processing)", "Computer Vision", "AI"],
-  "ai": ["AI", "Machine Learning", "Deep Learning", "NLP (Natural Language Processing)", "Computer Vision"],
-  "dl": ["Deep Learning"],
-  "nlp": ["NLP (Natural Language Processing)"],
-  "cv": ["Computer Vision"],
-  "ds": ["Data Science", "Data Analysis", "Data Structures & Algorithms"],
-  "dsa": ["Data Structures & Algorithms"],
-  "css": ["HTML & CSS", "Web Development"],
-  "html": ["HTML & CSS", "Web Development"],
-  "node": ["Node.js"],
-  "next": ["Next.js"],
-  "vue": ["Vue.js"],
-  "ng": ["Angular"],
-  "rn": ["React Native"],
-  "gcp": ["Google Cloud Platform"],
-  "k8s": ["Kubernetes"],
-  "devops": ["DevOps", "CI/CD", "Docker", "Kubernetes", "Linux"],
-  "security": ["Cybersecurity", "Ethical Hacking", "Network Security"],
-  "hack": ["Ethical Hacking", "Cybersecurity"],
-  "android": ["Android Development", "Kotlin", "Flutter", "React Native"],
-  "ios": ["iOS Development", "Swift", "Flutter"],
-  "mobile": ["Android Development", "iOS Development", "Flutter", "React Native"],
-  "database": ["SQL", "MongoDB", "PostgreSQL", "Firebase", "Redis"],
-  "db": ["SQL", "MongoDB", "PostgreSQL", "Firebase", "Redis"],
-  "cloud": ["AWS (Amazon Web Services)", "Azure", "Google Cloud Platform", "Cloud Computing", "Docker", "Kubernetes"],
-  "aws": ["AWS (Amazon Web Services)"],
-  "blockchain": ["Blockchain"],
-  "web3": ["Blockchain"],
-  "design": ["UI/UX Design"],
-  "ux": ["UI/UX Design"],
-  "backend": ["Node.js", "Python", "Java", "Go (Golang)", "SQL", "MongoDB", "PostgreSQL", "Docker", "Redis"],
-  "frontend": ["React", "Vue.js", "Angular", "Next.js", "HTML & CSS", "JavaScript", "TypeScript"],
-  "fullstack": ["React", "Node.js", "Next.js", "MongoDB", "SQL", "Web Development", "Docker"],
-  "competitive": ["Competitive Programming", "Data Structures & Algorithms", "C++"],
-  "system": ["System Design", "DevOps", "Cloud Computing", "Linux"],
-  "git": ["Git & Version Control", "DevOps"],
-};
 
-const MOCK_COMPETITIONS = [
-  // ---- Hackathons ----
-  { id: 1, title: "Smart India Hackathon (SIH)", category: "hackathon", org: "Ministry of Education", domain: "All Domains", desc: "India's largest national-level hackathon. Teams solve government problem statements across 36 hours.", tags: ["hack", "sih", "government", "national"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
-  { id: 2, title: "HackFest 2026", category: "hackathon", org: "HackFest", domain: "Web Development", desc: "48-hour hackathon focused on building social impact solutions using modern web stack.", tags: ["hack", "web", "social"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2+" },
-  { id: 3, title: "HackCBS", category: "hackathon", org: "Shaheed Sukhdev College", domain: "Open Innovation", desc: "Delhi's biggest student-run hackathon with 36 hours of hacking.", tags: ["hack", "delhi", "student"], status: "Closed", eventType: "Offline", payment: "Paid", teamSize: "2+" },
-  { id: 4, title: "MLH Global Hack Week", category: "hackathon", org: "Major League Hacking", domain: "Open Source & Tech", desc: "Week-long themed hacking events run by MLH covering diverse tech topics.", tags: ["hack", "mlh", "open source"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 5, title: "AngelHack Global Hackathon", category: "hackathon", org: "AngelHack", domain: "FinTech & Startup", desc: "Global series with prizes for the most innovative startup ideas and prototypes.", tags: ["hack", "startup", "fintech", "global"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2" },
-  { id: 6, title: "StackHack", category: "hackathon", org: "HackerEarth", domain: "Full Stack Development", desc: "Online hackathon for full-stack engineers with real-world problem statements.", tags: ["hack", "fullstack", "hackerearth"], status: "Expired", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 7, title: "Google Solution Challenge", category: "hackathon", org: "Google", domain: "Social Impact + AI", desc: "Build solutions for UN Sustainable Development Goals using Google technology.", tags: ["hack", "google", "sdg", "ai"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2+" },
-  { id: 8, title: "Microsoft Imagine Cup", category: "hackathon", org: "Microsoft", domain: "Innovation", desc: "Global student technology competition. Build innovative tech projects across AI, gaming, mixed reality.", tags: ["hack", "microsoft", "global", "student"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
-  { id: 9, title: "ETHIndia", category: "hackathon", org: "ETHIndia", domain: "Blockchain / Web3", desc: "India's largest Ethereum hackathon for building decentralised applications.", tags: ["hack", "blockchain", "web3", "ethereum"], status: "Closed", eventType: "Offline", payment: "Paid", teamSize: "2+" },
-  { id: 10, title: "Devfolio Hackathons", category: "hackathon", org: "Devfolio", domain: "Open Innovation", desc: "Hundreds of college and online hackathons hosted on India's largest hackathon platform.", tags: ["hack", "devfolio", "india", "college"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2+" },
-  { id: 11, title: "NASA Space Apps Challenge", category: "hackathon", org: "NASA", domain: "Space & Science", desc: "Global hackathon where participants solve space-related challenges using NASA open data.", tags: ["hack", "nasa", "space", "science", "global"], status: "Recent", eventType: "Hybrid", payment: "Free", teamSize: "2+" },
-  { id: 12, title: "HackaHealth", category: "hackathon", org: "HackaHealth", domain: "HealthTech", desc: "Healthcare-focused hackathon focused on using technology to solve health challenges.", tags: ["hack", "health", "healthcare"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
-  { id: 13, title: "Fintech Hackathon by RBI", category: "hackathon", org: "Reserve Bank of India", domain: "FinTech", desc: "Regulator-run hackathon focused on next-gen financial technology solutions for India.", tags: ["hack", "fintech", "rbi", "finance"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
-  { id: 14, title: "HackThis Fall", category: "hackathon", org: "HackThis Fall", domain: "Open Source", desc: "Inclusivity-first 36-hour online hackathon open to students from all backgrounds.", tags: ["hack", "open source", "online", "beginner"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "1" },
-  // ---- Coding Contests ----
-  { id: 15, title: "Google Kick Start", category: "coding", org: "Google", domain: "Competitive Programming", desc: "Online algorithmic competition in multiple rounds; gateway to Google hiring.", tags: ["code", "coding", "google", "competitive", "algorithm"], status: "Expired", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 16, title: "Google Code Jam", category: "coding", org: "Google", domain: "Competitive Programming", desc: "Google's flagship coding competition testing algorithms, mathematics and problem solving.", tags: ["code", "coding", "google", "competitive"], status: "Expired", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 17, title: "ACM ICPC (International Collegiate Programming Contest)", category: "coding", org: "ACM/ICPC Foundation", domain: "Competitive Programming", desc: "World's most prestigious team programming contest for university students.", tags: ["code", "coding", "icpc", "acm", "competitive", "university"], status: "Live", eventType: "Offline", payment: "Paid", teamSize: "2+" },
-  { id: 18, title: "Codeforces Rounds", category: "coding", org: "Codeforces", domain: "Competitive Programming", desc: "Regular rated competitive programming rounds with Div 1, 2, 3 and 4 categories.", tags: ["code", "coding", "codeforces", "competitive", "algorithm"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 19, title: "LeetCode Weekly Contest", category: "coding", org: "LeetCode", domain: "Problem Solving", desc: "Weekly algorithmic problem-solving contests with global leaderboard rankings.", tags: ["code", "coding", "leetcode", "algorithm", "interview"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 20, title: "CodeChef Starters & Long Challenge", category: "coding", org: "CodeChef", domain: "Competitive Programming", desc: "Monthly and weekly competitive programming contests on CodeChef platform.", tags: ["code", "coding", "codechef", "competitive"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 21, title: "AtCoder Grand/Regular Contests", category: "coding", org: "AtCoder", domain: "Competitive Programming", desc: "High-quality algorithmic contests popular among competitive programmers globally.", tags: ["code", "coding", "atcoder", "competitive", "algorithm"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 22, title: "Facebook Hacker Cup", category: "coding", org: "Meta", domain: "Competitive Programming", desc: "Meta's annual open programming competition testing complex algorithmic problem solving.", tags: ["code", "coding", "meta", "facebook", "competitive"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 23, title: "HackerEarth Circuits", category: "coding", org: "HackerEarth", domain: "Competitive Programming", desc: "Monthly competitive programming contest with full solutions and editorials.", tags: ["code", "coding", "hackerearth", "competitive"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  // ---- Olympiads ----
-  { id: 24, title: "Indian Informatics Olympiad (INOI)", category: "olympiad", org: "IARCS", domain: "Informatics / CS", desc: "National informatics olympiad pathways to represent India at IOI. Key stages: ZCO, ZRCO, INOI.", tags: ["olympiad", "informatics", "iarcs", "national", "cs"], status: "Recent", eventType: "Offline", payment: "Paid", teamSize: "1" },
-  { id: 25, title: "International Olympiad in Informatics (IOI)", category: "olympiad", org: "IOI", domain: "Informatics / CS", desc: "Most prestigious international olympiad for secondary school students in computer science & algorithms.", tags: ["olympiad", "informatics", "ioi", "international", "cs"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
-  { id: 26, title: "International Mathematical Olympiad (IMO)", category: "olympiad", org: "IMO", domain: "Mathematics", desc: "World's oldest and most prestigious maths olympiad for pre-university students.", tags: ["olympiad", "maths", "mathematics", "imo", "international"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
-  { id: 27, title: "Indian National Mathematical Olympiad (INMO)", category: "olympiad", org: "HBCSE", domain: "Mathematics", desc: "Stage 3 of the Indian Olympiad pathway leading to IMO selection for Indian students.", tags: ["olympiad", "maths", "mathematics", "inmo", "national"], status: "Recent", eventType: "Offline", payment: "Free", teamSize: "1" },
-  { id: 28, title: "Regional Mathematical Olympiad (RMO)", category: "olympiad", org: "HBCSE", domain: "Mathematics", desc: "State-level maths olympiad. Top scorers advance to INMO.", tags: ["olympiad", "maths", "mathematics", "rmo", "regional"], status: "Expired", eventType: "Offline", payment: "Free", teamSize: "1" },
-  { id: 29, title: "International Physics Olympiad (IPhO)", category: "olympiad", org: "IPhO", domain: "Physics", desc: "International competition for secondary school students in physics.", tags: ["olympiad", "physics", "ipho", "international", "science"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
-  { id: 30, title: "National Standard Examination (NSE)", category: "olympiad", org: "IAPT / HBCSE", domain: "Physics / Chemistry / Bio", desc: "Entry level Indian olympiad exams (NSEP, NSEC, NSEB, NSEA) pathways to international olympiads.", tags: ["olympiad", "nse", "nsep", "nsec", "nseb", "science", "national"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
-  { id: 31, title: "International Olympiad on Astronomy & Astrophysics (IOAA)", category: "olympiad", org: "IOAA", domain: "Astronomy", desc: "International olympiad for high school students in astronomy and astrophysics.", tags: ["olympiad", "astronomy", "ioaa", "international", "science"], status: "Recent", eventType: "Offline", payment: "Free", teamSize: "1" },
-  { id: 32, title: "International AI Olympiad (IOAI)", category: "olympiad", org: "IOAI", domain: "Artificial Intelligence", desc: "Emerging international olympiad testing knowledge of AI, ML and data science concepts.", tags: ["olympiad", "ai", "artificial intelligence", "ioai", "international", "ml"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "1" },
-  // ---- Data Science / ML ----
-  { id: 33, title: "Kaggle Featured Competitions", category: "data", org: "Kaggle", domain: "Data Science / ML", desc: "Ongoing machine learning competitions on Kaggle with prizes up to $100,000.", tags: ["kaggle", "data", "ml", "machine learning", "ai"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 34, title: "Analytics Vidhya Datathon", category: "data", org: "Analytics Vidhya", domain: "Data Science", desc: "Indian data science competitions across beginner to expert levels with leaderboards.", tags: ["data", "analytics", "datathon", "india", "ml"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 35, title: "Zindi Africa ML Challenge", category: "data", org: "Zindi", domain: "Machine Learning", desc: "Data science competitions focused on African societal problems with real datasets.", tags: ["data", "ml", "machine learning", "zindi", "africa"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 36, title: "DrivenData ML for Good", category: "data", org: "DrivenData", domain: "Social Impact + ML", desc: "Machine learning competitions targeting social good, humanitarian and environmental problems.", tags: ["data", "ml", "social", "drivendata", "good"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 37, title: "NeurIPS ML4Science Challenge", category: "data", org: "NeurIPS", domain: "AI Research", desc: "Machine learning for science challenges associated with the NeurIPS conference.", tags: ["data", "ml", "ai", "neurips", "research", "science"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2+" },
-  // ---- AI / Design / Business ----
-  { id: 38, title: "Adobe Design Challenge", category: "design", org: "Adobe", domain: "UI/UX Design", desc: "Global design competition where students create innovative solutions using Adobe creative tools.", tags: ["design", "adobe", "uiux", "creative", "global"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 39, title: "Figma Config Design Challenge", category: "design", org: "Figma", domain: "Product Design", desc: "Annual design challenge by Figma celebrating innovative interface and product design.", tags: ["design", "figma", "ux", "product"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 40, title: "Microsoft AI Skills Challenge", category: "ai", org: "Microsoft", domain: "Artificial Intelligence", desc: "Learn AI and get certified; earn rewards by completing Microsoft learning paths.", tags: ["ai", "microsoft", "azure", "certification", "ml"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 41, title: "IEEE Xtreme Programming Competition", category: "coding", org: "IEEE", domain: "Competitive Programming", desc: "24-hour online programming competition open to IEEE student members worldwide.", tags: ["code", "coding", "ieee", "competitive", "24 hour"], status: "Recent", eventType: "Online", payment: "Free", teamSize: "2+" },
-  { id: 42, title: "Goldman Sachs Global Investment Research Challenge", category: "business", org: "Goldman Sachs", domain: "Finance & Strategy", desc: "Teams build investment cases and present to GS professionals. Great for finance aspirants.", tags: ["business", "finance", "goldman", "sachs", "investment"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2" },
-  { id: 43, title: "CFA Institute Research Challenge", category: "business", org: "CFA Institute", domain: "Finance / Investment", desc: "Global equity research competition providing students with hands-on mentoring by CFA charterholders.", tags: ["business", "finance", "cfa", "investment", "research"], status: "Live", eventType: "Offline", payment: "Free", teamSize: "2+" },
-  { id: 44, title: "Topcoder Open", category: "coding", org: "Topcoder", domain: "Competitive Programming", desc: "Annual open competition covering algorithm, development and design tracks.", tags: ["code", "coding", "topcoder", "competitive", "algorithm"], status: "Live", eventType: "Online", payment: "Free", teamSize: "1" },
-  { id: 45, title: "Open Data Science Competition (ODSC)", category: "data", org: "ODSC", domain: "Data Science", desc: "Competitions tied to ODSC conferences across data science, ML and AI domains.", tags: ["data", "odsc", "ml", "ai", "conference"], status: "Live", eventType: "Online", payment: "Free", teamSize: "2" },
-];
+// Skill aliases handled via data/careerData
 
-const MOCK_INTERNSHIPS = [
-  // ---- Big Tech ----
-  { id: 101, org: "Google", title: "Google Summer of Code (GSoC)", domain: "Open Source", desc: "3-month paid programme to work on open source projects mentored by Google engineers.", duration: "3 months", stipend: "₹60,000+/mo", tags: ["google", "open source", "coding", "paid", "summer"], location: "Remote", workType: "Work from Home", role: "Open Source", datePosted: "2024-03-20" },
-  { id: 102, org: "Google", title: "Google STEP Internship", domain: "Software Engineering", desc: "Student Training in Engineering Program for 1st and 2nd year CS students at Google.", duration: "3 months", stipend: "Paid (competitive)", tags: ["google", "engineering", "student", "first year"], location: "Bangalore", workType: "In Office", role: "SDE", datePosted: "2024-03-18" },
-  { id: 103, org: "Google", title: "Google Research Internship", domain: "AI / Research", desc: "Research internships across Google Brain, DeepMind and Google Research labs.", duration: "3–6 months", stipend: "Paid", tags: ["google", "research", "ai", "deepmind", "ml"], location: "Hyderabad", workType: "Hybrid", role: "AI Research", datePosted: "2024-03-15" },
-  { id: 104, org: "Microsoft", title: "Microsoft Explore Internship", domain: "Software Engineering", desc: "Internship for freshmen/sophomore students exploring PM, design, and engineering.", duration: "12 weeks", stipend: "Paid (competitive)", tags: ["microsoft", "engineering", "explore", "pm", "student"], location: "Hyderabad", workType: "In Office", role: "Product Management", datePosted: "2024-03-12" },
-  { id: 105, org: "Microsoft", title: "Microsoft Azure Cloud Internship", domain: "Cloud Computing", desc: "Work on Azure services, cloud infrastructure and enterprise software at Microsoft.", duration: "3 months", stipend: "Paid", tags: ["microsoft", "azure", "cloud", "infra"], location: "Bangalore", workType: "Hybrid", role: "Cloud Engineering", datePosted: "2024-03-10" },
-  { id: 106, org: "Microsoft", title: "Microsoft Research Asia Internship", domain: "AI / Research", desc: "Research internship at MSRA on topics including NLP, CV, Distributed Systems, and Security.", duration: "3–6 months", stipend: "Paid", tags: ["microsoft", "research", "ai", "nlp", "asia"], location: "Remote", workType: "Work from Home", role: "Applied AI", datePosted: "2024-03-08" },
-  { id: 107, org: "Amazon", title: "Amazon SDE Internship", domain: "Software Development", desc: "Build real features at Amazon with a team. Work on AWS, Alexa, or Amazon retail.", duration: "3 months", stipend: "Paid (competitive)", tags: ["amazon", "sde", "aws", "software", "engineering"], location: "Pune", workType: "In Office", role: "SDE", datePosted: "2024-03-05" },
-  { id: 108, org: "Amazon", title: "AWS Solutions Architect Intern", domain: "Cloud Computing", desc: "Design and implement cloud solutions for AWS customers as a Solutions Architect intern.", duration: "3 months", stipend: "Paid", tags: ["amazon", "aws", "cloud", "architect", "solutions"], location: "Mumbai", workType: "Hybrid", role: "Cloud Solutions", datePosted: "2024-03-02" },
-  { id: 109, org: "Meta", title: "Meta Software Engineer Internship", domain: "Software Engineering", desc: "Work on Facebook, Instagram, WhatsApp or Oculus products as a software engineering intern.", duration: "12 weeks", stipend: "Paid (competitive)", tags: ["meta", "facebook", "instagram", "engineering", "software"], location: "Remote", workType: "Work from Home", role: "SDE", datePosted: "2024-03-01" },
-  { id: 110, org: "Apple", title: "Apple iOS Engineering Internship", domain: "iOS Development", desc: "Contribute to iOS, macOS, watchOS platforms and first-party apps at Apple.", duration: "3 months", stipend: "Paid", tags: ["apple", "ios", "swift", "engineering", "mac"], location: "Hyderabad", workType: "In Office", role: "iOS Development", datePosted: "2024-02-28" },
-  { id: 111, org: "Netflix", title: "Netflix Engineering Internship", domain: "Software Engineering", desc: "Work on streaming infrastructure, recommendation systems or UX at Netflix.", duration: "3 months", stipend: "Paid (top tier)", tags: ["netflix", "streaming", "engineering", "recommendation", "ml"], location: "Mumbai", workType: "Hybrid", role: "Backend Engineering", datePosted: "2024-02-25" },
-  { id: 112, org: "Adobe", title: "Adobe Research Internship", domain: "AI / Creative Tech", desc: "Work on AI, computer vision and creative technology research at Adobe Research.", duration: "3 months", stipend: "Paid", tags: ["adobe", "research", "ai", "creative", "cv", "design"], location: "Noida", workType: "In Office", role: "Computer Vision", datePosted: "2024-02-22" },
-  { id: 113, org: "Salesforce", title: "Salesforce Intern", domain: "Cloud CRM", desc: "Build and test features for Salesforce CRM platform and ecosystem.", duration: "3 months", stipend: "Paid", tags: ["salesforce", "crm", "cloud", "enterprise", "business"], location: "Hyderabad", workType: "Hybrid", role: "Cloud CRM", datePosted: "2024-02-20" },
-  { id: 114, org: "LinkedIn", title: "LinkedIn Engineering Internship", domain: "Software Engineering", desc: "Work on LinkedIn's professional network platform, search, feed or data infra.", duration: "3 months", stipend: "Paid", tags: ["linkedin", "engineering", "data", "networking", "software"], location: "Bangalore", workType: "In Office", role: "SDE", datePosted: "2024-02-18" },
-  // ---- Indian IT Giants ----
-  { id: 115, org: "TCS", title: "TCS Digital Internship", domain: "IT Services", desc: "Internship in TCS's digital transformation projects covering cloud, AI and automation.", duration: "2–3 months", stipend: "₹10,000–15,000/mo", tags: ["tcs", "india", "it", "digital", "cloud", "automation"], location: "Pune", workType: "In Office", role: "Full Stack", datePosted: "2024-03-24" },
-  { id: 116, org: "TCS", title: "TCS Research & Innovation Internship", domain: "Research", desc: "Work with TCS Research on emerging tech like quantum computing, AI and materials science.", duration: "2–3 months", stipend: "₹15,000/mo", tags: ["tcs", "research", "ai", "quantum", "innovation", "india"], location: "Chennai", workType: "In Office", role: "Research", datePosted: "2024-03-22" },
-  { id: 117, org: "Infosys", title: "Infosys Springboard Internship", domain: "Software Development", desc: "Hands-on internship programme developing enterprise software solutions for Infosys clients.", duration: "2 months", stipend: "₹10,000/mo", tags: ["infosys", "india", "software", "enterprise", "springboard"], location: "Bangalore", workType: "In Office", role: "SDE", datePosted: "2024-03-20" },
-  { id: 118, org: "Wipro", title: "Wipro Turbo Internship", domain: "IT Services", desc: "Turbo track internship at Wipro covering full-stack development and agile methodologies.", duration: "2 months", stipend: "₹10,000/mo", tags: ["wipro", "india", "fullstack", "agile", "it"], location: "Hyderabad", workType: "In Office", role: "Full Stack", datePosted: "2024-03-18" },
-  { id: 119, org: "HCL", title: "HCL TechBee Internship", domain: "IT Services", desc: "Industry-integrated programme with Wipro offering early career tech exposure.", duration: "3 months", stipend: "Stipend provided", tags: ["hcl", "india", "tech", "engineering", "it"], location: "Noida", workType: "In Office", role: "SDE", datePosted: "2024-03-15" },
-  { id: 120, org: "Cognizant", title: "Cognizant Skills Accelerator", domain: "IT & Consulting", desc: "Programme combining skilling, SAP and cloud consulting work for IT services delivery.", duration: "2 months", stipend: "₹8,000–12,000/mo", tags: ["cognizant", "india", "consulting", "sap", "cloud", "it"], location: "Gurgaon", workType: "In Office", role: "Consultant", datePosted: "2024-03-12" },
-  { id: 121, org: "Tech Mahindra", title: "Tech Mahindra SMART Internship", domain: "Digital / IT", desc: "5G, AI, and digital transformation internship at Tech Mahindra's innovation labs.", duration: "2 months", stipend: "₹10,000/mo", tags: ["tech mahindra", "india", "5g", "ai", "digital", "telecom"], location: "Pune", workType: "Hybrid", role: "AI Dev", datePosted: "2024-03-10" },
-  { id: 122, org: "Capgemini", title: "Capgemini Invent Internship", domain: "Consulting / Tech", desc: "Work on digital transformation, strategy and data analytics projects for global clients.", duration: "2 months", stipend: "₹12,000/mo", tags: ["capgemini", "consulting", "digital", "strategy", "india"], location: "Mumbai", workType: "In Office", role: "Consultant", datePosted: "2024-03-08" },
-  // ---- Indian Startups & Unicorns ----
-  { id: 123, org: "Razorpay", title: "Razorpay Engineering Intern", domain: "FinTech", desc: "Work on India's leading payment gateway infrastructure processing billions of transactions.", duration: "3 months", stipend: "₹30,000–50,000/mo", tags: ["razorpay", "fintech", "payments", "engineering", "india", "startup"], location: "Bangalore", workType: "In Office", role: "Backend", datePosted: "2024-03-05" },
-  { id: 124, org: "Zerodha", title: "Zerodha Technology Internship", domain: "FinTech", desc: "Build trading platform features and infra for India's largest stock broker.", duration: "3 months", stipend: "₹25,000–40,000/mo", tags: ["zerodha", "fintech", "trading", "engineering", "india"], location: "Bangalore", workType: "Remote", role: "Full Stack", datePosted: "2024-03-02" },
-  { id: 125, org: "CRED", title: "CRED Product / Engineering Intern", domain: "FinTech / Product", desc: "Work on CRED's financial reward platform used by India's premium credit card holders.", duration: "3 months", stipend: "₹30,000–50,000/mo", tags: ["cred", "fintech", "product", "engineering", "india", "startup"], location: "Bangalore", workType: "In Office", role: "Frontend", datePosted: "2024-03-01" },
-  { id: 126, org: "Meesho", title: "Meesho SDE Internship", domain: "E-Commerce", desc: "Build e-commerce features at Meesho serving tier 2 and 3 Indian cities.", duration: "3 months", stipend: "₹30,000+/mo", tags: ["meesho", "ecommerce", "engineering", "india", "startup"], location: "Bangalore", workType: "In Office", role: "SDE", datePosted: "2024-02-28" },
-  { id: 127, org: "Swiggy", title: "Swiggy Engineering Internship", domain: "Food Tech", desc: "Work on order management, logistics, and restaurant tech at Swiggy's engineering team.", duration: "3 months", stipend: "₹30,000–45,000/mo", tags: ["swiggy", "foodtech", "engineering", "logistics", "india"], location: "Bangalore", workType: "In Office", role: "SDE", datePosted: "2024-02-25" },
-  { id: 128, org: "Zomato", title: "Zomato SDE / Data Internship", domain: "Food Tech / Data", desc: "Build consumer-facing features or work on data science at Zomato's engineering division.", duration: "3 months", stipend: "₹25,000–40,000/mo", tags: ["zomato", "foodtech", "data", "engineering", "india", "startup"], location: "Gurgaon", workType: "In Office", role: "Data Science", datePosted: "2024-02-22" },
-  { id: 129, org: "PhonePe", title: "PhonePe Engineering Intern", domain: "FinTech", desc: "Work on UPI payments, financial services infra and merchant solutions at PhonePe.", duration: "3 months", stipend: "₹30,000–50,000/mo", tags: ["phonepe", "fintech", "upi", "payments", "engineering", "india"], location: "Bangalore", workType: "In Office", role: "SDE", datePosted: "2024-02-20" },
-  { id: 130, org: "Paytm", title: "Paytm Technology Internship", domain: "FinTech", desc: "Join Paytm's tech team working on digital payments, insurance, and lending platforms.", duration: "2–3 months", stipend: "₹20,000–30,000/mo", tags: ["paytm", "fintech", "payments", "technology", "india"], location: "Noida", workType: "In Office", role: "Full Stack", datePosted: "2024-02-18" },
-  { id: 131, org: "Ola", title: "Ola Engineering Internship", domain: "Mobility Tech", desc: "Work on ride-hailing, EV, or maps technology at Ola's engineering team.", duration: "3 months", stipend: "₹25,000–40,000/mo", tags: ["ola", "mobility", "ev", "engineering", "maps", "india"], location: "Bangalore", workType: "Hybrid", role: "SDE", datePosted: "2024-02-15" },
-  { id: 132, org: "Flipkart", title: "Flipkart Engineering Intern", domain: "E-Commerce", desc: "Join Flipkart engineering working on search, recommendations, supply chain or payments.", duration: "3 months", stipend: "₹30,000–50,000/mo", tags: ["flipkart", "ecommerce", "engineering", "india", "recommendations", "walmart"], location: "Bangalore", workType: "In Office", role: "SDE", datePosted: "2024-02-12" },
-  { id: 133, org: "Byju's", title: "Byju's Product Engineering Intern", domain: "EdTech", desc: "Work on learning platforms, content delivery, and student analytics at Byju's.", duration: "2 months", stipend: "₹15,000–25,000/mo", tags: ["byjus", "edtech", "engineering", "education", "india"], location: "Bangalore", workType: "In Office", role: "Product Eng", datePosted: "2024-02-10" },
-  { id: 134, org: "Dunzo", title: "Dunzo Backend Engineering Intern", domain: "Quick Commerce", desc: "Build logistics and hyperlocal delivery systems at Dunzo's quick-commerce platform.", duration: "3 months", stipend: "₹20,000–35,000/mo", tags: ["dunzo", "logistics", "quickcommerce", "backend", "india"], location: "Bangalore", workType: "In Office", role: "Backend", datePosted: "2024-02-08" },
-  // ---- Research & Government ----
-  { id: 135, org: "ISRO", title: "ISRO Student Internship Programme", domain: "Space & Engineering", desc: "Internship at ISRO centres working on satellite, launch vehicle, and space applications.", duration: "2–6 months", stipend: "₹5,000–10,000/mo", tags: ["isro", "space", "research", "government", "engineering", "india"], location: "Bangalore", workType: "In Office", role: "Research", datePosted: "2024-02-05" },
-  { id: 136, org: "DRDO", title: "DRDO Research Internship", domain: "Defence Technology", desc: "Work with DRDO laboratories on defence electronics, AI and embedded systems.", duration: "2 months", stipend: "₹5,000–8,000/mo", tags: ["drdo", "defence", "research", "government", "engineering", "india"], location: "Delhi", workType: "In Office", role: "Research", datePosted: "2024-02-02" },
-  { id: 137, org: "IIT Research", title: "IIT Research Internship (SURGE/SRIP)", domain: "Research", desc: "Summer research programmes (SURGE at IIT Kanpur, SRIP at IIT Bombay) for undergrads.", duration: "2 months", stipend: "₹5,000–15,000/mo", tags: ["iit", "research", "surge", "srip", "india", "academic"], location: "Remote", workType: "Work from Home", role: "Research", datePosted: "2024-02-01" },
-  { id: 138, org: "CSIR", title: "CSIR Research Internship", domain: "Science & Tech Research", desc: "Research opportunities across CSIR labs in chemistry, physics, biology and engineering.", duration: "2–3 months", stipend: "₹5,000–8,000/mo", tags: ["csir", "research", "science", "lab", "government", "india"], location: "Delhi", workType: "In Office", role: "Research", datePosted: "2024-01-25" },
-  { id: 139, org: "NASSCOM", title: "NASSCOM Future Skills Internship", domain: "IT Industry", desc: "Industry-integrated learning programme under NASSCOM with leading IT partner companies.", duration: "3 months", stipend: "Stipend varies", tags: ["nasscom", "it", "india", "skills", "industry", "future"], location: "Noida", workType: "Hybrid", role: "Full Stack", datePosted: "2024-01-20" },
-  // ---- Finance & Consulting ----
-  { id: 140, org: "Goldman Sachs", title: "Goldman Sachs Engineering Internship", domain: "FinTech / Finance", desc: "Work on trading systems, risk platforms and software at Goldman Sachs' tech division.", duration: "10 weeks", stipend: "Paid (top tier)", tags: ["goldman", "sachs", "finance", "fintech", "engineering", "investment"], location: "Bangalore", workType: "In Office", role: "Full Stack", datePosted: "2024-01-15" },
-  { id: 141, org: "Morgan Stanley", title: "Morgan Stanley Technology Internship", domain: "Finance / Tech", desc: "Technology internship at Morgan Stanley working on financial systems and platforms.", duration: "10 weeks", stipend: "Paid", tags: ["morgan", "stanley", "finance", "technology", "investment"], location: "Mumbai", workType: "In Office", role: "Backend", datePosted: "2024-01-10" },
-  { id: 142, org: "JP Morgan", title: "JP Morgan Code For Good Hackathon + Internship", domain: "Finance / Software", desc: "24-hour hackathon with top performers receiving internship offers at JP Morgan.", duration: "10 weeks", stipend: "Paid", tags: ["jpmorgan", "jp morgan", "finance", "software", "hackathon", "investment"], location: "Mumbai", workType: "Hybrid", role: "Full Stack", datePosted: "2024-01-05" },
-  { id: 143, org: "Deutsche Bank", title: "Deutsche Bank Technology Internship", domain: "Finance / Tech", desc: "Tech internship at Deutsche Bank focusing on banking systems, data and APIs.", duration: "10 weeks", stipend: "Paid", tags: ["deutsche", "bank", "finance", "technology", "banking"], location: "Pune", workType: "In Office", role: "Backend", datePosted: "2024-01-01" },
-  { id: 144, org: "Deloitte", title: "Deloitte Technology Consulting Internship", domain: "Consulting / Tech", desc: "Work on digital transformation and enterprise tech consulting projects at Deloitte.", duration: "2 months", stipend: "₹25,000–40,000/mo", tags: ["deloitte", "consulting", "technology", "digital", "enterprise"], location: "Gurgaon", workType: "Hybrid", role: "Consultant", datePosted: "2023-12-25" },
-  { id: 145, org: "Accenture", title: "Accenture Technology Intern", domain: "IT Consulting", desc: "Consulting internship on cloud migration, AI and industry 4.0 with Accenture clients.", duration: "2 months", stipend: "₹15,000–25,000/mo", tags: ["accenture", "consulting", "cloud", "ai", "technology", "industry"], location: "Bangalore", workType: "In Office", role: "Consultant", datePosted: "2023-12-20" },
-  // ---- Other Global Tech ----
-  { id: 146, org: "IBM", title: "IBM Research Internship", domain: "AI / Quantum", desc: "Research internship at IBM Research working on quantum computing, AI and hybrid cloud.", duration: "3 months", stipend: "Paid", tags: ["ibm", "research", "quantum", "ai", "cloud", "computing"], location: "Remote", workType: "Work from Home", role: "Research", datePosted: "2023-12-15" },
-  { id: 147, org: "Intel", title: "Intel Hardware Engineering Internship", domain: "Computer Architecture", desc: "Work on chip design, VLSI, hardware verification, or compiler development at Intel.", duration: "3 months", stipend: "Paid", tags: ["intel", "hardware", "chip", "vlsi", "architecture", "engineering"], location: "Bangalore", workType: "In Office", role: "Hardware Eng", datePosted: "2023-12-12" },
-  { id: 148, org: "Qualcomm", title: "Qualcomm Engineering Internship", domain: "Semiconductor / Mobile", desc: "Work on 5G modems, Snapdragon SoC, AI at the edge and embedded systems at Qualcomm.", duration: "3 months", stipend: "Paid", tags: ["qualcomm", "semiconductor", "5g", "mobile", "engineering", "embedded"], location: "Hyderabad", workType: "In Office", role: "Embedded", datePosted: "2023-12-10" },
-  { id: 149, org: "Cisco", title: "Cisco Network Software Intern", domain: "Networking / Software", desc: "Develop software for routers, switches and security systems at Cisco.", duration: "3 months", stipend: "Paid", tags: ["cisco", "networking", "software", "security", "network", "engineering"], location: "Bangalore", workType: "In Office", role: "Software Eng", datePosted: "2023-12-08" },
-  { id: 150, org: "Oracle", title: "Oracle Cloud Infrastructure Intern", domain: "Cloud / Software", desc: "Work on OCI services, databases, and Java platform engineering at Oracle.", duration: "3 months", stipend: "Paid", tags: ["oracle", "cloud", "database", "java", "oci", "software"], location: "Bangalore", workType: "Hybrid", role: "Cloud Engineering", datePosted: "2023-12-05" },
-  { id: 151, org: "SAP", title: "SAP Labs India Internship", domain: "Enterprise Software", desc: "Build enterprise applications, AI features and HANA database tools at SAP Labs Bangalore.", duration: "6 months", stipend: "₹20,000–30,000/mo", tags: ["sap", "enterprise", "database", "engineering", "india", "erp"], location: "Bangalore", workType: "In Office", role: "Full Stack", datePosted: "2023-12-02" },
-  { id: 152, org: "Uber", title: "Uber Software Engineering Internship", domain: "Mobility / Tech", desc: "Work on maps, pricing, payments or driver experience at Uber's engineering teams.", duration: "3 months", stipend: "Paid (competitive)", tags: ["uber", "mobility", "software", "maps", "engineering", "payments"], location: "Hyderabad", workType: "In Office", role: "SDE", datePosted: "2023-12-01" },
-  { id: 153, org: "Stripe", title: "Stripe Engineering Internship", domain: "Payments / FinTech", desc: "Build global payments infrastructure at Stripe, one of the world's most valuable startups.", duration: "3 months", stipend: "Paid (top tier)", tags: ["stripe", "payments", "fintech", "engineering", "startup", "infrastructure"], location: "Remote", workType: "Work from Home", role: "Backend", datePosted: "2023-11-25" },
-  // ---- Cybersecurity Gaps ----
-  { id: 154, org: "IBM", title: "Cybersecurity Analyst Intern", domain: "Cybersecurity", desc: "Work on threat detection and vulnerability assessment.", duration: "6 months", stipend: "₹25,000/mo", tags: ["ibm", "security", "cyber"], location: "Delhi", workType: "In Office", role: "Cybersecurity", datePosted: "2024-03-15" },
-  { id: 155, org: "Cisco", title: "Network Security Intern", domain: "Cybersecurity", desc: "Focus on firewalls and secure network protocols.", duration: "3 months", stipend: "₹30,000/mo", tags: ["cisco", "security", "networking"], location: "Pune", workType: "Hybrid", role: "Cybersecurity", datePosted: "2024-03-12" },
-  { id: 156, org: "CrowdStrike", title: "Threat Hunting Intern", domain: "Cybersecurity", desc: "Join the elite team tracking global threat actors.", duration: "6 months", stipend: "₹40,000/mo", tags: ["security", "remote", "threat"], location: "Remote", workType: "Work from Home", role: "Cybersecurity", datePosted: "2024-03-10" },
-  { id: 157, org: "Palo Alto Networks", title: "SecOps Intern", domain: "Cybersecurity", desc: "Automating security operations and incident response.", duration: "3 months", stipend: "₹35,000/mo", tags: ["security", "automation", "secops"], location: "Bangalore", workType: "In Office", role: "Cybersecurity", datePosted: "2024-03-08" },
-  { id: 158, org: "McAfee", title: "Cloud Security Intern", domain: "Cybersecurity", desc: "Protecting cloud native applications and infrastructure.", duration: "6 months", stipend: "₹28,000/mo", tags: ["security", "cloud", "mcafee"], location: "Hyderabad", workType: "Hybrid", role: "Cybersecurity", datePosted: "2024-03-05" },
-  // ---- Field Work Gaps ----
-  { id: 159, org: "Airtel", title: "Field Network Engineer Intern", domain: "Telecommunications", desc: "Hands-on experience with 5G infrastructure deployment.", duration: "3 months", stipend: "₹15,000/mo", tags: ["airtel", "field", "5g", "telecom"], location: "Chennai", workType: "Field Work", role: "Cloud Engineering", datePosted: "2024-03-15" },
-  { id: 160, org: "Jio", title: "5G Infrastructure Intern", domain: "Telecommunications", desc: "Optimizing signal coverage and network performance on-site.", duration: "4 months", stipend: "₹18,000/mo", tags: ["jio", "field", "5g"], location: "Mumbai", workType: "Field Work", role: "SDE", datePosted: "2024-03-12" },
-  { id: 161, org: "HCL Tech", title: "On-site IT Support Intern", domain: "IT Services", desc: "Resolving technical issues for enterprise clients at their locations.", duration: "3 months", stipend: "₹12,000/mo", tags: ["hcl", "field", "support"], location: "Noida", workType: "Field Work", role: "Full Stack", datePosted: "2024-03-10" },
-  { id: 162, org: "Siemens", title: "Industrial Automation Intern", domain: "Engineering", desc: "Working on-site to implement smart factory solutions and IoT.", duration: "6 months", stipend: "₹20,000/mo", tags: ["siemens", "field", "iot", "automation"], location: "Gurgaon", workType: "Field Work", role: "Backend", datePosted: "2024-03-08" },
-  { id: 163, org: "L&T Smart World", title: "Smart City Solutions Intern", domain: "Civic Tech", desc: "Field surveys and implementation of smart traffic and surveillance systems.", duration: "4 months", stipend: "₹15,000/mo", tags: ["lnt", "field", "smartcity"], location: "Delhi", workType: "Field Work", role: "Data Science", datePosted: "2024-03-05" },
-  // ---- UI/UX Design Gaps ----
-  { id: 164, org: "Myntra", title: "UI/UX Design Intern", domain: "E-Commerce", desc: "Designing intuitive interfaces for the fashion platform.", duration: "3 months", stipend: "₹30,000/mo", tags: ["myntra", "design", "uiux"], location: "Bangalore", workType: "In Office", role: "UI/UX Design", datePosted: "2024-03-15" },
-  { id: 165, org: "Pharmeasy", title: "Product Design Intern", domain: "HealthTech", desc: "Improving patient experience through better app design.", duration: "3 months", stipend: "₹25,000/mo", tags: ["design", "health"], location: "Mumbai", workType: "Hybrid", role: "UI/UX Design", datePosted: "2024-03-12" },
-  { id: 166, org: "Canva", title: "Visual Design Intern", domain: "Creative Tech", desc: "Create stunning templates and visual assets for millions of users.", duration: "6 months", stipend: "₹45,000/mo", tags: ["canva", "design", "remote"], location: "Remote", workType: "Work from Home", role: "UI/UX Design", datePosted: "2024-03-10" },
-  { id: 167, org: "Figma", title: "Interface Systems Intern", domain: "Design Tools", desc: "Helping build the future of collaborative design tools.", duration: "3 months", stipend: "₹60,000/mo", tags: ["figma", "design", "tooling"], location: "Remote", workType: "Work from Home", role: "UI/UX Design", datePosted: "2024-03-08" },
-  { id: 168, org: "Unacademy", title: "UX Researcher Intern", domain: "EdTech", desc: "Conducting user interviews and mapping student learning journeys.", duration: "3 months", stipend: "₹22,000/mo", tags: ["unacademy", "ux", "research"], location: "Bangalore", workType: "In Office", role: "UI/UX Design", datePosted: "2024-03-05" },
-  // ---- Mobile App Dev Gaps ----
-  { id: 169, org: "Zomato", title: "Mobile App Developer Intern", domain: "Food Tech", desc: "Optimizing the consumer app for better performance and speed.", duration: "3 months", stipend: "₹35,000/mo", tags: ["zomato", "mobile", "ios", "android"], location: "Gurgaon", workType: "In Office", role: "Mobile App Dev", datePosted: "2024-03-15" },
-  { id: 170, org: "Uber", title: "Android Engineering Intern", domain: "Mobility", desc: "Enhancing the driver app with new features and real-time tracking.", duration: "3 months", stipend: "₹50,000/mo", tags: ["uber", "android", "mobile"], location: "Hyderabad", workType: "In Office", role: "Mobile App Dev", datePosted: "2024-03-12" },
-  { id: 171, org: "Dream11", title: "iOS Developer Intern", domain: "Gaming", desc: "Building high-performance features for India's largest fantasy sports app.", duration: "4 months", stipend: "₹40,000/mo", tags: ["dream11", "ios", "mobile"], location: "Mumbai", workType: "Hybrid", role: "Mobile App Dev", datePosted: "2024-03-10" },
-  { id: 172, org: "PhonePe", title: "React Native Developer Intern", domain: "FinTech", desc: "Scaling the merchant app to support millions of small businesses.", duration: "3 months", stipend: "₹30,000/mo", tags: ["phonepe", "mobile", "reactnative"], location: "Bangalore", workType: "Hybrid", role: "Mobile App Dev", datePosted: "2024-03-08" },
-  { id: 173, org: "Nykaa", title: "Mobile UI Intern", domain: "E-Commerce", desc: "Refining the shopping experience on mobile devices.", duration: "3 months", stipend: "₹25,000/mo", tags: ["nykaa", "mobile", "design"], location: "Delhi", workType: "Hybrid", role: "Mobile App Dev", datePosted: "2024-03-05" },
-  // ---- AI & Data Science Gaps ----
-  { id: 174, org: "NVIDIA", title: "Deep Learning Intern", domain: "AI", desc: "Optimizing neural networks for edge computing devices.", duration: "6 months", stipend: "₹60,000/mo", tags: ["nvidia", "ai", "dl"], location: "Bangalore", workType: "In Office", role: "Machine Learning", datePosted: "2024-03-15" },
-  { id: 175, org: "Samsung Research", title: "Computer Vision Intern", domain: "AI", desc: "Working on state-of-the-art image recognition for mobile devices.", duration: "6 months", stipend: "₹40,000/mo", tags: ["samsung", "ai", "cv"], location: "Noida", workType: "In Office", role: "AI Research", datePosted: "2024-03-12" },
-  { id: 176, org: "OpenAI", title: "LLM Research Intern", domain: "AI", desc: "Exploring scaling laws and fine-tuning techniques for large language models.", duration: "6 months", stipend: "₹1,00,000/mo", tags: ["openai", "ai", "llm", "remote"], location: "Remote", workType: "Work from Home", role: "AI Research", datePosted: "2024-03-10" },
-  { id: 177, org: "Ola Electric", title: "Data Scientist Intern (Battery Tech)", domain: "CleanTech", desc: "Predictive maintenance and health monitoring for EV batteries.", duration: "6 months", stipend: "₹35,000/mo", tags: ["ola", "data", "ev"], location: "Bangalore", workType: "Hybrid", role: "Data Science", datePosted: "2024-03-08" },
-  { id: 178, org: "Upstox", title: "Quant Research Intern", domain: "FinTech", desc: "Building mathematical models for algorithmic trading.", duration: "6 months", stipend: "₹45,000/mo", tags: ["upstox", "data", "finance"], location: "Mumbai", workType: "In Office", role: "Data Science", datePosted: "2024-03-05" },
-  // ---- Location Gaps (Delhi, Noida, Gurgaon, Chennai) ----
-  { id: 179, org: "Paytm", title: "Full Stack Developer Intern", domain: "FinTech", desc: "Join the wallet and payments core engineering team.", duration: "3 months", stipend: "₹25,000/mo", tags: ["paytm", "fullstack"], location: "Noida", workType: "In Office", role: "Full Stack", datePosted: "2024-03-15" },
-  { id: 180, org: "PolicyBazaar", title: "Backend Engineer Intern", domain: "InsurTech", desc: "Scaling the microservices architecture for handling peak loads.", duration: "3 months", stipend: "₹20,000/mo", tags: ["pb", "backend"], location: "Gurgaon", workType: "In Office", role: "Backend", datePosted: "2024-03-12" },
-  { id: 181, org: "Zomato", title: "Frontend Engineering Intern", domain: "Food Tech", desc: "Building performant web interfaces for restaurant partners.", duration: "3 months", stipend: "₹30,000/mo", tags: ["zomato", "frontend"], location: "Gurgaon", workType: "In Office", role: "Frontend", datePosted: "2024-03-10" },
-  { id: 182, org: "Freshworks", title: "SDE Intern (Customer Rel)", domain: "SaaS", desc: "Participating in full lifecycle development of CRM modules.", duration: "3 months", stipend: "₹25,000/mo", tags: ["freshworks", "saas", "sde"], location: "Chennai", workType: "In Office", role: "SDE", datePosted: "2024-03-08" },
-  { id: 183, org: "Zoho", title: "Product Management Intern", domain: "SaaS", desc: "Helping define features for the global Zoho workplace suite.", duration: "3 months", stipend: "₹18,000/mo", tags: ["zoho", "pm", "saas"], location: "Chennai", workType: "In Office", role: "Product Management", datePosted: "2024-03-05" },
-  // ---- Additional Gaps for Categories ----
-  { id: 184, org: "SocialSamosa", title: "Social Media Marketing Intern", domain: "Marketing", desc: "Manage social media handles and create engaging content for digital campaigns.", duration: "2 months", stipend: "₹10,000/mo", tags: ["marketing", "social", "digital"], location: "Remote", workType: "Work from Home", role: "Digital Marketing", datePosted: "2024-03-18" },
-  { id: 185, org: "GrowthHackers", title: "Performance Marketing Intern", domain: "AdTech", desc: "Analyze campaign data and optimize ad spends for better ROI.", duration: "3 months", stipend: "₹15,000/mo", tags: ["marketing", "ads", "digital"], location: "Bangalore", workType: "Hybrid", role: "Digital Marketing", datePosted: "2024-03-16" },
-  { id: 186, org: "TeamLease", title: "HR Operations Intern", domain: "Human Resources", desc: "Assist in recruitment, onboarding, and documentation processes.", duration: "3 months", stipend: "₹12,000/mo", tags: ["hr", "operations", "recruitment"], location: "Delhi", workType: "In Office", role: "HR", datePosted: "2024-03-14" },
-  { id: 187, org: "Indeed", title: "Talent Acquisition Intern", domain: "HR Tech", desc: "Support the global hiring team in sourcing and initial screening of candidates.", duration: "2 months", stipend: "₹20,000/mo", tags: ["hr", "recruitment", "talent"], location: "Hyderabad", workType: "Work from Home", role: "HR", datePosted: "2024-03-12" },
-];
 
-const COMP_STATUSES = ["Interested", "Registered", "Ongoing", "Completed", "Won", "Not Selected"];
-const INTERN_STATUSES = ["Interested", "Applied", "Ongoing", "Completed", "Not Selected"];
 
-// Competition category aliases for smart search
-const COMP_ALIASES = {
-  "hack": "hackathon", "hackathon": "hackathon", "hacks": "hackathon", "hackfest": "hackathon",
-  "olympiad": "olympiad", "olympiads": "olympiad", "imo": "olympiad", "ioi": "olympiad",
-  "maths": "olympiad", "math": "olympiad", "mathematics": "olympiad",
-  "code": "coding", "coding": "coding", "competitive": "coding", "algorithm": "coding",
-  "codeforces": "coding", "leetcode": "coding", "codechef": "coding",
-  "data": "data", "kaggle": "data", "datathon": "data", "ml competition": "data",
-  "ai competition": "ai", "design challenge": "design", "design": "design",
-  "business": "business", "finance competition": "business",
-};
+// Mock data handled via careerData.js
 
-const MOCK_ACTIVITY = [
-  { text: "Added Python as learning goal", time: "2 days ago" },
-  { text: "Completed 'Variables & Data Types' in JavaScript", time: "3 days ago" },
-  { text: "Applied for Google Summer of Code", time: "5 days ago" },
-  { text: "Won HackFest 2025", time: "1 week ago" },
-  { text: "Started learning React", time: "2 weeks ago" },
-];
+
+
+// Internship data moved to careerData.js
+
+
+
+// Statuses and activity moved to careerData.js
+
 
 
 
@@ -3480,13 +3222,13 @@ export default function App() {
           onSelectGoal={(goal) => {
             const match = findCareerMatch(goal);
             if (match) setPage(match.route);
-            else setPage("career-guide");
+            else setPage("career-search:" + goal);
           }}
           onBack={() => setPage("profile")}
         />
       )}
       {page?.startsWith("career-search:") && (
-        <CareerSearch
+        <CareerSearchResult
           query={page.replace("career-search:", "")}
           onBack={() => setPage("career-other")}
         />

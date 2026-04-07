@@ -113,5 +113,9 @@ export const trafficAPI = {
   logHeartbeat: (data) => api.post('/admin/traffic/heartbeat', data),
 };
 
+export const careerSearchAPI = {
+  search: (query) => api.get(`/career-search/${encodeURIComponent(query)}`),
+};
+
 
 export default api;

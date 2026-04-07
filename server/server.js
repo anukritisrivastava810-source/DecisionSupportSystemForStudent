@@ -71,6 +71,7 @@ async function startServer() {
     app.use('/api/domain-info', require('./routes/domainInfo'));
     app.use('/api/career-guide', require('./routes/careerGuide'));
     app.use('/api/admin', require('./routes/admin'));
+    app.use('/api/career-search', require('./routes/careerSearch'));
 
     // Health check (Real Readiness)
     app.get('/api/health', (req, res) => {

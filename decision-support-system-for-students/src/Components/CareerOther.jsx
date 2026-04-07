@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ChevronRight, Target } from 'lucide-react';
+import { Search, ChevronRight, Target, ChevronLeft } from 'lucide-react';
 import { CAREER_GOAL_MAP } from '../utils/careerGoalMatcher';
 
 /**
@@ -18,86 +18,142 @@ function CareerOther({ onSearch, onSelectGoal, onBack }) {
   };
 
   return (
-    <div className="page">
-      <div className="container section">
+    <div className="career-other-page fade-in">
+      <div className="container py-5">
         <button
-          className="btn btn-outline mb-6"
-          style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+          className="btn btn-outline-secondary btn-sm mb-4 rounded-pill d-inline-flex align-items-center gap-2"
           onClick={onBack}
         >
-          ← Back
+          <ChevronLeft size={16} /> Back
         </button>
 
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
-          <div className="text-center mb-6">
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.8rem", marginBottom: 8 }}>
-              <Search size={24} style={{ marginRight: 10, verticalAlign: "middle", color: "var(--primary)" }} />
-              Find Your Career Goal
-            </h1>
-            <p className="text-muted">Search for any career path or pick from the list below.</p>
+        <div className="search-hero-container text-center mb-5 mt-2">
+          <div className="search-icon-wrapper mx-auto mb-3 shadow-sm">
+            <Search size={32} className="text-primary" />
           </div>
+          <h1 className="display-6 fw-bold mb-2">Discover Your Future</h1>
+          <p className="text-secondary mx-auto" style={{ maxWidth: '500px' }}>
+            Enter a career path or skill to see a tailored roadmap, required skills, and market insights.
+          </p>
+        </div>
 
+        <div style={{ maxWidth: '720px', margin: '0 auto' }}>
           {/* Search Bar */}
-          <form onSubmit={handleSearch} style={{ display: "flex", gap: 10, marginBottom: 36 }}>
-            <input
-              id="career-other-search-input"
-              className="form-input"
-              type="text"
-              placeholder="e.g. DevOps Engineer, Data Analyst, Blockchain…"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button
-              id="career-other-search-btn"
-              type="submit"
-              className="btn btn-primary"
-              style={{ whiteSpace: "nowrap" }}
-            >
-              <Search size={16} style={{ marginRight: 6 }} />
-              Search
-            </button>
+          <form onSubmit={handleSearch} className="search-container-premium p-2 glass-morphism rounded-pill shadow-lg mb-5">
+            <div className="input-group">
+              <span className="input-group-text bg-transparent border-0 ps-4">
+                <Search size={20} className="text-muted" />
+              </span>
+              <input
+                id="career-other-search-input"
+                className="form-control border-0 bg-transparent py-3"
+                type="text"
+                placeholder="Try 'Blockchain Dev', 'Robotics', or 'UI Designer'..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+              />
+              <button
+                id="career-other-search-btn"
+                type="submit"
+                className="btn btn-primary rounded-pill px-4 ms-2"
+              >
+                Search
+              </button>
+            </div>
           </form>
 
-          {/* Predefined Goals List */}
-          <div className="card">
-            <div className="card-body">
-              <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: "1rem" }}>
-                <Target size={16} style={{ marginRight: 8, verticalAlign: "middle", color: "var(--primary)" }} />
-                Choose a Predefined Goal
-              </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                {CAREER_GOAL_MAP.map((item, i) => (
-                  <button
-                    key={item.title}
-                    id={`career-goal-option-${i}`}
-                    onClick={() => onSelectGoal(item.title)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      borderBottom: "1px solid var(--border)",
-                      padding: "12px 8px",
-                      textAlign: "left",
-                      cursor: "pointer",
-                      color: "var(--text)",
-                      fontSize: "0.9rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      transition: "background 0.15s"
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-section)"}
-                    onMouseLeave={e => e.currentTarget.style.background = "none"}
-                  >
-                    <ChevronRight size={14} style={{ color: "var(--primary)", flexShrink: 0 }} />
-                    {item.title}
-                  </button>
-                ))}
+          {/* Predefined Goals Section */}
+          <div className="goals-section">
+            <div className="d-flex align-items-center gap-2 mb-4">
+              <div className="bg-soft-primary p-2 rounded-3">
+                <Target size={18} className="text-primary" />
               </div>
+              <h5 className="fw-bold mb-0">Popular Career Goals</h5>
+            </div>
+
+            <div className="goals-grid">
+              {CAREER_GOAL_MAP.map((item, i) => (
+                <button
+                  key={item.title}
+                  id={`career-goal-option-${i}`}
+                  onClick={() => onSelectGoal(item.title)}
+                  className="goal-chip d-flex align-items-center justify-content-between p-3"
+                >
+                  <span className="fw-medium">{item.title}</span>
+                  <ChevronRight size={14} className="text-primary" />
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        .career-other-page {
+          background-color: #f8fafc;
+          min-height: 100vh;
+        }
+        .search-icon-wrapper {
+          width: 64px;
+          height: 64px;
+          background: white;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .search-container-premium {
+          background: white;
+          border: 1px solid rgba(0,0,0,0.05);
+          transition: all 0.3s ease;
+        }
+        .search-container-premium:focus-within {
+          box-shadow: 0 10px 30px -10px rgba(var(--primary-rgb), 0.2);
+          border-color: var(--primary-color);
+        }
+        .search-container-premium input:focus {
+          box-shadow: none;
+        }
+        
+        .goals-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 16px;
+        }
+        
+        .goal-chip {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          transition: all 0.2s ease;
+          width: 100%;
+          text-align: left;
+        }
+        .goal-chip:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          border-color: var(--primary-color);
+        }
+        
+        .bg-soft-primary { background: rgba(var(--primary-rgb), 0.1); }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 576px) {
+          .goals-grid {
+            grid-template-columns: 1fr;
+          }
+          .display-6 {
+            font-size: 1.8rem;
+          }
+          .search-hero-container p {
+            font-size: 0.9rem;
+          }
+        }
+      `}</style>
     </div>
   );
 }
