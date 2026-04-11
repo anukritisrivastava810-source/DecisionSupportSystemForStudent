@@ -1,39 +1,56 @@
-/**
- * careerSearchController.js
- * Handles logic for dynamic career data retrieval and generation.
- */
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Simple predefined map for common careers
-const CAREER_DEFINITIONS = {
-  "web development": {
-    domain: "Information Technology",
-    overview: "Web development is the process of building and maintaining websites. It ranges from creating simple plain-text pages to complex web-based applications and social network services.",
-    skills: {
-      technical: ["HTML/CSS", "JavaScript", "React", "Node.js", "SQL/NoSQL"],
-      soft: ["Problem Solving", "Collaboration", "Attention to Detail", "Communication"]
-    },
-    path: [
-      { step: "Frontend Mastery", desc: "Learn HTML, CSS, and modern JS frameworks like React or Vue." },
-      { step: "Backend Core", desc: "Understand server-side logic, APIs, and databases using Node.js or Python." },
-      { step: "Full Stack Integration", desc: "Connect frontend and backend to build complete, functional web applications." }
-    ],
-    scope: { demand: "Very High", growth: "23% projected growth by 2031", compensation: "Highly competitive" }
-  },
-  "data science": {
-    domain: "Data & AI",
-    overview: "Data science combines math and statistics, specialized programming, advanced analytics, and machine learning to uncover actionable insights hidden in an organization's data.",
-    skills: {
-      technical: ["Python/R", "SQL", "Statistics", "Machine Learning", "Data Visualization"],
-      soft: ["Critical Thinking", "Business Acumen", "Interpersonal Skills", "Curiosity"]
-    },
-    path: [
-      { step: "Math Foundations", desc: "Master linear algebra, calculus, and probability." },
-      { step: "Programming for Data", desc: "Become proficient in Python and data libraries like Pandas and Scikit-Learn." },
-      { step: "Model Building", desc: "Learn to design, train, and evaluate machine learning models." }
-    ],
-    scope: { demand: "High", growth: "36% projected growth by 2031", compensation: "Top-tier" }
+/**
+ * Helper to generate data using Gemini if configured
+ */
+async function generateAIPatway(query) {
+  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
+    throw new Error("API_KEY_MISSING");
   }
-};
+
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `
+      Act as a career counselor and academic expert.
+      Generate a detailed career pathway for the profession: "${query}".
+      
+      Return the response in STRICT JSON format exactly matching this schema:
+      {
+        "domain": "Broad industry category",
+        "overview": "Professional 2-3 sentence description of the role.",
+        "skills": {
+          "technical": ["Specific Technical Skill 1", "Specific Technical Skill 2", "Specific Technical Skill 3", "Specific Technical Skill 4", "Specific Technical Skill 5"],
+          "soft": ["Soft Skill 1", "Soft Skill 2", "Soft Skill 3", "Soft Skill 4", "Soft Skill 5"]
+        },
+        "path": [
+          { "step": "Phase Title 1", "desc": "Detailed explanation of what to do in this phase" },
+          { "step": "Phase Title 2", "desc": "Detailed explanation of what to do in this phase" },
+          { "step": "Phase Title 3", "desc": "Detailed explanation of what to do in this phase" }
+        ],
+        "scope": {
+          "demand": "One word demand level (e.g. High)",
+          "growth": "Short growth outlook description",
+          "compensation": "General salary range description"
+        }
+      }
+
+      Do NOT return markdown blocks, only the pure JSON string. Make the output extremely specific to ${query}. Provide no generic or placeholder text.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    // Clean potential markdown code blocks from response
+    const jsonString = text.replace(/```json|```/gi, "").trim();
+    return JSON.parse(jsonString);
+  } catch (err) {
+    console.error("[CareerSearchAI] Failed to generate content:", err.message);
+    throw new Error("GENERATION_FAILED");
+  }
+}
 
 /**
  * GET /api/career-search/:query
@@ -42,46 +59,30 @@ exports.getCareerSearchData = async (req, res) => {
   try {
     const query = req.params.query.toLowerCase().trim();
     
-    // 1. Check if we have a direct match
-    if (CAREER_DEFINITIONS[query]) {
-      return res.json({
-        success: true,
-        title: req.params.query,
-        ...CAREER_DEFINITIONS[query]
+    console.log(`[CareerSearch] Initiating dynamic generation for: "${query}"`);
+    
+    // 1. Force AI Generation for ALL queries
+    const aiData = await generateAIPatway(query);
+    
+    return res.json({
+      success: true,
+      title: query.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      ...aiData
+    });
+
+  } catch (error) {
+    console.error("[CareerSearchController] Error:", error.message);
+    
+    if (error.message === "API_KEY_MISSING") {
+      return res.status(503).json({
+        success: false,
+        message: "Dynamic career generation requires the GEMINI_API_KEY environment variable. Please configure it to explore this profession."
       });
     }
 
-    // 2. Logic for generic fallback
-    const capitalizedTitle = query.charAt(0).toUpperCase() + query.slice(1);
-    
-    const genericResponse = {
-      success: true,
-      title: capitalizedTitle,
-      domain: "Professional Development",
-      overview: `A career as a ${capitalizedTitle} involves specializing in specific industry techniques and methodologies to deliver high-value outcomes. This role requires a balance of technical expertise and strategic thinking.`,
-      skills: {
-        technical: ["Core Industry Concepts", "Software Proficiency", "Workflow Management", "Quality Assurance"],
-        soft: ["Teamwork", "Problem Solving", "Continuous Learning", "Time Management"]
-      },
-      path: [
-        { step: "Primary Training", desc: "Gain initial certifications and foundational knowledge in this specific field." },
-        { step: "Practical Application", desc: "Apply your skills through internships or entry-level roles to build a robust portfolio." },
-        { step: "Specialization", desc: "Choose a niche area within this career path to deepen your expertise and increase your market value." }
-      ],
-      scope: {
-        demand: "Growing",
-        growth: "Steady increase in demand across global markets.",
-        compensation: "Competitive and based on experience level."
-      }
-    };
-
-    res.json(genericResponse);
-
-  } catch (error) {
-    console.error("[CareerSearchController] Error:", error);
     res.status(500).json({
       success: false,
-      message: "An error occurred while fetching career data."
+      message: "An error occurred while generating data for this career. Please try again."
     });
   }
 };

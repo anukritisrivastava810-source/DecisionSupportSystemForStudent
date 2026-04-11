@@ -77,7 +77,7 @@ function Navbar({ page, setPage, isLoggedIn, onLogout, user }) {
                 onClick={() => { setPage(id); setOpen(false); }}>{label}</button>
             ))}
           </div>
-          <div className="hamburger" onClick={() => setOpen(!open)}>
+          <div className="hamburger" onClick={() => setOpen(!open)} style={{ padding: "10px" }}>
             <span /><span /><span />
           </div>
         </>
@@ -300,8 +300,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
                 <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
               </div>
 
-              {/* Google Sign-up Button */}
-              <div style={{ display: "flex", justifyContent: "center" }}>
+              <div style={{ display: "flex", justifyContent: "center", maxWidth: "100%", overflow: "hidden" }}>
                 <GoogleLogin
                   onSuccess={handleGoogleSignupSuccess}
                   onError={handleGoogleError}
@@ -309,6 +308,7 @@ function WelcomePage({ storedUser, onLogin, onGoSignup, backendOnline }) {
                   shape="rectangular"
                   theme="outline"
                   size="large"
+                  width="100%"
                 />
               </div>
             </div>
@@ -440,9 +440,7 @@ function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
       <div className="container" style={{ paddingTop: 40, paddingBottom: 60 }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <div className="text-center mb-6">
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", marginBottom: 8 }}>
-              {heading}
-            </h1>
+            <h1 className="mb-4">{heading}</h1>
             <p className="text-muted">{subtitle}</p>
           </div>
           <div className="card">
@@ -528,12 +526,11 @@ function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
                   <div />
                 </div>
 
-                {/* Submit */}
-                <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                <div className="flex-gap-responsive" style={{ marginTop: 12 }}>
                   <button className="btn btn-primary btn-lg" style={{ flex: 1 }} onClick={submit}>
                     {btnLabel}
                   </button>
-                  {onCancel && <button className="btn btn-outline" onClick={onCancel}>Cancel</button>}
+                  {onCancel && <button className="btn btn-outline btn-lg" style={{ flex: 1 }} onClick={onCancel}>Cancel</button>}
                 </div>
 
               </div>
@@ -592,7 +589,6 @@ function HomePage({ user }) {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
@@ -644,7 +640,7 @@ function getPersonalizedGuide(user) {
 }
 
 // ==================== DASHBOARD PAGE ====================
-function DashboardPage({ user, learningSkills, opportunities, setPage }) {
+function DashboardPage({ user, learningSkills, opportunities, setPage, setPrevPage }) {
   // eslint-disable-next-line no-unused-vars
   const guide = getPersonalizedGuide(user);
   const completedSkills = learningSkills.filter(s => s.progress === 100);
@@ -674,30 +670,54 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
         <div className="card-grid">
           {/* Domain Focus Card */}
           {user?.primaryDomain && (
-            <div className="stat-card domain-focus-card">
+            <div className="stat-card domain-focus-card" style={{ borderLeft: "4px solid var(--primary)" }}>
               <div className="stat-icon" style={{ background: "rgba(59, 130, 246, 0.1)" }}><Target size={18} style={{ marginRight: "6px", color: "var(--primary)" }} /></div>
-              <div className="stat-value" style={{ color: "var(--primary)", fontSize: "1.2rem" }}>{user.primaryDomain}</div>
-              <div className="stat-label">Primary Domain</div>
-              <button
-                className="know-more-link"
-                onClick={() => { setPage("domain-detail"); }}
-                style={{ backgroundColor: "rgba(59, 130, 246, 0.08)", borderColor: "rgba(59, 130, 246, 0.25)", color: "var(--primary)" }}
-              >
-                Know More →
-              </button>
+              <div className="stat-value" style={{ color: "var(--primary)" }}>{user.primaryDomain}</div>
+              <div className="stat-label" style={{ textTransform: "uppercase", fontSize: "0.7rem", fontWeight: "700", letterSpacing: "0.05em", opacity: 0.8 }}>Primary Domain</div>
+              
+                <div style={{ marginTop: "auto" }}>
+                  <button 
+                    className="know-more-link" 
+                    onClick={() => {
+                      if (user.primaryDomain === "Other") {
+                        setPrevPage("dashboard");
+                        setPage("career-other");
+                        return;
+                      }
+                      const match = findCareerMatch(user.primaryDomain);
+                      setPrevPage("dashboard");
+                      if (match) {
+                        setPage("domain-detail:" + match.title);
+                      } else {
+                        setPage("domain-detail:" + user.primaryDomain);
+                      }
+                    }} 
+                    style={{ 
+                      backgroundColor: "rgba(59, 130, 246, 0.08)", 
+                      borderColor: "rgba(59, 130, 246, 0.25)", 
+                      color: "var(--primary)", 
+                      width: "100%",
+                      fontWeight: "600"
+                    }}
+                  >
+                    {user.primaryDomain === "Other" ? "Explore Other Paths" : "View Domain Details →"}
+                  </button>
+                </div>
             </div>
           )}
 
           {/* Career Goal Card */}
-          <div className="stat-card career-goal-card">
+          <div className="stat-card career-goal-card" style={{ borderLeft: "4px solid #D97706" }}>
             <div className="stat-icon" style={{ background: "#FFFBEB" }}><Briefcase size={18} style={{ marginRight: "6px", color: "#D97706" }} /></div>
-            <div className="stat-value" style={{ color: "#D97706", fontSize: "1.1rem" }}>
+            <div className="stat-value" style={{ color: "#D97706" }}>
               {careerGoalTitle.length > 20 ? careerGoalTitle.substring(0, 18) + "..." : careerGoalTitle}
             </div>
-            <div className="stat-label">Career Goal</div>
-            <button className="know-more-link" onClick={() => setPage("career-guide")} style={{ backgroundColor: "rgba(217, 119, 6, 0.08)", borderColor: "rgba(217, 119, 6, 0.25)", color: "#D97706" }}>
-              View my guide →
-            </button>
+            <div className="stat-label" style={{ textTransform: "uppercase", fontSize: "0.7rem", fontWeight: "700", letterSpacing: "0.05em", opacity: 0.8 }}>Career Goal</div>
+            <div style={{ marginTop: "auto" }}>
+              <button className="know-more-link" onClick={() => setPage("career-guide")} style={{ backgroundColor: "rgba(217, 119, 6, 0.08)", borderColor: "rgba(217, 119, 6, 0.25)", color: "#D97706", width: "100%" }}>
+                View Personalized Guide →
+              </button>
+            </div>
           </div>
 
           {/* Overall Progress Card */}
@@ -776,7 +796,6 @@ function DashboardPage({ user, learningSkills, opportunities, setPage }) {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
@@ -817,19 +836,134 @@ const FALLBACK_DOMAIN_DATA = {
       { title: "FinTech Applications", description: "Banking portals, payment gateways, and financial dashboards.", icon: "CreditCard" },
     ],
   },
-  "Artificial Intelligence": {
-    description: "Artificial Intelligence enables machines to reason, learn, and perceive. It covers ML, deep learning, NLP, and computer vision — transforming every industry from healthcare to autonomous vehicles.",
+  "App Development": {
+    description: "App Development focuses on creating software for mobile devices (iOS and Android) and desktop platforms. It involves mastering frameworks that deliver high-performance, touch-friendly user experiences.",
     skills: [
-      { name: "Python Programming", level: "Foundation" }, { name: "Machine Learning", level: "Core" },
-      { name: "Deep Learning (TensorFlow/PyTorch)", level: "Advanced" }, { name: "NLP", level: "Specialization" },
-      { name: "Computer Vision", level: "Specialization" }, { name: "MLOps", level: "Advanced" },
-      { name: "Prompt Engineering & LLMs", level: "Emerging" }, { name: "Statistics", level: "Essential" },
+      { name: "Swift / Kotlin", level: "Native Hub" }, { name: "React Native / Flutter", level: "Cross-Platform" },
+      { name: "Mobile UI Design", level: "Core" }, { name: "API Integration", level: "Essential" },
+      { name: "State Management", level: "Intermediate" }, { name: "Firebase / AWS Amplify", level: "Backend" },
     ],
     applications: [
-      { title: "Healthcare Diagnostics", description: "AI models diagnose diseases from medical scans with high accuracy.", icon: "Stethoscope" },
-      { title: "Autonomous Vehicles", description: "Self-driving cars rely on AI perception and control systems.", icon: "Car" },
-      { title: "Conversational AI", description: "Chatbots and virtual assistants that understand natural language.", icon: "MessageSquare" },
-      { title: "Recommendation Systems", description: "Personalised content on Netflix, Spotify and Amazon.", icon: "Target" },
+      { title: "On-Demand Services", description: "Apps like Uber or DoorDash that connect users to real-time services.", icon: "Car" },
+      { title: "Mobile Banking", description: "Secure financial management on the go.", icon: "CreditCard" },
+      { title: "Social Networking", description: "Mobile-first platforms for connection and content sharing.", icon: "MessageSquare" },
+    ],
+  },
+  "Data Science": {
+    description: "Data Science combines statistics, programming, and domain expertise to extract meaningful insights from data. It powers decision-making through predictive modeling and advanced analytics.",
+    skills: [
+      { name: "Python / R", level: "Core" }, { name: "SQL", level: "Database Specialist" },
+      { name: "Statistics & Math", level: "Foundation" }, { name: "Data Visualization", level: "Advanced" },
+      { name: "Pandas & Numpy", level: "Essential" }, { name: "Scikit-Learn", level: "Machine Learning" },
+    ],
+    applications: [
+      { title: "Business Intelligence", description: "Helping companies make data-driven strategic decisions.", icon: "BarChart3" },
+      { title: "Predictive Maintenance", description: "Forecasting equipment failures in manufacturing.", icon: "Settings" },
+      { title: "Customer Analytics", description: "Understanding behavior patterns to drive engagement.", icon: "Users" },
+    ],
+  },
+  "AI / ML": {
+    description: "Artificial Intelligence and Machine Learning enable systems to learn from data. This domain covers everything from neural networks and deep learning to natural language processing and robotics.",
+    skills: [
+      { name: "Deep Learning", level: "Advanced" }, { name: "Neural Networks", level: "Core" },
+      { name: "Natural Language Processing", level: "Specialization" }, { name: "PyTorch / TensorFlow", level: "Tools" },
+      { name: "Algorithm Design", level: "Math-Heavy" }, { name: "MLOps", level: "Infrastructure" },
+    ],
+    applications: [
+      { title: "Healthcare Diagnostics", description: "AI models diagnose diseases from medical scans.", icon: "Stethoscope" },
+      { title: "Autonomous Systems", description: "Self-driving cars and drone navigation.", icon: "Car" },
+      { title: "Generative AI", description: "Creating content, code, and art through models like GPT.", icon: "Cpu" },
+    ],
+  },
+  "Cybersecurity": {
+    description: "Cybersecurity protects systems, networks, and data from digital attacks. It involves ethical hacking, threat detection, and implementing robust security architectures.",
+    skills: [
+      { name: "Ethical Hacking", level: "Core" }, { name: "Network Security", level: "Foundation" },
+      { name: "Cryptography", level: "Advanced" }, { name: "Incident Response", level: "Intermediate" },
+      { name: "Cloud Security", level: "Emerging" }, { name: "Security Auditing", level: "Professional" },
+    ],
+    applications: [
+      { title: "Financial Protection", description: "Securing online banking and preventing fraud.", icon: "Shield" },
+      { title: "Infrastructure Security", description: "Protecting power grids and national communication lines.", icon: "Building" },
+      { title: "Data Privacy", description: "Ensuring compliance with global privacy regulations.", icon: "Database" },
+    ],
+  },
+  "UI/UX Design": {
+    description: "UI/UX Design centers on the human experience with digital products. It blends visual aesthetics with functional usability to create intuitive and delightful interfaces.",
+    skills: [
+      { name: "User Research", level: "Foundation" }, { name: "Wireframing & Prototyping", level: "Core" },
+      { name: "Visual Design", level: "Aesthetic" }, { name: "Figma / Adobe XD", level: "Mastery" },
+      { name: "Interaction Design", level: "Advanced" }, { name: "Accessibility", level: "Essential" },
+    ],
+    applications: [
+      { title: "Consumer Apps", description: "Creating simple, effective interfaces for everyday use.", icon: "Smartphone" },
+      { title: "Enterprise Software", description: "Simplifying complex workflows for professional environments.", icon: "Layers" },
+      { title: "Gaming UI", description: "High-engagement, immersive interface designs.", icon: "Gamepad2" },
+    ],
+  },
+  "Cloud Computing": {
+    description: "Cloud Computing involves delivering computing services over the internet. It focuses on scalability, reliable infrastructure, and high-availability systems on platforms like AWS, Azure, and GCP.",
+    skills: [
+      { name: "AWS / Azure / GCP", level: "Platform Expert" }, { name: "Serverless Architecture", level: "Advanced" },
+      { name: "Cloud Infrastructure", level: "Core" }, { name: "Terraform / IaC", level: "Intermediate" },
+      { name: "Networking", level: "Foundation" }, { name: "Cloud Security", level: "Essential" },
+    ],
+    applications: [
+      { title: "Streaming Services", description: "Delivering high-definition video to millions simultaneously.", icon: "Globe" },
+      { title: "Big Data Processing", description: "Handling massive datasets using cloud-scale compute.", icon: "Database" },
+      { title: "High-Availability Web", description: "Sites that stay up under extreme traffic loads.", icon: "Cloud" },
+    ],
+  },
+  "DevOps": {
+    description: "DevOps bridges the gap between development and operations. It focuses on automation, CI/CD pipelines, and efficient system deployment to accelerate software delivery cycles.",
+    skills: [
+      { name: "CI / CD Pipelines", level: "Core" }, { name: "Docker & Kubernetes", level: "Containerization" },
+      { name: "Infrastructure as Code", level: "Essential" }, { name: "Prometheus / Grafana", level: "Monitoring" },
+      { name: "Shell Scripting", level: "Foundation" }, { name: "Linux Administration", level: "Core" },
+    ],
+    applications: [
+      { title: "Continuous Delivery", description: "Deploying code updates dozens of times a day.", icon: "RefreshCcw" },
+      { title: "Automated Testing", description: "Reducing errors through robust software verification.", icon: "ClipboardList" },
+      { title: "System Reliability", description: "Ensuring uptime and performance across complex fleets.", icon: "Activity" },
+    ],
+  },
+  "Product Management": {
+    description: "Product Management involves leading the end-to-end development of a product. PMs act as the glue between tech, design, and business to ensure product-market fit.",
+    skills: [
+      { name: "Agile & Scrum", level: "Core" }, { name: "Product Roadmap", level: "Strategy" },
+      { name: "Data-Driven Decisions", level: "Advanced" }, { name: "Market Research", level: "Essential" },
+      { name: "Stakeholder Management", level: "Soft Skill" }, { name: "UX Fundamentals", level: "Secondary" },
+    ],
+    applications: [
+      { title: "Product Launch", description: "Taking a concept from prototype to market leader.", icon: "Rocket" },
+      { title: "Feature Prioritization", description: "Maximizing ROI by focusing on high-impact updates.", icon: "Target" },
+      { title: "Startup Growth", description: "Scaling products rapidly to meet market demands.", icon: "TrendingUp" },
+    ],
+  },
+  "Research": {
+    description: "Research in technology dives into unsolved problems. It involves academic rigor, scientific methods, and building new theories or technologies that push industry boundaries.",
+    skills: [
+      { name: "Scientific Writing", level: "Essential" }, { name: "Data Analysis", level: "Core" },
+      { name: "Literature Review", level: "Foundation" }, { name: "Experimental Design", level: "Advanced" },
+      { name: "Presentation Skills", level: "Professional" }, { name: "Statistical Modeling", level: "Core" },
+    ],
+    applications: [
+      { title: "Academic Publications", description: "Contributing to the global body of knowledge.", icon: "BookOpen" },
+      { title: "R&D Labs", description: "Developing next-gen technologies for large corporations.", icon: "Settings" },
+      { title: "Policy Development", description: "Informing government and ethics committees on tech.", icon: "Scale" },
+    ],
+  },
+  "Entrepreneurship": {
+    description: "Entrepreneurship is about building a business from the ground up. In tech, it focuses on identifying gaps, securing funding, and scaling innovative solutions with limited resources.",
+    skills: [
+      { name: "Business Model Design", level: "Core" }, { name: "Pitching & Fundraising", level: "Essential" },
+      { name: "Product Strategy", level: "Advanced" }, { name: "Lean Startup", level: "Foundation" },
+      { name: "Sales & Marketing", level: "Intermediate" }, { name: "Financial Literacy", level: "Essential" },
+    ],
+    applications: [
+      { title: "Unicorn Startups", description: "Building companies valued at over a billion dollars.", icon: "Award" },
+      { title: "Social Impact Venture", description: "Solving world problems through business models.", icon: "Globe" },
+      { title: "Innovation Consulting", description: "Helping established firms adopt startup culture.", icon: "Briefcase" },
     ],
   },
 };
@@ -958,7 +1092,6 @@ function DomainDetailPage({ domain, onBack, backendOnline }) {
           </>
         )}
       </div>
-      <Footer />
     </div>
   );
 }
@@ -970,7 +1103,7 @@ function Flowchart({ data }) {
 
   return (
     <div className="flowchart-container mt-8">
-      <h3 className="section-title mb-10" style={{ textAlign: "center", width: "100%" }}>
+      <h3 className="section-title mb-6" style={{ width: "100%", padding: "0 20px" }}>
         <Activity size={20} style={{ marginRight: 10, color: "var(--primary)" }} /> Visual Strategic Roadmap
       </h3>
       {data.map((node, index) => (
@@ -1221,7 +1354,6 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
           </>
         )}
       </div>
-      <Footer />
     </div>
   );
 }
@@ -1293,7 +1425,9 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
 
     if (backendOnline) {
       try {
-        const res = await skillsAPI.add({ skillName, topics });
+        // Send topics as strings to the backend as expected by the robust controller
+        const apiTopics = MOCK_SKILLS[skillName]; 
+        const res = await skillsAPI.add({ skillName, topics: apiTopics });
         if (res.data?.skill) {
           const syncedSkill = {
             _id: res.data.skill._id,
@@ -1306,51 +1440,55 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
         }
       } catch (err) {
         console.error("Failed to add skill to backend:", err);
-        // Error handling: if backend fails, maybe revert or mark as unsynced
       }
     }
   };
 
   const toggleTopic = async (skillName, topicName) => {
-    let updatedSkill = null;
+    // 1. Find the skill to update from current state
+    const skill = learningSkills.find(s => s.name === skillName);
+    if (!skill) return;
 
-    setLearningSkills(prev => prev.map(s => {
-      if (s.name !== skillName) return s;
-      const topics = s.topics.map(t => {
-        const isDone = t.done !== undefined ? t.done : t.completed;
-        const newDone = t.name === topicName ? !isDone : isDone;
-        return { ...t, done: newDone, completed: newDone };
-      });
-      const doneCount = topics.filter(t => t.done || t.completed).length;
-      const progress = Math.round((doneCount / topics.length) * 100);
+    // 2. Calculate new state immediately to avoid closure/async issues
+    const newTopics = skill.topics.map(t => {
+      const isDone = t.done !== undefined ? t.done : t.completed;
+      const newDone = t.name === topicName ? !isDone : isDone;
+      return { ...t, done: newDone, completed: newDone };
+    });
 
-      updatedSkill = { ...s, topics, progress };
+    const doneCount = newTopics.filter(t => t.done || t.completed).length;
+    const newProgress = Math.round((doneCount / newTopics.length) * 100);
+    const updatedSkill = { ...skill, topics: newTopics, progress: newProgress };
 
-      if (progress === 100 && s.progress < 100) addActivity(`Completed all topics in ${skillName}!`);
-      else if (topics.find(t => t.name === topicName)?.done) addActivity(`Completed "${topicName}" in ${skillName}`);
+    // 3. Optimistic local update
+    setLearningSkills(prev => prev.map(s => s.name === skillName ? updatedSkill : s));
 
-      return updatedSkill;
-    }));
+    // 4. Logs as requested
+    if (newProgress === 100 && skill.progress < 100) {
+      addActivity(`Completed all topics in ${skillName}!`);
+    } else if (newTopics.find(t => t.name === topicName)?.done) {
+      addActivity(`Completed "${topicName}" in ${skillName}`);
+    }
 
-    if (backendOnline && updatedSkill) {
+    // 5. Backend sync using calculated data
+    if (backendOnline && skill._id) {
       try {
-        const existing = learningSkills.find(s => s.name === skillName);
-        if (existing && existing._id) {
-          const apiTopics = updatedSkill.topics.map(t => ({
-            name: t.name,
-            completed: t.done !== undefined ? t.done : t.completed
-          }));
-          const res = await skillsAPI.update(existing._id, { topics: apiTopics });
-          if (res.data?.skill) {
-            const syncedSkill = {
-              _id: res.data.skill._id,
-              name: res.data.skill.skillName,
-              progress: res.data.skill.progress,
-              topics: res.data.skill.topics.map(t => ({ name: t.name, done: t.completed, completed: t.completed })),
-            };
-            setLearningSkills(prev => prev.map(s => s._id === existing._id ? syncedSkill : s));
-            console.log(`[Decision] Skill ${skillName} progress synced: ${res.data.skill.progress}%`);
-          }
+        const apiTopics = newTopics.map(t => ({
+          name: t.name,
+          completed: !!(t.done || t.completed)
+        }));
+        
+        console.log(`[Decision] Syncing ${skillName} progress: ${newProgress}%`);
+        const res = await skillsAPI.update(skill._id, { topics: apiTopics });
+        
+        if (res.data?.skill) {
+          const syncedSkill = {
+            _id: res.data.skill._id,
+            name: res.data.skill.skillName,
+            progress: res.data.skill.progress,
+            topics: res.data.skill.topics.map(t => ({ name: t.name, done: t.completed, completed: t.completed })),
+          };
+          setLearningSkills(prev => prev.map(s => s._id === skill._id ? syncedSkill : s));
         }
       } catch (err) {
         console.error("Failed to update skill on backend:", err);
@@ -1437,7 +1575,6 @@ function DecisionPage({ learningSkills, setLearningSkills, addActivity, addSearc
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 }
@@ -2181,7 +2318,6 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
           setSort={setSortBy}
         />
       )}
-      <Footer />
     </div>
   );
 }
@@ -2289,7 +2425,6 @@ function HistoryPage({ learningSkills, opportunities, searchHistory, activityLog
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
@@ -2690,7 +2825,6 @@ function AdminDashboard({ user, onBack, backendOnline }) {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
@@ -2713,11 +2847,11 @@ function ProfilePage({ user, learningSkills, onEdit, onLogout }) {
     <div className="page">
       <div className="container section">
         <div className="section-header">
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "2rem", marginBottom: 6 }}>My Profile</h1>
+          <h1>My Profile</h1>
           <p className="text-muted">Manage your personal information and track your growth.</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24, alignItems: "start" }}>
+        <div className="profile-layout-grid">
           <div className="card">
             <div className="card-body">
               <div className="flex-between mb-6">
@@ -2761,7 +2895,6 @@ function ProfilePage({ user, learningSkills, onEdit, onLogout }) {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
@@ -2854,6 +2987,7 @@ export default function App() {
   const [backendOnline, setBackendOnline] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [selectedDomain, setSelectedDomain] = useState(null);
+  const [prevPage, setPrevPage] = useState("dashboard"); // Track previous page for Back button
   const trafficLogId = React.useRef(null);
 
 
@@ -3130,6 +3264,7 @@ export default function App() {
           existing={storedUser}
           onSave={handleSaveUser}
           onCancel={() => setPage("welcome")}
+          onGoCareerOther={() => { setPrevPage("signup"); setPage("career-other"); }}
           backendOnline={backendOnline}
         />
       </>
@@ -3155,7 +3290,7 @@ export default function App() {
       <>
 
         <Navbar page="profile" setPage={setPage} isLoggedIn={isLoggedIn} user={storedUser} />
-        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} onGoCareerOther={() => { setIsEditing(false); setPage("career-other"); }} backendOnline={backendOnline} />
+        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} onGoCareerOther={() => { setIsEditing(false); setPrevPage("profile"); setPage("career-other"); }} backendOnline={backendOnline} />
       </>
     );
   }
@@ -3187,9 +3322,9 @@ export default function App() {
         </div>
       )}
       <Navbar {...navProps} />
-      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} onGoCareerOther={() => setPage("career-other")} />}
+      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} onGoCareerOther={() => { setPrevPage("onboarding"); setPage("career-other"); }} />}
       {page === "home" && <HomePage user={storedUser} />}
-      {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} setPage={setPage} />}
+      {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} setPage={setPage} setPrevPage={setPrevPage} />}
       {page === "admin" && (
         <AdminDashboard
           user={storedUser}
@@ -3197,10 +3332,10 @@ export default function App() {
           backendOnline={backendOnline}
         />
       )}
-      {page === "domain-detail" && (
+      {page?.startsWith("domain-detail") && (
         <DomainDetailPage
-          domain={storedUser?.primaryDomain || "Web Development"}
-          onBack={() => setPage("dashboard")}
+          domain={page.includes(":") ? page.split(":")[1] : (storedUser?.primaryDomain || "Web Development")}
+          onBack={() => setPage(prevPage || "dashboard")}
           backendOnline={backendOnline}
         />
       )}
@@ -3221,10 +3356,14 @@ export default function App() {
           }}
           onSelectGoal={(goal) => {
             const match = findCareerMatch(goal);
-            if (match) setPage(match.route);
-            else setPage("career-search:" + goal);
+            if (match) {
+              if (match.route === "domain-detail") setPage("domain-detail:" + match.title);
+              else setPage(match.route);
+            } else {
+              setPage("career-search:" + goal);
+            }
           }}
-          onBack={() => setPage("profile")}
+          onBack={() => setPage(prevPage || "dashboard")}
         />
       )}
       {page?.startsWith("career-search:") && (
@@ -3238,6 +3377,7 @@ export default function App() {
       {page === "opportunities" && <OpportunitiesPage opportunities={opportunities} setOpportunities={setOpportunitiesWithSync} addActivity={addActivity} addSearch={addSearch} backendOnline={backendOnline} />}
       {page === "history" && <HistoryPage learningSkills={learningSkills} opportunities={opportunities} searchHistory={searchHistory} activityLogs={activityLogs} />}
       {page === "profile" && <ProfilePage user={storedUser} learningSkills={learningSkills} onEdit={() => setIsEditing(true)} onLogout={handleLogout} />}
+      <Footer />
     </>
   );
 }

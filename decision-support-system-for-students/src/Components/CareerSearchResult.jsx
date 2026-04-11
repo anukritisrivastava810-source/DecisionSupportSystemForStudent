@@ -33,7 +33,7 @@ const CareerSearchResult = ({ query, onBack }) => {
         }
       } catch (err) {
         console.error("Career search API failed:", err);
-        setError(true);
+        setError(err.response?.data?.message || "An error occurred");
       } finally {
         setIsLoading(false);
       }
@@ -56,8 +56,10 @@ const CareerSearchResult = ({ query, onBack }) => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-vh-100 p-4 text-center">
-        <h3 className="fw-bold mb-3">Something went wrong</h3>
-        <p className="text-secondary mb-4">We couldn't retrieve information for this career search right now.</p>
+        <h3 className="fw-bold mb-3">Generation Failed</h3>
+        <p className="text-secondary mb-4 mx-auto" style={{ maxWidth: '400px' }}>
+          {typeof error === 'string' ? error : "We couldn't retrieve information for this career search right now."}
+        </p>
         <button className="btn btn-primary rounded-pill px-4" onClick={onBack}>
           Try Another Search
         </button>
@@ -83,8 +85,8 @@ const CareerSearchResult = ({ query, onBack }) => {
   }
 
   return (
-    <div className="career-result-page fade-in">
-      <header className="career-header py-3 mb-4 border-bottom glass-morphism sticky-top">
+    <div className="page career-result-page fade-in">
+      <header className="career-header py-3 mb-6 border-bottom glass-morphism sticky-top" style={{ top: 'var(--navbar-h)', zIndex: 100 }}>
         <div className="container d-flex align-items-center justify-content-between">
           <button className="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-2" onClick={onBack}>
             <ChevronLeft size={16} /> <span className="d-none d-sm-inline">Back to Search</span>
@@ -99,8 +101,8 @@ const CareerSearchResult = ({ query, onBack }) => {
         </div>
       </header>
 
-      <div className="container pb-5">
-        <div className="row g-4">
+      <div className="container" style={{ paddingBottom: '100px' }}>
+        <div className="row gy-5 gx-4">
           {/* Overview Section */}
           <div className="col-12 col-lg-8">
             <div className="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
@@ -224,12 +226,9 @@ const CareerSearchResult = ({ query, onBack }) => {
                 <p className="text-white opacity-75 mb-4 mx-auto" style={{ maxWidth: '600px' }}>
                   Explore highly rated courses, open internships, and upcoming competitions specifically curated for aspiring {content.title}s.
                 </p>
-                <div className="d-flex flex-wrap justify-content-center gap-3">
-                  <button className="btn btn-white bg-white text-primary rounded-pill px-5 py-2 fw-bold" onClick={() => onBack()}>
+                <div className="d-flex justify-content-center">
+                  <button className="btn btn-white bg-white text-primary rounded-pill px-5 py-3 fw-bold shadow-sm" onClick={() => onBack()}>
                     Explore Feed
-                  </button>
-                  <button className="btn btn-outline-light rounded-pill px-5 py-2 fw-bold">
-                    Save Pathway
                   </button>
                 </div>
               </div>
@@ -285,7 +284,7 @@ const CareerSearchResult = ({ query, onBack }) => {
           z-index: 2;
         }
         
-        .text-secondary-light { color: #cbd5e1; }
+        .text-secondary-light { color: #94a3b8; }
         .opacity-10 { opacity: 0.1; }
         .z-1 { z-index: 1; }
         

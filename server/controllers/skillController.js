@@ -34,7 +34,10 @@ const addSkill = async (req, res) => {
     const existing = await SkillProgress.findOne({ userId, skillName });
     if (existing) return res.status(400).json({ success: false, message: 'Skill already added.' });
 
-    const topicsList = (topics || []).map(t => ({ name: t, completed: false }));
+    const topicsList = (topics || []).map(t => {
+      if (typeof t === 'string') return { name: t, completed: false };
+      return { name: t.name || t.title, completed: !!t.completed };
+    });
     const skill = await SkillProgress.create({
       userId,
       skillName,

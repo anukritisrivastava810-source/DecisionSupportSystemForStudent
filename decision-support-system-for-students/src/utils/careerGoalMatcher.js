@@ -266,6 +266,65 @@ export const CAREER_GOAL_MAP = [
   },
 ];
 
+/** @type {CareerGoalEntry[]} */
+export const DOMAIN_EXPLORATION_MAP = [
+  {
+    title: "Web Development",
+    route: "domain-detail",
+    aliases: ["web dev", "frontend", "backend", "fullstack", "react", "node"]
+  },
+  {
+    title: "App Development",
+    route: "domain-detail",
+    aliases: ["mobile dev", "android", "ios", "flutter", "react native"]
+  },
+  {
+    title: "Data Science",
+    route: "domain-detail",
+    aliases: ["data analytics", "python for data", "pandas", "data scientist"]
+  },
+  {
+    title: "AI / ML",
+    route: "domain-detail",
+    aliases: ["machine learning", "artificial intelligence", "deep learning", "neural networks"]
+  },
+  {
+    title: "Cybersecurity",
+    route: "domain-detail",
+    aliases: ["ethical hacking", "network security", "infosec", "pentesting"]
+  },
+  {
+    title: "UI/UX Design",
+    route: "domain-detail",
+    aliases: ["product design", "figma", "user experience", "user interface"]
+  },
+  {
+    title: "Cloud Computing",
+    route: "domain-detail",
+    aliases: ["aws", "azure", "gcp", "cloud engineer", "infrastructure"]
+  },
+  {
+    title: "DevOps",
+    route: "domain-detail",
+    aliases: ["ci/cd", "docker", "kubernetes", "platform engineering", "sre"]
+  },
+  {
+    title: "Product Management",
+    route: "domain-detail",
+    aliases: ["pm", "product owner", "agile", "scrum"]
+  },
+  {
+    title: "Research",
+    route: "domain-detail",
+    aliases: ["academic research", "r&d", "phd", "scientific research"]
+  },
+  {
+    title: "Entrepreneurship",
+    route: "domain-detail",
+    aliases: ["startup", "founder", "business", "innovation"]
+  },
+];
+
 /**
  * Find the best matching career goal entry for a given query.
  *
@@ -281,20 +340,22 @@ export function findCareerMatch(query) {
   const q = query.toLowerCase().trim();
   if (!q) return null;
 
+  const ALL_MAPS = [...CAREER_GOAL_MAP, ...DOMAIN_EXPLORATION_MAP];
+
   // Pass 1 — exact title match
-  const exactTitle = CAREER_GOAL_MAP.find(
+  const exactTitle = ALL_MAPS.find(
     item => item.title.toLowerCase() === q
   );
   if (exactTitle) return exactTitle;
 
   // Pass 2 — exact alias match
-  const exactAlias = CAREER_GOAL_MAP.find(
+  const exactAlias = ALL_MAPS.find(
     item => item.aliases.some(a => a.toLowerCase() === q)
   );
   if (exactAlias) return exactAlias;
 
   // Pass 3 — substring: query contains alias OR alias contains query
-  const substring = CAREER_GOAL_MAP.find(item =>
+  const substring = ALL_MAPS.find(item =>
     item.aliases.some(a => {
       const al = a.toLowerCase();
       return q.includes(al) || al.includes(q);
