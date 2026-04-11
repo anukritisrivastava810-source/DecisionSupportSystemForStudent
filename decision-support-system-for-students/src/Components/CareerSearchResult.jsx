@@ -56,7 +56,7 @@ const CareerSearchResult = ({ query, onBack }) => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-vh-100 p-4 text-center">
-        <h3 className="fw-bold mb-3">Generation Failed</h3>
+        <h3 className="fw-bold mb-3">Something Went Wrong</h3>
         <p className="text-secondary mb-4 mx-auto" style={{ maxWidth: '400px' }}>
           {typeof error === 'string' ? error : "We couldn't retrieve information for this career search right now."}
         </p>
@@ -120,31 +120,22 @@ const CareerSearchResult = ({ query, onBack }) => {
             </div>
           </div>
 
-          {/* Market Insights */}
+          {/* Career Opportunities */}
           <div className="col-12 col-lg-4">
             <div className="card h-100 border-0 shadow-sm rounded-4 bg-dark text-white p-4 p-md-5">
               <div className="d-flex align-items-center gap-2 mb-4">
                 <div className="icon-box bg-primary p-2 rounded-3">
                   <TrendingUp size={20} />
                 </div>
-                <h5 className="mb-0 fw-bold">Market Scope</h5>
+                <h5 className="mb-0 fw-bold">Career Opportunities</h5>
               </div>
               <div className="scope-items">
-                <div className="mb-4 d-flex justify-content-between align-items-center">
-                  <span className="text-secondary-light small font-medium">Market Demand</span>
-                  <span className="badge bg-success rounded-pill px-3 py-2">{content.scope.demand}</span>
-                </div>
-                <div className="mb-4">
-                  <p className="small mb-2 text-secondary-light">Growth Trend</p>
-                  <p className="mb-0 fw-medium h6 text-white">{content.scope.growth}</p>
-                </div>
-                <hr className="border-secondary opacity-25" />
-                <div className="mt-4">
-                  <p className="small mb-2 text-secondary-light">Career Trajectory</p>
-                  <div className="progress rounded-pill bg-secondary bg-opacity-25" style={{ height: '8px' }}>
-                    <div className="progress-bar rounded-pill bg-primary progress-bar-striped progress-bar-animated" style={{ width: '85%' }}></div>
+                {content.opportunities?.map((opp, idx) => (
+                  <div key={idx} className="mb-3 d-flex align-items-start gap-2">
+                    <CheckCircle2 size={16} className="text-success flex-shrink-0 mt-1" />
+                    <p className="text-secondary-light mb-0" style={{ fontSize: "0.9rem", lineHeight: "1.5" }}>{opp}</p>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -158,10 +149,10 @@ const CareerSearchResult = ({ query, onBack }) => {
                     <div className="icon-box bg-soft-warning p-2 rounded-3 text-warning">
                       <Layers size={20} />
                     </div>
-                    <h5 className="mb-0 fw-bold">Hard Skills</h5>
+                    <h5 className="mb-0 fw-bold">Required Skills</h5>
                   </div>
                   <div className="d-flex flex-wrap gap-2">
-                    {content.skills.technical.map((skill, idx) => (
+                    {content.skills?.map((skill, idx) => (
                       <span key={idx} className="skill-pill-light d-flex align-items-center gap-2">
                         <CheckCircle2 size={12} className="text-success" /> {skill}
                       </span>
@@ -173,12 +164,12 @@ const CareerSearchResult = ({ query, onBack }) => {
                     <div className="icon-box bg-soft-success p-2 rounded-3 text-success">
                       <Users size={20} />
                     </div>
-                    <h5 className="mb-0 fw-bold">Soft Skills</h5>
+                    <h5 className="mb-0 fw-bold">Tools & Technologies</h5>
                   </div>
                   <div className="d-flex flex-wrap gap-2">
-                    {content.skills.soft.map((skill, idx) => (
+                    {content.tools?.map((tool, idx) => (
                       <span key={idx} className="skill-pill-light d-flex align-items-center gap-2">
-                        <CheckCircle2 size={12} className="text-success" /> {skill}
+                        <CheckCircle2 size={12} className="text-success" /> {tool}
                       </span>
                     ))}
                   </div>
@@ -199,7 +190,7 @@ const CareerSearchResult = ({ query, onBack }) => {
               
               <div className="roadmap-stepper position-relative ps-md-5">
                 <div className="stepper-line" style={{ left: '23px' }}></div>
-                {content.path.map((item, idx) => (
+                {content.roadmap?.map((item, idx) => (
                   <div key={idx} className="stepper-item position-relative mb-5 last-child-mb-0 d-flex">
                     <div className="step-marker-container" style={{ width: '40px', flexShrink: 0 }}>
                       <div className="step-marker rounded-circle shadow-sm border border-2 border-white" style={{ left: '0', position: 'relative' }}>

@@ -1,56 +1,4 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-/**
- * Helper to generate data using Gemini if configured
- */
-async function generateAIPatway(query) {
-  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
-    throw new Error("API_KEY_MISSING");
-  }
-
-  try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `
-      Act as a career counselor and academic expert.
-      Generate a detailed career pathway for the profession: "${query}".
-      
-      Return the response in STRICT JSON format exactly matching this schema:
-      {
-        "domain": "Broad industry category",
-        "overview": "Professional 2-3 sentence description of the role.",
-        "skills": {
-          "technical": ["Specific Technical Skill 1", "Specific Technical Skill 2", "Specific Technical Skill 3", "Specific Technical Skill 4", "Specific Technical Skill 5"],
-          "soft": ["Soft Skill 1", "Soft Skill 2", "Soft Skill 3", "Soft Skill 4", "Soft Skill 5"]
-        },
-        "path": [
-          { "step": "Phase Title 1", "desc": "Detailed explanation of what to do in this phase" },
-          { "step": "Phase Title 2", "desc": "Detailed explanation of what to do in this phase" },
-          { "step": "Phase Title 3", "desc": "Detailed explanation of what to do in this phase" }
-        ],
-        "scope": {
-          "demand": "One word demand level (e.g. High)",
-          "growth": "Short growth outlook description",
-          "compensation": "General salary range description"
-        }
-      }
-
-      Do NOT return markdown blocks, only the pure JSON string. Make the output extremely specific to ${query}. Provide no generic or placeholder text.
-    `;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
-    // Clean potential markdown code blocks from response
-    const jsonString = text.replace(/```json|```/gi, "").trim();
-    return JSON.parse(jsonString);
-  } catch (err) {
-    console.error("[CareerSearchAI] Failed to generate content:", err.message);
-    throw new Error("GENERATION_FAILED");
-  }
-}
+const careersData = require('../data/careers');
 
 /**
  * GET /api/career-search/:query
@@ -59,30 +7,46 @@ exports.getCareerSearchData = async (req, res) => {
   try {
     const query = req.params.query.toLowerCase().trim();
     
-    console.log(`[CareerSearch] Initiating dynamic generation for: "${query}"`);
+    // Normalize query matching (exact match or partial matching like "software")
+    const matchedKey = Object.keys(careersData).find(
+      key => key === query || key.includes(query) || query.includes(key)
+    );
+
+    if (matchedKey) {
+      console.log(`[CareerSearch - Static] Match found for: "${query}" -> ${matchedKey}`);
+      return res.json({
+        success: true,
+        title: careersData[matchedKey].title,
+        ...careersData[matchedKey]
+      });
+    }
+
+    console.log(`[CareerSearch - Static] No match found for: "${query}". Returning fallback.`);
     
-    // 1. Force AI Generation for ALL queries
-    const aiData = await generateAIPatway(query);
-    
+    // Fallback exactly mapping to the expected fields with a helpful message
     return res.json({
       success: true,
       title: query.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-      ...aiData
+      domain: "General Career Domain",
+      overview: "We don't have a detailed profile for this specific role yet. A career in this space typically involves specialized training and dedication. Explore our listed domains like Web Development, Data Science, or UI/UX Design to find structured pathways.",
+      skills: ["Problem Solving", "Adaptability", "Communication", "Continuous Learning"],
+      tools: ["Industry Standard Software", "Communication Tools"],
+      opportunities: [
+        "Opportunities widely vary based on location and specific industry focus.",
+        "Consider reviewing roles in our predefined 'Explore Domains' directory."
+      ],
+      roadmap: [
+        { step: "Discovery", desc: "Identify key professionals in this space and research their entry paths." },
+        { step: "Education", desc: "Seek formal education or specialized certifications." },
+        { step: "Networking", desc: "Join industry groups and find mentors to guide your entry." }
+      ]
     });
 
   } catch (error) {
     console.error("[CareerSearchController] Error:", error.message);
-    
-    if (error.message === "API_KEY_MISSING") {
-      return res.status(503).json({
-        success: false,
-        message: "Dynamic career generation requires the GEMINI_API_KEY environment variable. Please configure it to explore this profession."
-      });
-    }
-
     res.status(500).json({
       success: false,
-      message: "An error occurred while generating data for this career. Please try again."
+      message: "An error occurred while fetching career data."
     });
   }
 };
