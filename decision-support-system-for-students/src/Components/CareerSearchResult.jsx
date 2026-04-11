@@ -95,9 +95,7 @@ const CareerSearchResult = ({ query, onBack }) => {
             <h2 className="mb-0 gradient-text-primary h5 fw-bold">{content.title}</h2>
             <span className="badge bg-soft-primary text-primary rounded-pill" style={{ fontSize: '0.7rem' }}>{content.domain}</span>
           </div>
-          <div className="search-pill d-none d-md-flex align-items-center gap-2 border rounded-pill px-3 py-1 text-muted small bg-white shadow-sm">
-            <Search size={12} /> {query}
-          </div>
+          <div className="d-none d-md-block" style={{ width: '120px' }}></div>
         </div>
       </header>
 
@@ -204,6 +202,23 @@ const CareerSearchResult = ({ query, onBack }) => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* External Resource Block */}
+          <div className="col-12">
+            <div className="text-center p-4 p-md-5 border-0 rounded-4 bg-white shadow-sm mb-4">
+              <p className="text-secondary mb-4 fw-medium" style={{ fontSize: '1.05rem' }}>
+                For detailed information about this career, visit a trusted career resource.
+              </p>
+              <a 
+                href={`https://www.careerexplorer.com/careers/${query.toLowerCase().replace(/\s+/g, '-')}/`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-sm"
+              >
+                Explore Full Career Details
+              </a>
             </div>
           </div>
 
