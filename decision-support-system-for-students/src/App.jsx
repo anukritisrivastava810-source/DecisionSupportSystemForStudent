@@ -74,7 +74,7 @@ function Navbar({ page, setPage, isLoggedIn, onLogout, user }) {
       </div>
       {isLoggedIn && (
         <>
-          <div className={`navbar-links${open ? " open" : ""}`}>
+          <div className={`navbar-links${open ? " open mobile-menu" : ""}`}>
             {links.map(([label, id]) => (
               <button key={id} className={`nav-link${page === id ? " active" : ""}`}
                 onClick={() => { setPage(id); setOpen(false); }}>{label}</button>
@@ -2247,7 +2247,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
         </div>
 
         <div className="flex-between mb-8" style={{ background: "white", padding: "16px 24px", borderRadius: "16px", boxShadow: "var(--shadow)", border: "1px solid var(--border-light)" }}>
-          <div className="type-toggle">
+          <div className="type-toggle tab-container">
             <button className={`type-btn${type === "competition" ? " active" : ""}`} onClick={() => switchType("competition")}>🏅 Competitions</button>
             <button className={`type-btn${type === "internship" ? " active" : ""}`} onClick={() => switchType("internship")}><Briefcase size={18} style={{ marginRight: "6px" }} /> Internships</button>
           </div>
