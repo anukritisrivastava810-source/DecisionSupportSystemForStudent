@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/DecisionSupportSystemForStudent/static/css/main.1d2f4d07.css",
-    "main.js": "/DecisionSupportSystemForStudent/static/js/main.5c8478f7.js",
+    "main.css": "/DecisionSupportSystemForStudent/static/css/main.08830740.css",
+    "main.js": "/DecisionSupportSystemForStudent/static/js/main.915101e6.js",
     "static/js/453.dc8be284.chunk.js": "/DecisionSupportSystemForStudent/static/js/453.dc8be284.chunk.js",
     "index.html": "/DecisionSupportSystemForStudent/index.html",
-    "main.1d2f4d07.css.map": "/DecisionSupportSystemForStudent/static/css/main.1d2f4d07.css.map",
-    "main.5c8478f7.js.map": "/DecisionSupportSystemForStudent/static/js/main.5c8478f7.js.map",
+    "main.08830740.css.map": "/DecisionSupportSystemForStudent/static/css/main.08830740.css.map",
+    "main.915101e6.js.map": "/DecisionSupportSystemForStudent/static/js/main.915101e6.js.map",
     "453.dc8be284.chunk.js.map": "/DecisionSupportSystemForStudent/static/js/453.dc8be284.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.1d2f4d07.css",
-    "static/js/main.5c8478f7.js"
+    "static/css/main.08830740.css",
+    "static/js/main.915101e6.js"
   ]
 }
