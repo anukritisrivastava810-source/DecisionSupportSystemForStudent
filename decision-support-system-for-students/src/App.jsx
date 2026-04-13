@@ -2246,25 +2246,24 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
           <p className="text-muted" style={{ fontSize: "1rem" }}>Discover premium internships and competitions tailored for your career growth.</p>
         </div>
 
-        <div className="flex-between mb-8" style={{ background: "white", padding: "12px 24px", borderRadius: "16px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)", border: "1px solid var(--border)" }}>
-          <div className="type-toggle" style={{ border: "none", background: "var(--bg-section)", padding: 4, borderRadius: 12 }}>
-            <button className={`type-btn${type === "competition" ? " active" : ""}`} onClick={() => switchType("competition")} style={{ borderRadius: 10 }}>🏅 Competitions</button>
-            <button className={`type-btn${type === "internship" ? " active" : ""}`} onClick={() => switchType("internship")} style={{ borderRadius: 10 }}><Briefcase size={18} style={{ marginRight: "6px" }} /> Internships</button>
+        <div className="flex-between mb-8" style={{ background: "white", padding: "16px 24px", borderRadius: "16px", boxShadow: "var(--shadow)", border: "1px solid var(--border-light)" }}>
+          <div className="type-toggle">
+            <button className={`type-btn${type === "competition" ? " active" : ""}`} onClick={() => switchType("competition")}>🏅 Competitions</button>
+            <button className={`type-btn${type === "internship" ? " active" : ""}`} onClick={() => switchType("internship")}><Briefcase size={18} style={{ marginRight: "6px" }} /> Internships</button>
           </div>
-          <span style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-muted)" }}>{results.length} results found</span>
         </div>
 
-        <div className="card mb-8" style={{ border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }}>
-          <div className="card-body" style={{ padding: 32 }}>
-            <div className="search-bar" style={{ gap: 16 }}>
+        <div className="card mb-8">
+          <div className="card-body">
+            <div className="search-bar" style={{ gap: 12 }}>
               <div style={{ flex: 1, position: "relative" }}>
-                <input className="form-input" style={{ width: "100%", paddingLeft: 44, borderRadius: 12, border: "1.5px solid #E2E8F0", height: 48 }}
+                <input className="form-input" style={{ width: "100%", paddingLeft: 44, background: "#F9FAFB", border: "1px solid #E2E8F0" }}
                   placeholder={`Search for ${type}s (e.g. Google, AI, Web Dev...)`}
                   value={query} onChange={e => handleQueryChange(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && doSearch()} />
-                <span style={{ position: "absolute", left: 16, top: 13, fontSize: "1.2rem", opacity: 0.5 }}><Search size={18} style={{ marginRight: "6px" }} /></span>
+                <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", opacity: 0.5 }}><Search size={18} /></span>
               </div>
-              <button className="btn btn-primary" style={{ padding: "0 32px", height: 48, borderRadius: 12 }} onClick={() => doSearch()}>Search</button>
+              <button className="btn btn-primary" onClick={() => doSearch()}>Search</button>
             </div>
 
             {type === "internship" && (
@@ -2283,9 +2282,9 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
         </div>
 
 
-        <div className="card-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))", gap: 24 }}>
+        <div className="card-grid" style={{ gap: 24 }}>
           {results.length === 0 && (
-            <div className="card text-center" style={{ gridColumn: "1 / -1", padding: "64px 24px", background: "white", borderRadius: 24 }}>
+            <div className="card text-center" style={{ gridColumn: "1 / -1", padding: "64px 24px" }}>
               <div style={{ fontSize: "4rem", marginBottom: 16 }}>🔎</div>
               <h3 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: 8 }}>No matching opportunities</h3>
               <p className="text-muted">We couldn't find anything matching your current filters. Try adjusting them!</p>
@@ -2295,7 +2294,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
           {results.map(opp => {
             const status = getStatus(opp.id);
             return (
-              <div key={opp.id} className="opp-card" style={{ display: "flex", flexDirection: "column", height: "100%", borderRadius: 20, transition: "transform 0.2s, box-shadow 0.2s", cursor: "pointer", border: "1.5px solid #F1F5F9" }} onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 24px rgba(0,0,0,0.06)"; }} onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "var(--shadow)"; }}>
+              <div key={opp.id} className="opp-card card" style={{ display: "flex", flexDirection: "column", height: "100%", cursor: "pointer" }}>
                 <div className="opp-card-header" style={{ marginBottom: 16 }}>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {type === "competition" && (

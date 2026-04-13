@@ -76,34 +76,21 @@ function CareerOther({ onSelectGoal, onBack }) {
               <span className="badge badge-blue" style={{ padding: "6px 12px", borderRadius: 8 }}>{DOMAIN_EXPLORATION_MAP.length} paths available</span>
             </div>
 
-            <div className="card-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 24 }}>
+            <div className="card-grid mobile-grid-2" style={{ gap: 24 }}>
               {DOMAIN_EXPLORATION_MAP.map((item, i) => (
                 <div 
                   key={item.title}
                   id={`domain-option-${i}`}
                   onClick={() => onSelectGoal(item.title)}
-                  className="domain-card"
+                  className="domain-card card"
                   style={{ 
                     display: "flex", 
                     flexDirection: "column", 
-                    padding: 32, 
-                    background: "white",
-                    borderRadius: 24, 
-                    border: "1.5px solid #F1F5F9",
-                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                     cursor: "pointer",
-                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.01)"
+                    height: "100%"
                   }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.transform = "translateY(-8px)";
-                    e.currentTarget.style.boxShadow = "0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.02)";
-                    e.currentTarget.style.borderColor = "var(--primary)";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.01)";
-                    e.currentTarget.style.borderColor = "#F1F5F9";
-                  }}
+                  onMouseEnter={e => e.currentTarget.classList.add('hover')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('hover')}
                 >
                   <div style={{ 
                     width: 56, 
