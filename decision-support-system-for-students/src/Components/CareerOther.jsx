@@ -1,20 +1,13 @@
-import React, { useState } from 'react';
-import { Search, ChevronRight, Layout, ChevronLeft, ArrowRight, Code, Cpu, Shield, Globe, Briefcase, Zap, Rocket } from 'lucide-react';
+import React from 'react';
+import { ChevronRight, Layout, ChevronLeft, ArrowRight, Code, Cpu, Shield, Globe, Briefcase, Zap, Rocket } from 'lucide-react';
 import { DOMAIN_EXPLORATION_MAP } from '../utils/careerGoalMatcher';
 
 /**
  * CareerOther Component (Revamped for Domain discovery)
  * Provides a highly polished discovery experience similar to Opportunities section.
  */
-function CareerOther({ onSearch, onSelectGoal, onBack }) {
-  const [query, setQuery] = useState("");
+function CareerOther({ onSelectGoal, onBack }) {
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const q = query.trim();
-    if (!q) return;
-    onSearch(q);
-  };
 
   const getDomainIcon = (title) => {
     if (title.includes("Web")) return <Globe size={24} />;
@@ -60,30 +53,19 @@ function CareerOther({ onSearch, onSelectGoal, onBack }) {
         </div>
 
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          {/* Opportunities-style Search Bar */}
-          <div className="card mb-12" style={{ border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", borderRadius: 24, overflow: "hidden" }}>
-            <div className="card-body" style={{ padding: 32 }}>
-              <form onSubmit={handleSearch} className="search-bar d-flex gap-3">
-                <div style={{ flex: 1, position: "relative" }}>
-                  <input 
-                    className="form-input" 
-                    style={{ width: "100%", paddingLeft: 48, borderRadius: 12, border: "1.5px solid #E2E8F0", height: 52, fontSize: "1rem" }}
-                    placeholder="Search for domains (e.g. Blockchain, DevOps, UI Designer...)"
-                    value={query} 
-                    onChange={e => setQuery(e.target.value)} 
-                  />
-                  <span style={{ position: "absolute", left: 16, top: 15, opacity: 0.5 }}>
-                    <Search size={22} className="text-primary" />
-                  </span>
-                </div>
-                <button 
-                  type="submit"
-                  className="btn btn-primary d-flex align-items-center gap-2" 
-                  style={{ padding: "0 32px", height: 52, borderRadius: 12, fontWeight: 700 }}
-                >
-                  Search Path <ArrowRight size={18} />
-                </button>
-              </form>
+          {/* External Career Explorer Link */}
+          <div className="card mb-12 text-center" style={{ border: "none", boxShadow: "0 10px 30px rgba(0,0,0,0.04)", borderRadius: 24, overflow: "hidden" }}>
+            <div className="card-body" style={{ padding: "48px 32px" }}>
+              <p style={{ fontSize: "1.1rem", color: "#64748B", marginBottom: "24px", fontWeight: 500 }}>
+                Not sure which domain to choose? Explore detailed career insights on a trusted platform.
+              </p>
+              <button 
+                onClick={() => window.open("https://www.careerexplorer.com/careers/", "_blank")}
+                className="btn btn-primary d-inline-flex align-items-center gap-2" 
+                style={{ padding: "0 40px", height: 56, borderRadius: 14, fontWeight: 700, fontSize: "1.1rem" }}
+              >
+                Explore Careers in Detail <ArrowRight size={20} />
+              </button>
             </div>
           </div>
 

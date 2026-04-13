@@ -323,6 +323,16 @@ export const DOMAIN_EXPLORATION_MAP = [
     route: "domain-detail",
     aliases: ["startup", "founder", "business", "innovation"]
   },
+  {
+    title: "Game Development",
+    route: "domain-detail",
+    aliases: ["game dev", "gaming", "unity", "unreal engine", "game design"]
+  },
+  {
+    title: "Other",
+    route: "domain-detail",
+    aliases: ["custom", "miscellaneous", "specialized"]
+  },
 ];
 
 /**

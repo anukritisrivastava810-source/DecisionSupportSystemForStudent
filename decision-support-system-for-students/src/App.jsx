@@ -14,7 +14,10 @@ import {
   COMP_STATUSES, 
   INTERN_STATUSES, 
   COMP_ALIASES, 
-  MOCK_ACTIVITY 
+  MOCK_ACTIVITY,
+  COMPETITION_URLS,
+  INTERNSHIP_URLS,
+  withUrls,
 } from './data/careerData';
 import Footer from './Components/Footer';
 import Modal from './Components/Modal';
@@ -1132,15 +1135,21 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
       // 1. Domain to Default Career Aspiration mapping
       const domainToDefaultCareerGoal = {
         "Web Development": "Full Stack Developer",
-        "Artificial Intelligence": "AI Engineer",
+        "Artificial Intelligence": "AI/ML Engineer",
         "Data Science": "Data Scientist",
         "Cybersecurity": "Cybersecurity Analyst",
-        "Cloud Computing": "Cloud Engineer",
-        "Mobile App Development": "App Developer",
+        "Cloud Computing": "Cloud Architect",
+        "Mobile Development": "Mobile App Developer",
+        "Mobile App Development": "Mobile App Developer",
         "Game Development": "Game Developer",
         "DevOps & Infrastructure": "DevOps Engineer",
+        "DevOps": "DevOps Engineer",
         "UI/UX Design": "UI/UX Designer",
-        "Blockchain": "Blockchain Developer"
+        "Blockchain": "Blockchain Developer",
+        "Product Management": "Product Manager",
+        "Research": "Researcher",
+        "Entrepreneurship": "Entrepreneur",
+        "Other": "Custom Career Path"
       };
 
       // 2. Fetch Logic: Precise role mapping prioritizing careerAspiration
@@ -1194,7 +1203,30 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
       } catch (err) {
         console.error("[CareerGuide] Fetch error:", err.response?.data?.message || err.message);
         if (!cancelled) {
-          setError(err.response?.data?.message || "Could not find a specific guide for your goal, but check the general paths.");
+          // Dynamic Fallback Content for "Other" or unseeded domains
+          const defaultGuide = {
+            goalKeyword: backendCareerGoal || "Custom Career Path",
+            overview: `You've chosen to explore a unique track in ${backendCareerGoal || 'Tech'}! While we don't have a pre-configured, highly specialized roadmap for this exact role yet, the industry heavily values adaptable problem solvers. Focus on building foundational concepts, creating a compelling portfolio, and engaging with professional communities.`,
+            requiredSkills: ["Problem Solving", "Communication", "Critical Thinking", "Adaptability", "Project Management"],
+            requiredHoursPerWeek: 15,
+            steps: [
+              { stepNumber: 1, title: 'Explore the Fundamentals', description: 'Start by researching the core concepts, industry trends, and fundamental skills required for this role.' },
+              { stepNumber: 2, title: 'Learn the Essential Tools', description: 'Identify top tools or methodologies used by professionals in this field and begin learning them through tutorials.' },
+              { stepNumber: 3, title: 'Build a Proof of Concept', description: 'Create a small project, case study, or thesis that demonstrates your understanding of the domain.' },
+              { stepNumber: 4, title: 'Connect with Experts', description: 'Reach out to professionals on LinkedIn or specialized communities to gather insights and seek mentorship.' },
+              { stepNumber: 5, title: 'Refine and Specialize', description: 'Based on your initial exploration, pick a specific niche within this path and focus deeply on mastering it.' },
+            ],
+            flowchart: [
+              { id: 'start', label: 'Start Your Journey', type: 'start', nextIds: ['s1'] },
+              { id: 's1', label: 'Research Fundamentals', type: 'step', nextIds: ['s2'] },
+              { id: 's2', label: 'Learn Core Tools', type: 'step', nextIds: ['s3'] },
+              { id: 's3', label: 'Build PoC / Project', type: 'step', nextIds: ['s4'] },
+              { id: 's4', label: 'Network & Connect', type: 'step', nextIds: ['s5'] },
+              { id: 's5', label: 'Refine & Specialize', type: 'step', nextIds: ['end'] },
+              { id: 'end', label: backendCareerGoal || 'Your Target Career', type: 'end', nextIds: [] },
+            ]
+          };
+          setGuide(defaultGuide);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -1982,7 +2014,9 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
   const [sortBy, setSortBy] = useState("Latest");
   const [showAllFilters, setShowAllFilters] = useState(false);
 
-  const pool = type === "competition" ? MOCK_COMPETITIONS : MOCK_INTERNSHIPS;
+  const pool = type === "competition"
+    ? withUrls(MOCK_COMPETITIONS, COMPETITION_URLS)
+    : withUrls(MOCK_INTERNSHIPS, INTERNSHIP_URLS);
 
   const performSearch = (q = query, currentPool = pool) => {
     const raw = q.toLowerCase().trim();
@@ -2274,8 +2308,24 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
                   {status && <StatusBadge status={status} />}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div className="opp-title" style={{ fontSize: "1.1rem", lineHeight: 1.4, marginBottom: 6 }}>{opp.title}</div>
-                  <div style={{ fontSize: "0.85rem", color: "var(--primary)", fontWeight: 700, marginBottom: 12 }}>{opp.org}</div>
+                  <div
+                    className="opp-title"
+                    style={{ fontSize: "1.1rem", lineHeight: 1.4, marginBottom: 6, cursor: opp.url ? "pointer" : "default" }}
+                    onClick={() => opp.url && window.open(opp.url, "_blank", "noopener,noreferrer")}
+                    title={opp.url ? `Open ${opp.title}` : undefined}
+                  >{opp.title}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <span style={{ fontSize: "0.85rem", color: "var(--primary)", fontWeight: 700 }}>{opp.org}</span>
+                    {opp.url && (
+                      <a
+                        href={opp.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        style={{ fontSize: "0.75rem", color: "var(--primary)", fontWeight: 600, textDecoration: "none", border: "1px solid var(--primary)", borderRadius: 6, padding: "2px 8px", opacity: 0.85, whiteSpace: "nowrap" }}
+                      >Visit Site →</a>
+                    )}
+                  </div>
                   <div className="opp-desc" style={{ fontSize: "0.88rem", lineHeight: 1.6, color: "#64748B" }}>{opp.desc}</div>
                 </div>
 
@@ -2296,7 +2346,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
                 </div>
 
                 <div className="divider" style={{ margin: "16px 0" }} />
-                <div className="form-group">
+                <div className="form-group" onClick={e => e.stopPropagation()}>
                   <select className="form-input" style={{ borderRadius: 10, background: "#F8FAFC", fontSize: "0.85rem", fontWeight: 600 }} value={status || ""} onChange={e => setStatus(opp.id, e.target.value)}>
                     <option value="">Update Status</option>
                     {statuses.map(s => <option key={s}>{s}</option>)}
@@ -3349,11 +3399,6 @@ export default function App() {
       )}
       {page === "career-other" && (
         <CareerOther
-          onSearch={(q) => {
-            const match = findCareerMatch(q);
-            if (match) setPage(match.route);
-            else setPage("career-search:" + q);
-          }}
           onSelectGoal={(goal) => {
             const match = findCareerMatch(goal);
             if (match) {

@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
+const { seedCatalog } = require('./services/opportunityFetcher');
 
 dotenv.config();
 
@@ -60,11 +61,15 @@ async function startServer() {
     await connectDB();
     console.log('[Server] 🔌 Database established');
 
+    // Seed global opportunity catalog (idempotent — safe on every boot)
+    seedCatalog().catch(err => console.error('[Catalog] Seed error (non-fatal):', err.message));
+
     // 2. Load Routes
     app.use('/api/auth', require('./routes/auth'));
     app.use('/api/skills', require('./routes/skills'));
     app.use('/api/goals', require('./routes/goals'));
     app.use('/api/opportunities', require('./routes/opportunities'));
+    app.use('/api/catalog', require('./routes/catalog'));
     app.use('/api/history', require('./routes/history'));
     app.use('/api/dashboard', require('./routes/dashboard'));
     app.use('/api/profile', require('./routes/profile'));
