@@ -2294,7 +2294,7 @@ function OpportunitiesPage({ opportunities, setOpportunities, addActivity, addSe
           {results.map(opp => {
             const status = getStatus(opp.id);
             return (
-              <div key={opp.id} className="opp-card card" style={{ display: "flex", flexDirection: "column", height: "100%", cursor: "pointer" }}>
+              <div key={opp.id} className="opp-card card" style={{ display: "flex", flexDirection: "column", height: "auto", cursor: "pointer" }}>
                 <div className="opp-card-header" style={{ marginBottom: 16 }}>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {type === "competition" && (
