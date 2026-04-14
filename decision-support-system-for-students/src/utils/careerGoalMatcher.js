@@ -256,14 +256,6 @@ export const CAREER_GOAL_MAP = [
       "resume building", "build cv", "resume tips"
     ]
   },
-  {
-    title: "My progress",
-    route: "dashboard",
-    aliases: [
-      "progress", "track progress", "my stats",
-      "analytics", "dashboard", "performance"
-    ]
-  },
 ];
 
 /** @type {CareerGoalEntry[]} */
@@ -327,11 +319,6 @@ export const DOMAIN_EXPLORATION_MAP = [
     title: "Game Development",
     route: "domain-detail",
     aliases: ["game dev", "gaming", "unity", "unreal engine", "game design"]
-  },
-  {
-    title: "Other",
-    route: "domain-detail",
-    aliases: ["custom", "miscellaneous", "specialized"]
   },
 ];
 

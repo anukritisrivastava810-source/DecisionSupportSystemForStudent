@@ -23,6 +23,7 @@ import Footer from './Components/Footer';
 import Modal from './Components/Modal';
 import CareerOther from './Components/CareerOther';
 import CareerSearchResult from './Components/CareerSearchResult';
+import ExploreCareers from './Components/ExploreCareers';
 // ==================== STYLES ====================
 
 
@@ -369,7 +370,7 @@ function SignUpField({ label, name, type = "text", placeholder = "", opts = null
 
 
 // ==================== SIGNUP PAGE ====================
-function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
+function SignUpPage({ existing, onSave, onCancel, onGoExplore }) {
   const isGoogleUser = existing?.authProvider === 'google';
 
   const blank = {
@@ -384,6 +385,8 @@ function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
       return {
         ...existing,
         skills: Array.isArray(existing.skills) ? existing.skills.join(", ") : (existing.skills || ""),
+        careerGoal: existing.careerGoal === "Other" ? "Software Engineer" : existing.careerGoal,
+        primaryDomain: existing.primaryDomain === "Other" ? "Web Development" : existing.primaryDomain,
       };
     }
     return blank;
@@ -393,10 +396,6 @@ function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
   const [modal, setModal] = useState(false);
 
   const set = (k, v) => {
-    if (k === "careerGoal" && v === "Other" && onGoCareerOther) {
-      onGoCareerOther();
-      return;
-    }
     setForm(f => ({ ...f, [k]: v }));
   };
 
@@ -492,7 +491,7 @@ function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
 
                 {/* Row 4: Primary Domain + Skill Level */}
                 <div className="grid-2">
-                  <SignUpField label="Primary Domain" name="primaryDomain" opts={["Web Development", "Artificial Intelligence", "Data Science", "Cybersecurity", "Cloud Computing", "Mobile Development", "Game Development", "Other"]} form={form} errors={errors} set={set} />
+                  <SignUpField label="Primary Domain" name="primaryDomain" opts={["Web Development", "Artificial Intelligence", "Data Science", "Cybersecurity", "Cloud Computing", "Mobile Development", "Game Development"]} form={form} errors={errors} set={set} />
                   <SignUpField label="Current Skill Level" name="skillLevel" opts={["Beginner", "Intermediate", "Advanced"]} form={form} errors={errors} set={set} />
                 </div>
 
@@ -500,10 +499,7 @@ function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
                 <SignUpField
                   label="Career Goal"
                   name="careerGoal"
-                  opts={[
-                    ...CAREER_GOAL_MAP.map(goal => goal.title),
-                    "Other"
-                  ]}
+                  opts={CAREER_GOAL_MAP.map(goal => goal.title)}
                   form={form} errors={errors} set={set}
                 />
 
@@ -599,7 +595,8 @@ function HomePage({ user }) {
 // ==================== PERSONALIZED GUIDE LOGIC ====================
 function getPersonalizedGuide(user) {
   const aspiration = user?.careerAspiration || "Software Engineer";
-  const goal = user?.careerGoal || "Improve coding skills";
+  let goal = user?.careerGoal || "Improve coding skills";
+  if (goal === "Other") goal = "Improve coding skills";
   const domain = user?.primaryDomain || "Web Development";
   const level = user?.skillLevel || "Beginner";
 
@@ -682,11 +679,6 @@ function DashboardPage({ user, learningSkills, opportunities, setPage, setPrevPa
                   <button 
                     className="know-more-link" 
                     onClick={() => {
-                      if (user.primaryDomain === "Other") {
-                        setPrevPage("dashboard");
-                        setPage("career-other");
-                        return;
-                      }
                       const match = findCareerMatch(user.primaryDomain);
                       setPrevPage("dashboard");
                       if (match) {
@@ -1148,8 +1140,7 @@ function CareerGuidePage({ user, learningSkills, onBack, backendOnline }) {
         "Blockchain": "Blockchain Developer",
         "Product Management": "Product Manager",
         "Research": "Researcher",
-        "Entrepreneurship": "Entrepreneur",
-        "Other": "Custom Career Path"
+        "Entrepreneurship": "Entrepreneur"
       };
 
       // 2. Fetch Logic: Precise role mapping prioritizing careerAspiration
@@ -3263,7 +3254,7 @@ export default function App() {
     const userEmail = finalUser?.email;
     if (userRole === 'admin' || userEmail === 'anukritisrivastava810@gmail.com') {
       setPage("admin");
-    } else if (page === "welcome" || page === "signup" || page === "onboarding") {
+    } else if (page === "welcome" || page === "signup" || page === "onboarding" || page === "profile") {
       setPage("dashboard");
     }
   };
@@ -3313,7 +3304,6 @@ export default function App() {
           existing={storedUser}
           onSave={handleSaveUser}
           onCancel={() => setPage("welcome")}
-          onGoCareerOther={() => { setPrevPage("signup"); setPage("career-other"); }}
           backendOnline={backendOnline}
         />
       </>
@@ -3339,7 +3329,7 @@ export default function App() {
       <>
 
         <Navbar page="profile" setPage={setPage} isLoggedIn={isLoggedIn} user={storedUser} />
-        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} onGoCareerOther={() => { setIsEditing(false); setPrevPage("profile"); setPage("career-other"); }} backendOnline={backendOnline} />
+        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} backendOnline={backendOnline} />
       </>
     );
   }
@@ -3371,7 +3361,7 @@ export default function App() {
         </div>
       )}
       <Navbar {...navProps} />
-      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} onGoCareerOther={() => { setPrevPage("onboarding"); setPage("career-other"); }} />}
+      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} />}
       {page === "home" && <HomePage user={storedUser} />}
       {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} setPage={setPage} setPrevPage={setPrevPage} />}
       {page === "admin" && (
@@ -3409,6 +3399,9 @@ export default function App() {
           }}
           onBack={() => setPage(prevPage || "dashboard")}
         />
+      )}
+      {page === "explore-careers" && (
+        <ExploreCareers onBack={() => setPage("dashboard")} />
       )}
       {page?.startsWith("career-search:") && (
         <CareerSearchResult
