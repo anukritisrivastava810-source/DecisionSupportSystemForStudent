@@ -23,7 +23,6 @@ import Footer from './Components/Footer';
 import Modal from './Components/Modal';
 import CareerOther from './Components/CareerOther';
 import CareerSearchResult from './Components/CareerSearchResult';
-import ExploreCareers from './Components/ExploreCareers';
 // ==================== STYLES ====================
 
 
@@ -370,7 +369,7 @@ function SignUpField({ label, name, type = "text", placeholder = "", opts = null
 
 
 // ==================== SIGNUP PAGE ====================
-function SignUpPage({ existing, onSave, onCancel, onGoExplore }) {
+function SignUpPage({ existing, onSave, onCancel, onGoCareerOther }) {
   const isGoogleUser = existing?.authProvider === 'google';
 
   const blank = {
@@ -385,7 +384,6 @@ function SignUpPage({ existing, onSave, onCancel, onGoExplore }) {
       return {
         ...existing,
         skills: Array.isArray(existing.skills) ? existing.skills.join(", ") : (existing.skills || ""),
-        careerGoal: existing.careerGoal === "Other" ? "Software Engineer" : existing.careerGoal,
       };
     }
     return blank;
@@ -395,6 +393,10 @@ function SignUpPage({ existing, onSave, onCancel, onGoExplore }) {
   const [modal, setModal] = useState(false);
 
   const set = (k, v) => {
+    if (k === "careerGoal" && v === "Other" && onGoCareerOther) {
+      onGoCareerOther();
+      return;
+    }
     setForm(f => ({ ...f, [k]: v }));
   };
 
@@ -498,7 +500,10 @@ function SignUpPage({ existing, onSave, onCancel, onGoExplore }) {
                 <SignUpField
                   label="Career Goal"
                   name="careerGoal"
-                  opts={CAREER_GOAL_MAP.map(goal => goal.title)}
+                  opts={[
+                    ...CAREER_GOAL_MAP.map(goal => goal.title),
+                    "Other"
+                  ]}
                   form={form} errors={errors} set={set}
                 />
 
@@ -594,8 +599,7 @@ function HomePage({ user }) {
 // ==================== PERSONALIZED GUIDE LOGIC ====================
 function getPersonalizedGuide(user) {
   const aspiration = user?.careerAspiration || "Software Engineer";
-  let goal = user?.careerGoal || "Improve coding skills";
-  if (goal === "Other") goal = "Improve coding skills";
+  const goal = user?.careerGoal || "Improve coding skills";
   const domain = user?.primaryDomain || "Web Development";
   const level = user?.skillLevel || "Beginner";
 
@@ -678,6 +682,11 @@ function DashboardPage({ user, learningSkills, opportunities, setPage, setPrevPa
                   <button 
                     className="know-more-link" 
                     onClick={() => {
+                      if (user.primaryDomain === "Other") {
+                        setPrevPage("dashboard");
+                        setPage("career-other");
+                        return;
+                      }
                       const match = findCareerMatch(user.primaryDomain);
                       setPrevPage("dashboard");
                       if (match) {
@@ -3253,7 +3262,7 @@ export default function App() {
     const userEmail = finalUser?.email;
     if (userRole === 'admin' || userEmail === 'anukritisrivastava810@gmail.com') {
       setPage("admin");
-    } else if (page === "welcome" || page === "signup" || page === "onboarding" || page === "profile") {
+    } else if (page === "welcome" || page === "signup" || page === "onboarding") {
       setPage("dashboard");
     }
   };
@@ -3303,6 +3312,7 @@ export default function App() {
           existing={storedUser}
           onSave={handleSaveUser}
           onCancel={() => setPage("welcome")}
+          onGoCareerOther={() => { setPrevPage("signup"); setPage("career-other"); }}
           backendOnline={backendOnline}
         />
       </>
@@ -3328,7 +3338,7 @@ export default function App() {
       <>
 
         <Navbar page="profile" setPage={setPage} isLoggedIn={isLoggedIn} user={storedUser} />
-        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} backendOnline={backendOnline} />
+        <SignUpPage existing={storedUser} onSave={handleSaveUser} onCancel={() => setIsEditing(false)} onGoCareerOther={() => { setIsEditing(false); setPrevPage("profile"); setPage("career-other"); }} backendOnline={backendOnline} />
       </>
     );
   }
@@ -3360,7 +3370,7 @@ export default function App() {
         </div>
       )}
       <Navbar {...navProps} />
-      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} />}
+      {page === "onboarding" && <SignUpPage existing={storedUser} onSave={handleSaveUser} onGoCareerOther={() => { setPrevPage("onboarding"); setPage("career-other"); }} />}
       {page === "home" && <HomePage user={storedUser} />}
       {page === "dashboard" && <DashboardPage user={storedUser} learningSkills={learningSkills} opportunities={opportunities} setPage={setPage} setPrevPage={setPrevPage} />}
       {page === "admin" && (
@@ -3398,9 +3408,6 @@ export default function App() {
           }}
           onBack={() => setPage(prevPage || "dashboard")}
         />
-      )}
-      {page === "explore-careers" && (
-        <ExploreCareers onBack={() => setPage("dashboard")} />
       )}
       {page?.startsWith("career-search:") && (
         <CareerSearchResult
