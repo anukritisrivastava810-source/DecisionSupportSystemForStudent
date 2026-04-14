@@ -386,7 +386,6 @@ function SignUpPage({ existing, onSave, onCancel, onGoExplore }) {
         ...existing,
         skills: Array.isArray(existing.skills) ? existing.skills.join(", ") : (existing.skills || ""),
         careerGoal: existing.careerGoal === "Other" ? "Software Engineer" : existing.careerGoal,
-        primaryDomain: existing.primaryDomain === "Other" ? "Web Development" : existing.primaryDomain,
       };
     }
     return blank;
@@ -491,7 +490,7 @@ function SignUpPage({ existing, onSave, onCancel, onGoExplore }) {
 
                 {/* Row 4: Primary Domain + Skill Level */}
                 <div className="grid-2">
-                  <SignUpField label="Primary Domain" name="primaryDomain" opts={["Web Development", "Artificial Intelligence", "Data Science", "Cybersecurity", "Cloud Computing", "Mobile Development", "Game Development"]} form={form} errors={errors} set={set} />
+                  <SignUpField label="Primary Domain" name="primaryDomain" opts={["Web Development", "Artificial Intelligence", "Data Science", "Cybersecurity", "Cloud Computing", "Mobile Development", "Game Development", "Other"]} form={form} errors={errors} set={set} />
                   <SignUpField label="Current Skill Level" name="skillLevel" opts={["Beginner", "Intermediate", "Advanced"]} form={form} errors={errors} set={set} />
                 </div>
 
